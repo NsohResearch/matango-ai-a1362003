@@ -1,1 +1,7 @@
 project_id = "bzrlgcxdintnwqycjkpt"
+
+[functions.ai-generate]
+verify_jwt = false
+
+[functions.kah-chat]
+verify_jwt = false
