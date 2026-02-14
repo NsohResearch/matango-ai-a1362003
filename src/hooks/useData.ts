@@ -214,8 +214,9 @@ export function useCreateVideoJob() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (values: { job_type: string; script_id?: string; influencer_id?: string; lip_sync?: boolean }) => {
-      const { data, error } = await supabase.from("video_jobs").insert({ ...values, user_id: user!.id, status: "pending" }).select().single();
+    mutationFn: async (values: { job_type: string; script_id?: string; influencer_id?: string; lip_sync?: boolean; input_refs?: Record<string, unknown> }) => {
+      const { input_refs, ...rest } = values;
+      const { data, error } = await supabase.from("video_jobs").insert({ ...rest, input_refs: input_refs as any, user_id: user!.id, status: "pending" }).select().single();
       if (error) throw error;
       return data;
     },
