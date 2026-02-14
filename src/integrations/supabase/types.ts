@@ -163,6 +163,41 @@ export type Database = {
           },
         ]
       }
+      account_lifecycle_events: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          org_id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          org_id: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_lifecycle_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -771,6 +806,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "custom_email_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deletion_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_error: string | null
+          org_id: string
+          scheduled_for: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          org_id: string
+          scheduled_for: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          org_id?: string
+          scheduled_for?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deletion_jobs_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1405,39 +1478,63 @@ export type Database = {
       }
       organizations: {
         Row: {
+          account_status: string
           active_brand_id: string | null
           assets_limit: number
+          billing_status: string
           created_at: string
+          deleted_by_user_id: string | null
+          hard_delete_at: string | null
           id: string
           max_brands: number
           name: string
           owner_id: string
+          paused_at: string | null
+          paused_reason: string | null
           plan: string
+          restored_at: string | null
           slug: string
+          soft_deleted_at: string | null
           updated_at: string
         }
         Insert: {
+          account_status?: string
           active_brand_id?: string | null
           assets_limit?: number
+          billing_status?: string
           created_at?: string
+          deleted_by_user_id?: string | null
+          hard_delete_at?: string | null
           id?: string
           max_brands?: number
           name: string
           owner_id: string
+          paused_at?: string | null
+          paused_reason?: string | null
           plan?: string
+          restored_at?: string | null
           slug: string
+          soft_deleted_at?: string | null
           updated_at?: string
         }
         Update: {
+          account_status?: string
           active_brand_id?: string | null
           assets_limit?: number
+          billing_status?: string
           created_at?: string
+          deleted_by_user_id?: string | null
+          hard_delete_at?: string | null
           id?: string
           max_brands?: number
           name?: string
           owner_id?: string
+          paused_at?: string | null
+          paused_reason?: string | null
           plan?: string
+          restored_at?: string | null
           slug?: string
+          soft_deleted_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2100,7 +2197,17 @@ export type Database = {
       }
     }
     Enums: {
+      account_status: "active" | "paused" | "soft_deleted"
       app_role: "super_admin" | "admin" | "user" | "team_member" | "read_only"
+      billing_status: "active" | "billing_stopped"
+      lifecycle_action:
+        | "pause"
+        | "unpause"
+        | "stop_billing"
+        | "downgrade"
+        | "soft_delete"
+        | "restore"
+        | "hard_delete"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2228,7 +2335,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_status: ["active", "paused", "soft_deleted"],
       app_role: ["super_admin", "admin", "user", "team_member", "read_only"],
+      billing_status: ["active", "billing_stopped"],
+      lifecycle_action: [
+        "pause",
+        "unpause",
+        "stop_billing",
+        "downgrade",
+        "soft_delete",
+        "restore",
+        "hard_delete",
+      ],
     },
   },
 } as const

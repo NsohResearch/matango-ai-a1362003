@@ -44,3 +44,6 @@ export const gdprProcess = (action: string, request_id?: string) =>
 
 export const analyticsSeed = (action: string) =>
   callEdgeFunction("analytics-seed", { action });
+
+export const accountLifecycle = (action: string, params?: Record<string, unknown>) =>
+  callEdgeFunction("account-lifecycle", { action, ...params });
