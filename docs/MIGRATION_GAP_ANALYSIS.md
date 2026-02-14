@@ -309,6 +309,20 @@ Tables needed (grouped by domain):
 - [ ] Forward/back navigation between stages
 - [ ] Stage completion indicators
 
+#### 31. i18n Multi-Language Support
+- [ ] Install and configure i18next + react-i18next
+- [ ] Create translation files for 9 languages: English, Español, Français, Deutsch, Português, Kiswahili, العربية, 日本語, हिन्दी
+- [ ] Language switcher component in navbar (with country flags)
+- [ ] Extract all UI strings to translation keys
+- [ ] RTL support for Arabic
+- [ ] Persist language preference (localStorage + user profile)
+- [ ] Translate landing page, auth, dashboard, and all app pages
+
+#### 32. LinkedIn & GitHub OAuth
+- [ ] LinkedIn OAuth (pending Lovable Cloud support)
+- [ ] GitHub OAuth (pending Lovable Cloud support)
+- [ ] Note: Currently only Google OAuth is supported on Lovable Cloud
+
 ---
 
 ### Edge Functions Needed
