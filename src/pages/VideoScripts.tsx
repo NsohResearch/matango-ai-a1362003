@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { FileText, Plus, Loader2, Play, Clock, Film, Sparkles, X, Zap, Brain, ChevronRight } from "lucide-react";
-import { useVideoScripts, useCreateVideoScript, useBrandBrains, useInfluencers } from "@/hooks/useData";
+import { FileText, Plus, Loader2, Play, Clock, Film, Sparkles, X, Zap, Brain, ChevronRight, Pencil, Trash2, Save } from "lucide-react";
+import { useVideoScripts, useCreateVideoScript, useUpdateVideoScript, useDeleteVideoScript, useBrandBrains, useInfluencers } from "@/hooks/useData";
 import { aiGenerate } from "@/lib/edge-functions";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -42,6 +42,8 @@ const VideoScriptsPage = () => {
   const { data: brands } = useBrandBrains();
   const { data: influencers } = useInfluencers();
   const createScript = useCreateVideoScript();
+  const updateScript = useUpdateVideoScript();
+  const deleteScript = useDeleteVideoScript();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const brandId = searchParams.get("brandId");
@@ -50,6 +52,8 @@ const VideoScriptsPage = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedScript, setGeneratedScript] = useState<any>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ title: string; delivery_notes: string; scenes: any[] }>({ title: "", delivery_notes: "", scenes: [] });
   const [form, setForm] = useState({
     brand_id: brandId || "",
     influencer_id: influencerId || "",
@@ -61,8 +65,6 @@ const VideoScriptsPage = () => {
   });
 
   const creditCost = estimateCredits("script-generate");
-  const activeBrand = brands?.find((b) => b.id === form.brand_id);
-  const activeInfluencer = influencers?.find((i) => i.id === form.influencer_id);
 
   const handleGenerate = async () => {
     if (!form.brand_id) { toast.error("Select a Brand Brain first"); return; }
@@ -106,7 +108,7 @@ const VideoScriptsPage = () => {
   const handleSave = async () => {
     if (!generatedScript) return;
     try {
-      const saved = await createScript.mutateAsync({
+      await createScript.mutateAsync({
         title: generatedScript.title,
         platform: form.platform,
         duration: generatedScript.total_duration_seconds || form.duration,
@@ -119,6 +121,31 @@ const VideoScriptsPage = () => {
     } catch (err: any) {
       toast.error(err.message);
     }
+  };
+
+  const startEdit = (script: any) => {
+    const scenes = Array.isArray(script.scenes) ? script.scenes : [];
+    setEditingId(script.id);
+    setEditForm({
+      title: script.title || "",
+      delivery_notes: script.delivery_notes || "",
+      scenes: scenes.map((s: any) => ({ ...s })),
+    });
+  };
+
+  const handleEditSave = () => {
+    if (!editingId) return;
+    updateScript.mutate(
+      { id: editingId, title: editForm.title, delivery_notes: editForm.delivery_notes, scenes: editForm.scenes },
+      { onSuccess: () => setEditingId(null) }
+    );
+  };
+
+  const updateScene = (index: number, field: string, value: string | number) => {
+    setEditForm((f) => ({
+      ...f,
+      scenes: f.scenes.map((s, i) => i === index ? { ...s, [field]: value } : s),
+    }));
   };
 
   return (
@@ -270,26 +297,105 @@ const VideoScriptsPage = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {scripts.map((s) => {
               const scenes = Array.isArray(s.scenes) ? s.scenes : [];
+              const isEditing = editingId === s.id;
+
               return (
                 <div key={s.id} className="glass-card rounded-xl p-5 hover:border-primary/20 transition-colors group">
                   <div className="flex items-start justify-between mb-3">
                     <Film className="h-5 w-5 text-primary" />
-                    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                      {s.script_type || "custom"}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                        {s.script_type || "custom"}
+                      </span>
+                      <button
+                        onClick={() => isEditing ? setEditingId(null) : startEdit(s)}
+                        className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                        title={isEditing ? "Cancel" : "Edit script"}
+                      >
+                        {isEditing ? <X className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => { if (confirm(`Delete "${s.title}"?`)) deleteScript.mutate(s.id); }}
+                        className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Delete script"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="font-display font-semibold">{s.title || "Untitled Script"}</h3>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    {s.duration && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {s.duration}s</span>}
-                    {s.platform && <span className="capitalize">{s.platform.replace(/_/g, " ")}</span>}
-                    {scenes.length > 0 && <span>{scenes.length} scenes</span>}
-                  </div>
-                  <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => navigate(`/video-studio?scriptId=${s.id}`)}
-                      className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 flex items-center justify-center gap-1">
-                      <Play className="h-3 w-3" /> Send to Video Studio
-                    </button>
-                  </div>
+
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Title</label>
+                        <input value={editForm.title} onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                      </div>
+
+                      {/* Editable scenes */}
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                        {editForm.scenes.map((scene: any, i: number) => (
+                          <div key={i} className="p-3 rounded-lg bg-background border border-border space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-primary">Scene {scene.scene_number || i + 1}</span>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                <input type="number" value={scene.duration_seconds || 0}
+                                  onChange={(e) => updateScene(i, "duration_seconds", parseInt(e.target.value) || 0)}
+                                  className="w-12 rounded border border-border bg-secondary px-1.5 py-0.5 text-xs text-foreground text-center" />
+                                <span className="text-xs text-muted-foreground">s</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground">Dialogue</label>
+                              <textarea value={scene.dialogue || ""} onChange={(e) => updateScene(i, "dialogue", e.target.value)}
+                                className="w-full rounded border border-border bg-secondary px-2 py-1.5 text-xs text-foreground min-h-[40px] focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground">Visual Direction</label>
+                              <input value={scene.visual_direction || ""} onChange={(e) => updateScene(i, "visual_direction", e.target.value)}
+                                className="w-full rounded border border-border bg-secondary px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-muted-foreground">Camera Direction</label>
+                              <input value={scene.camera_direction || ""} onChange={(e) => updateScene(i, "camera_direction", e.target.value)}
+                                className="w-full rounded border border-border bg-secondary px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-1 block">Delivery Notes</label>
+                        <textarea value={editForm.delivery_notes} onChange={(e) => setEditForm((f) => ({ ...f, delivery_notes: e.target.value }))}
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground min-h-[40px] focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                      </div>
+
+                      <div className="flex gap-2 justify-end">
+                        <button onClick={() => setEditingId(null)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                        <button onClick={handleEditSave} disabled={updateScript.isPending || !editForm.title}
+                          className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1">
+                          {updateScript.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="font-display font-semibold">{s.title || "Untitled Script"}</h3>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        {s.duration && <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {s.duration}s</span>}
+                        {s.platform && <span className="capitalize">{s.platform.replace(/_/g, " ")}</span>}
+                        {scenes.length > 0 && <span>{scenes.length} scenes</span>}
+                      </div>
+                      <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => navigate(`/video-studio?scriptId=${s.id}`)}
+                          className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 flex items-center justify-center gap-1">
+                          <Play className="h-3 w-3" /> Send to Video Studio
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })}
