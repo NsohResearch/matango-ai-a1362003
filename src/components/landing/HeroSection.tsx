@@ -70,7 +70,7 @@ const HeroSection = () => {
           alt="Ka'h — AI-Amplified Operator"
           className="relative rounded-3xl w-48 h-48 object-cover object-top mx-auto shadow-2xl ring-1 ring-white/10"
         />
-        <p className="mt-3 text-sm text-gold-400 font-display">Hi, I am Ka'h</p>
+        <p className="mt-3 text-sm text-gold-400 font-display text-center">Hi, I am Ka'h</p>
       </motion.div>
 
       <motion.div
