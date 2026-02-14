@@ -1,34 +1,74 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { ShieldCheck, Users, BarChart3, Flag, ScrollText, Cpu, AlertTriangle, Globe, FileText, Zap, Loader2, Plug } from "lucide-react";
+import { ShieldCheck, Users, BarChart3, Flag, ScrollText, Cpu, AlertTriangle, Globe, FileText, Zap, Loader2, Plug, ArrowLeft, Lock } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useUserRoles } from "@/hooks/useData";
+import { Badge } from "@/components/ui/badge";
+
+// Define which roles can access which admin sub-pages
+// super_admin: full access to everything
+// admin: org-level management (tenants, moderation, leads, audit log, compliance, gdpr)
+// No access for team_member, read_only, user
+const SUPER_ADMIN_ONLY_ROUTES = ["/admin/feature-flags", "/admin/billing", "/admin/system-health", "/admin/integrations"];
 
 const adminNav = [
-  { to: "/admin", icon: BarChart3, label: "Overview" },
-  { to: "/admin/tenants", icon: Users, label: "Tenants" },
-  { to: "/admin/billing", icon: Zap, label: "Billing" },
-  { to: "/admin/feature-flags", icon: Flag, label: "Feature Flags" },
-  { to: "/admin/audit-log", icon: ScrollText, label: "Audit Log" },
-  { to: "/admin/integrations", icon: Plug, label: "Integrations" },
-  { to: "/admin/system-health", icon: Cpu, label: "System Health" },
-  { to: "/admin/moderation", icon: AlertTriangle, label: "Moderation" },
-  { to: "/admin/compliance", icon: ShieldCheck, label: "Compliance" },
-  { to: "/admin/gdpr", icon: FileText, label: "GDPR" },
-  { to: "/admin/leads", icon: Globe, label: "Leads" },
+  { to: "/admin", icon: BarChart3, label: "Overview", superOnly: false },
+  { to: "/admin/tenants", icon: Users, label: "Tenants", superOnly: false },
+  { to: "/admin/billing", icon: Zap, label: "Billing", superOnly: true },
+  { to: "/admin/feature-flags", icon: Flag, label: "Feature Flags", superOnly: true },
+  { to: "/admin/audit-log", icon: ScrollText, label: "Audit Log", superOnly: false },
+  { to: "/admin/integrations", icon: Plug, label: "Integrations", superOnly: true },
+  { to: "/admin/system-health", icon: Cpu, label: "System Health", superOnly: true },
+  { to: "/admin/moderation", icon: AlertTriangle, label: "Moderation", superOnly: false },
+  { to: "/admin/compliance", icon: ShieldCheck, label: "Compliance", superOnly: false },
+  { to: "/admin/gdpr", icon: FileText, label: "GDPR", superOnly: false },
+  { to: "/admin/leads", icon: Globe, label: "Leads", superOnly: false },
 ];
+
+export { SUPER_ADMIN_ONLY_ROUTES };
 
 export const AdminLayout = ({ children, title, description }: { children: React.ReactNode; title: string; description: string }) => {
   const location = useLocation();
+  const { data: roles } = useUserRoles();
+  const isSuperAdmin = roles?.includes("super_admin");
+
   return (
     <DashboardLayout>
       <div className="flex h-full">
-        <div className="w-48 border-r border-border p-3 space-y-1 shrink-0">
-          <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Admin</div>
-          {adminNav.map((item) => (
-            <Link key={item.to} to={item.to}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"}`}>
-              <item.icon className="h-3.5 w-3.5" /> {item.label}
-            </Link>
-          ))}
+        <div className="w-52 border-r border-border p-3 space-y-1 shrink-0 flex flex-col">
+          {/* Back to Dashboard */}
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mb-2"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
+          </Link>
+          <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Operator Console</div>
+          {adminNav.map((item) => {
+            const locked = item.superOnly && !isSuperAdmin;
+            return (
+              <Link
+                key={item.to}
+                to={locked ? "#" : item.to}
+                onClick={locked ? (e) => e.preventDefault() : undefined}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors ${
+                  locked
+                    ? "text-muted-foreground/40 cursor-not-allowed"
+                    : location.pathname === item.to
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <item.icon className="h-3.5 w-3.5" />
+                {item.label}
+                {locked && <Lock className="h-3 w-3 ml-auto" />}
+              </Link>
+            );
+          })}
+          {isSuperAdmin && (
+            <div className="mt-auto pt-3 border-t border-border">
+              <Badge variant="outline" className="text-[10px] text-gold-400 border-gold-400/30">Super Admin</Badge>
+            </div>
+          )}
         </div>
         <div className="flex-1 p-6 lg:p-8 overflow-y-auto">
           <h1 className="font-display text-3xl font-bold mb-1">{title}</h1>

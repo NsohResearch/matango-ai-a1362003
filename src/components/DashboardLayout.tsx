@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, UserCircle, Sparkles, Bell, Settings
+  LayoutDashboard, UserCircle, Sparkles, Bell, Settings, ShieldCheck
 } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
 import SystemProgress from "@/components/system/SystemProgress";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
+import { useUserRoles } from "@/hooks/useData";
 
 const utilItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -14,7 +15,9 @@ const utilItems = [
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { data: roles } = useUserRoles();
   const isSystemPage = SYSTEM_STEPS.some((s) => location.pathname.startsWith(s.route));
+  const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
 
   return (
     <div className="flex h-screen" data-theme="dark">
@@ -86,6 +89,30 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               })}
             </ul>
           </div>
+
+          {/* Operator Console — admin only */}
+          {isAdminOrAbove && (
+            <div>
+              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+                Platform
+              </span>
+              <ul className="mt-1.5 space-y-0.5">
+                <li>
+                  <Link
+                    to="/admin"
+                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                      location.pathname.startsWith("/admin")
+                        ? "bg-sidebar-accent text-gold-400 font-medium"
+                        : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                    }`}
+                  >
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
+                    Operator Console
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-0.5">

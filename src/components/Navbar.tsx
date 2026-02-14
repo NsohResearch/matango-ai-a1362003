@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useData";
 import matangoIcon from "@/assets/matango-icon.png";
 import PrivacyTermsDialog from "@/components/PrivacyTermsDialog";
 import TheSystemDropdown from "@/components/TheSystemDropdown";
@@ -16,6 +17,8 @@ const Navbar = () => {
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: roles } = useUserRoles();
+  const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
 
   const handleLoginClick = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
@@ -85,11 +88,13 @@ const Navbar = () => {
                       <Settings className="h-4 w-4" /> Settings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin" className="cursor-pointer flex items-center gap-2 text-cream-50 hover:text-gold-400">
-                      <BarChart3 className="h-4 w-4 text-gold-400" /> Operator Console
-                    </Link>
-                  </DropdownMenuItem>
+                  {isAdminOrAbove && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer flex items-center gap-2 text-cream-50 hover:text-gold-400">
+                        <BarChart3 className="h-4 w-4 text-gold-400" /> Operator Console
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="bg-emerald-800/50" />
                   <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-red-400 hover:text-red-300">
                     <LogOut className="h-4 w-4 mr-2" /> Logout
