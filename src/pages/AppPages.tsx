@@ -55,27 +55,16 @@ export const Discover = () => (
 export const InfluencerDetail = () => (
   <ComingSoonPage title="Influencer Detail" description="View and manage individual influencer profile, content gallery, and performance." icon={Users} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
-export const AAOGlossary = () => (
-  <ComingSoonPage title="AAO Glossary" description="Reference guide for AI-Amplified Operator terminology and concepts." icon={BookMarked} tier="Free" alternatives={[{ label: "Meet K'ah", to: "/meet-kah" }]} />
-);
-export const AAOStudioPage = () => (
-  <ComingSoonPage title="AAO Studio" description="Create, configure, and deploy your AI-Amplified Operators for autonomous marketing execution." icon={Rocket} tier="Agency" alternatives={[{ label: "Campaign Factory", to: "/campaign-factory" }, { label: "Meet K'ah", to: "/meet-kah" }]} />
-);
-export const AIProvidersPage = () => (
-  <ComingSoonPage title="AI Providers" description="Configure custom AI model providers and API keys (BYOK). Use your own OpenAI, Anthropic, or Replicate keys." icon={Plug} tier="Agency" alternatives={[{ label: "Account Settings", to: "/account-settings" }]} />
-);
-export const UsageAnalyticsPage = () => (
-  <ComingSoonPage title="Usage Analytics" description="Track your platform usage, API credits, generation costs, and billing metrics in real-time." icon={TrendingUp} tier="Basic" alternatives={[{ label: "Analytics Hub", to: "/analytics-hub" }, { label: "Account Settings", to: "/account-settings" }]} />
-);
+// Real page implementations (migrated from original repo)
+export { default as AAOGlossary } from "@/pages/AAOGlossary";
+export { default as AAOStudioPage } from "@/pages/AAOStudioPage";
+export { default as AIProvidersPage } from "@/pages/AIProvidersPage";
+export { default as UsageAnalyticsPage } from "@/pages/UsageAnalyticsPage";
 export const StoryStudio = () => (
   <ComingSoonPage title="Story Studio" description="Create multi-scene narratives and visual stories with AI-generated imagery and consistent characters." icon={BookOpen} tier="Agency" alternatives={[{ label: "Video Scripts", to: "/video-scripts" }, { label: "Video Studio", to: "/video-studio" }]} />
 );
 export const BulkCreate = () => (
   <ComingSoonPage title="Bulk Create" description="Generate content at scale with batch processing for images, videos, and copy across all your campaigns." icon={Upload} tier="Agency" alternatives={[{ label: "Asset Library", to: "/asset-library" }, { label: "Campaign Factory", to: "/campaign-factory" }]} />
 );
-export const AdminTenantDetail = () => (
-  <ComingSoonPage title="Tenant Detail" description="Detailed tenant configuration, usage limits, and white-label settings." icon={Users} tier="Admin" alternatives={[{ label: "View All Tenants", to: "/admin/tenants" }]} />
-);
-export const AdminIntegrations = () => (
-  <ComingSoonPage title="Admin Integrations" description="Manage platform-wide integrations, webhooks, and third-party connections." icon={Plug} tier="Admin" alternatives={[{ label: "Admin Overview", to: "/admin" }]} />
-);
+export { default as AdminTenantDetail } from "@/pages/admin/AdminTenantDetail";
+export { default as AdminIntegrations } from "@/pages/admin/AdminIntegrations";
