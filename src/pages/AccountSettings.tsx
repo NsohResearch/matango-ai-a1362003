@@ -88,18 +88,18 @@ const AccountSettingsPage = () => {
               <div className="glass-card rounded-xl p-6">
                 {tab === "profile" && (
                   <div className="space-y-4">
-                    <h3 className="font-display font-semibold mb-4">Profile Information</h3>
+                    <h3 className="font-display font-semibold mb-4 text-foreground">Profile Information</h3>
                     <div>
-                      <label className="text-sm font-medium mb-1 block">Email</label>
+                      <label className="text-sm font-medium mb-1 block text-foreground">Email</label>
                       <input value={user?.email || ""} disabled className="w-full rounded-lg border border-border bg-muted px-4 py-2.5 text-sm text-muted-foreground" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium mb-1 block">Display Name</label>
+                      <label className="text-sm font-medium mb-1 block text-foreground">Display Name</label>
                       <input value={name || profile?.name || ""} onChange={(e) => setName(e.target.value)}
                         className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Your name" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium mb-1 block">Plan</label>
+                      <label className="text-sm font-medium mb-1 block text-foreground">Plan</label>
                       <div className="flex items-center gap-3">
                         <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium capitalize">{profile?.plan || "free"}</span>
                         <span className="text-sm text-muted-foreground">{profile?.credits || 0} credits remaining</span>
@@ -111,11 +111,11 @@ const AccountSettingsPage = () => {
 
                 {tab === "billing" && (
                   <div>
-                    <h3 className="font-display font-semibold mb-4">Billing & Subscription</h3>
+                    <h3 className="font-display font-semibold mb-4 text-foreground">Billing & Subscription</h3>
                     <div className="p-4 rounded-lg bg-secondary/50 mb-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium capitalize">{profile?.plan || "Free"} Plan</div>
+                          <div className="font-medium capitalize text-foreground">{profile?.plan || "Free"} Plan</div>
                           <div className="text-sm text-muted-foreground">{profile?.credits || 0} credits remaining this month</div>
                         </div>
                         <Button onClick={() => setPlanDrawerOpen(true)}>Upgrade</Button>
@@ -132,10 +132,10 @@ const AccountSettingsPage = () => {
 
                 {tab === "notifications" && (
                   <div>
-                    <h3 className="font-display font-semibold mb-4">Notification Preferences</h3>
+                    <h3 className="font-display font-semibold mb-4 text-foreground">Notification Preferences</h3>
                     {["Campaign updates", "Post published", "Weekly reports", "Milestone alerts", "Team invites"].map((pref) => (
                       <label key={pref} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                        <span className="text-sm">{pref}</span>
+                        <span className="text-sm text-foreground">{pref}</span>
                         <input type="checkbox" defaultChecked className="rounded border-border" />
                       </label>
                     ))}
@@ -144,7 +144,7 @@ const AccountSettingsPage = () => {
 
                 {tab === "security" && (
                   <div>
-                    <h3 className="font-display font-semibold mb-4">Security & Data</h3>
+                    <h3 className="font-display font-semibold mb-4 text-foreground">Security & Data</h3>
                     <div className="space-y-4">
                       <button className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Change Password</button>
                       <div>
