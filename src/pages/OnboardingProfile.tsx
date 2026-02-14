@@ -2,8 +2,8 @@
  * OnboardingProfile — 5-step MIBL onboarding flow.
  * Step 1: Account type (Individual / Company)
  * Step 2: Identity info
- * Step 3: Branding upload
- * Step 4: White-label (Agency only — fields only)
+ * Step 3: Branding & Theme (presets, uploads, contrast, completeness)
+ * Step 4: White-label (Company only — domain verification)
  * Step 5: Confirmation + preview
  */
 import { useState, useEffect } from "react";
@@ -21,8 +21,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import matangoIcon from "@/assets/matango-icon.png";
+import BrandPresets, { type BrandPreset } from "@/components/branding/BrandPresets";
+import ContrastWarnings from "@/components/branding/ContrastWarnings";
+import BrandingCompletenessScore from "@/components/branding/BrandingCompletenessScore";
+import DomainVerificationPanel from "@/components/branding/DomainVerificationPanel";
 import {
-  User, Building2, Upload, Palette, CheckCircle2, ArrowRight, ArrowLeft, Loader2,
+  User, Building2, Upload, CheckCircle2, ArrowRight, ArrowLeft, Loader2,
 } from "lucide-react";
 
 type AccountType = "individual" | "company";
@@ -93,6 +97,7 @@ export default function OnboardingProfile() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [accountType, setAccountType] = useState<AccountType>("individual");
+  const [activePresetId, setActivePresetId] = useState<string | undefined>();
 
   const [individual, setIndividual] = useState<IndividualFields>({
     full_name: "", display_name: "", phone: "", country: "", city: "",
@@ -114,6 +119,8 @@ export default function OnboardingProfile() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
   const [profilePicPreview, setProfilePicPreview] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
 
   // Pre-fill from existing profile
   useEffect(() => {
@@ -158,16 +165,13 @@ export default function OnboardingProfile() {
     if (!user) return;
     setSaving(true);
     try {
-      // Upload files
-      let logoUrl: string | undefined;
-      let profilePicUrl: string | undefined;
-
-      if (logoFile) {
-        logoUrl = await uploadFile(logoFile, "logos");
-      }
-      if (profilePicFile) {
-        profilePicUrl = await uploadFile(profilePicFile, "avatars");
-      }
+      // Upload files in parallel
+      const uploads = await Promise.all([
+        logoFile ? uploadFile(logoFile, "logos") : Promise.resolve(undefined),
+        profilePicFile ? uploadFile(profilePicFile, "avatars") : Promise.resolve(undefined),
+        faviconFile ? uploadFile(faviconFile, "favicons") : Promise.resolve(undefined),
+      ]);
+      const [logoUrl, profilePicUrl, faviconUrl] = uploads;
 
       // Save profile
       const profileUpdate: Record<string, unknown> = {
@@ -199,7 +203,6 @@ export default function OnboardingProfile() {
       if (accountType === "company") {
         const slug = company.company_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50);
 
-        // Check if org exists
         const { data: existingOrg } = await supabase
           .from("organizations")
           .select("id")
@@ -218,10 +221,14 @@ export default function OnboardingProfile() {
           website: company.website || null,
           legal_name: company.legal_name || null,
           logo_url: logoUrl || null,
+          favicon_url: faviconUrl || null,
         };
+
+        let orgId: string;
 
         if (existingOrg) {
           await supabase.from("organizations").update(orgData).eq("id", existingOrg.id);
+          orgId = existingOrg.id;
         } else {
           const { data: newOrg, error: orgErr } = await supabase.from("organizations").insert({
             ...orgData,
@@ -230,15 +237,38 @@ export default function OnboardingProfile() {
             owner_id: user.id,
           } as any).select().single();
           if (orgErr) throw orgErr;
+          orgId = newOrg.id;
 
           // Create membership
-          if (newOrg) {
-            await supabase.from("memberships").insert({
-              user_id: user.id,
-              organization_id: newOrg.id,
-              role: "owner",
-            });
-          }
+          await supabase.from("memberships").insert({
+            user_id: user.id,
+            organization_id: orgId,
+            role: "owner",
+          });
+        }
+
+        // Save white-label settings
+        const { data: existingWl } = await supabase
+          .from("white_label_settings")
+          .select("id")
+          .eq("org_id", orgId)
+          .maybeSingle();
+
+        const wlData = {
+          primary_color: branding.primary_color || null,
+          secondary_color: branding.secondary_color || null,
+          accent_color: branding.accent_color || null,
+          brand_font: branding.brand_font || null,
+          brand_name: branding.custom_platform_name || null,
+        };
+
+        if (existingWl) {
+          await supabase.from("white_label_settings").update(wlData).eq("id", existingWl.id);
+        } else {
+          await supabase.from("white_label_settings").insert({
+            ...wlData,
+            org_id: orgId,
+          });
         }
       }
 
@@ -255,12 +285,13 @@ export default function OnboardingProfile() {
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFile: (f: File | null) => void,
-    setPreview: (p: string | null) => void
+    setPreview: (p: string | null) => void,
+    maxSize = 2 * 1024 * 1024
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("File must be under 2MB");
+    if (file.size > maxSize) {
+      toast.error(`File must be under ${Math.round(maxSize / 1024)}KB`);
       return;
     }
     if (!file.type.startsWith("image/")) {
@@ -269,6 +300,17 @@ export default function OnboardingProfile() {
     }
     setFile(file);
     setPreview(URL.createObjectURL(file));
+  };
+
+  const handlePresetSelect = (preset: BrandPreset) => {
+    setBranding({
+      ...branding,
+      primary_color: preset.primary,
+      secondary_color: preset.secondary,
+      accent_color: preset.accent,
+      brand_font: preset.font,
+    });
+    setActivePresetId(preset.id);
   };
 
   const canProceed = () => {
@@ -462,6 +504,9 @@ export default function OnboardingProfile() {
         {/* Step 3: Branding */}
         {step === 3 && (
           <div className="space-y-6">
+            {/* Brand Presets */}
+            <BrandPresets onSelect={handlePresetSelect} activeId={activePresetId} />
+
             {/* File uploads */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
@@ -508,6 +553,28 @@ export default function OnboardingProfile() {
                   </div>
                 </div>
               )}
+
+              {accountType === "company" && (
+                <div>
+                  <Label>Favicon (32×32 or 64×64)</Label>
+                  <div className="mt-2 border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                    {faviconPreview ? (
+                      <img src={faviconPreview} alt="Favicon" className="h-16 w-16 object-cover rounded mx-auto mb-2" />
+                    ) : (
+                      <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                    )}
+                    <label className="cursor-pointer text-sm text-primary hover:underline">
+                      Upload favicon (max 512KB)
+                      <input
+                        type="file"
+                        accept="image/png,image/x-icon,image/svg+xml"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(e, setFaviconFile, setFaviconPreview, 512 * 1024)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Colors */}
@@ -518,10 +585,10 @@ export default function OnboardingProfile() {
                   <input
                     type="color"
                     value={branding.primary_color}
-                    onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })}
+                    onChange={(e) => { setBranding({ ...branding, primary_color: e.target.value }); setActivePresetId(undefined); }}
                     className="h-10 w-10 rounded cursor-pointer border-0"
                   />
-                  <Input value={branding.primary_color} onChange={(e) => setBranding({ ...branding, primary_color: e.target.value })} className="flex-1" />
+                  <Input value={branding.primary_color} onChange={(e) => { setBranding({ ...branding, primary_color: e.target.value }); setActivePresetId(undefined); }} className="flex-1" />
                 </div>
               </div>
               <div>
@@ -530,10 +597,10 @@ export default function OnboardingProfile() {
                   <input
                     type="color"
                     value={branding.secondary_color}
-                    onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })}
+                    onChange={(e) => { setBranding({ ...branding, secondary_color: e.target.value }); setActivePresetId(undefined); }}
                     className="h-10 w-10 rounded cursor-pointer border-0"
                   />
-                  <Input value={branding.secondary_color} onChange={(e) => setBranding({ ...branding, secondary_color: e.target.value })} className="flex-1" />
+                  <Input value={branding.secondary_color} onChange={(e) => { setBranding({ ...branding, secondary_color: e.target.value }); setActivePresetId(undefined); }} className="flex-1" />
                 </div>
               </div>
               <div>
@@ -542,18 +609,29 @@ export default function OnboardingProfile() {
                   <input
                     type="color"
                     value={branding.accent_color}
-                    onChange={(e) => setBranding({ ...branding, accent_color: e.target.value })}
+                    onChange={(e) => { setBranding({ ...branding, accent_color: e.target.value }); setActivePresetId(undefined); }}
                     className="h-10 w-10 rounded cursor-pointer border-0"
                   />
-                  <Input value={branding.accent_color} onChange={(e) => setBranding({ ...branding, accent_color: e.target.value })} className="flex-1" />
+                  <Input value={branding.accent_color} onChange={(e) => { setBranding({ ...branding, accent_color: e.target.value }); setActivePresetId(undefined); }} className="flex-1" />
                 </div>
               </div>
             </div>
 
+            {/* Contrast Warnings */}
+            <ContrastWarnings
+              primary={branding.primary_color}
+              accent={branding.accent_color}
+              background={branding.secondary_color}
+              onPatch={(patch) => {
+                setBranding({ ...branding, ...patch });
+                setActivePresetId(undefined);
+              }}
+            />
+
             {/* Font */}
             <div>
               <Label>Brand Font</Label>
-              <Select value={branding.brand_font} onValueChange={(v) => setBranding({ ...branding, brand_font: v })}>
+              <Select value={branding.brand_font} onValueChange={(v) => { setBranding({ ...branding, brand_font: v }); setActivePresetId(undefined); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{FONTS.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
               </Select>
@@ -583,15 +661,21 @@ export default function OnboardingProfile() {
                 </div>
               </Card>
             </div>
+
+            {/* Branding Completeness Score */}
+            <BrandingCompletenessScore
+              hasLogo={!!(logoPreview || logoFile)}
+              hasColors={branding.primary_color !== "#1B6B4A" || branding.accent_color !== "#C6A14A"}
+              hasFont={branding.brand_font !== "Inter"}
+              hasFavicon={!!(faviconPreview || faviconFile)}
+              isAgency={false}
+            />
           </div>
         )}
 
         {/* Step 4: White-label (Company only) */}
         {step === 4 && accountType === "company" && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground border border-border rounded-lg p-4 bg-muted/30">
-              White-label features require the Agency plan. You can configure these fields now and activate them later.
-            </p>
+          <div className="space-y-6">
             <div>
               <Label>Custom Platform Name</Label>
               <Input
@@ -599,17 +683,19 @@ export default function OnboardingProfile() {
                 onChange={(e) => setBranding({ ...branding, custom_platform_name: e.target.value })}
                 placeholder="e.g. ClientGrowth Pro"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                This replaces "Matango.ai" across the platform for your team and clients.
+              </p>
             </div>
-            <div>
-              <Label>Custom Domain (CNAME)</Label>
-              <Input placeholder="app.yourdomain.com" disabled />
-              <p className="text-xs text-muted-foreground mt-1">Available on Agency plan. DNS verification required.</p>
-            </div>
+
             <div>
               <Label>Custom Support Email</Label>
               <Input placeholder="support@yourdomain.com" disabled />
               <p className="text-xs text-muted-foreground mt-1">Available on Agency plan.</p>
             </div>
+
+            {/* Domain Verification */}
+            <DomainVerificationPanel plan="free" />
           </div>
         )}
 
@@ -653,6 +739,19 @@ export default function OnboardingProfile() {
                   <div className="h-4 w-4 rounded" style={{ backgroundColor: branding.primary_color }} />
                   <span className="text-foreground font-medium">{branding.primary_color}</span>
                 </div>
+
+                <div className="text-muted-foreground">Accent Color</div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded" style={{ backgroundColor: branding.accent_color }} />
+                  <span className="text-foreground font-medium">{branding.accent_color}</span>
+                </div>
+
+                {branding.custom_platform_name && (
+                  <>
+                    <div className="text-muted-foreground">Platform Name</div>
+                    <div className="text-foreground font-medium">{branding.custom_platform_name}</div>
+                  </>
+                )}
               </div>
             </Card>
           </div>
