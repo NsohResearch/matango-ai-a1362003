@@ -18,6 +18,23 @@ const AccountSettingsPage = () => {
   const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [deletionRequested, setDeletionRequested] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (!user?.email) return;
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: window.location.origin + "/account-settings",
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send password reset email");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const handleUpdateProfile = async () => {
     if (!user) return;
@@ -145,14 +162,20 @@ const AccountSettingsPage = () => {
                 {tab === "security" && (
                   <div>
                     <h3 className="font-display font-semibold mb-4 text-foreground">Security & Data</h3>
-                    <div className="space-y-4">
-                      <button className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Change Password</button>
+                    <div className="space-y-6">
                       <div>
-                        <h4 className="text-sm font-medium mb-2">Data Export (GDPR)</h4>
+                        <h4 className="text-sm font-medium mb-2 text-foreground">Password</h4>
+                        <Button variant="outline" size="sm" onClick={handleChangePassword} disabled={changingPassword}>
+                          {changingPassword ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                          Change Password
+                        </Button>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 text-foreground">Data Export (GDPR)</h4>
                         <p className="text-xs text-muted-foreground mb-2">Download all your data as a JSON file.</p>
                         <Button variant="outline" size="sm" onClick={handleExportData} disabled={exporting}>
                           {exporting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Download className="h-3 w-3 mr-1" />}
-                          Export My Data
+                          <span className="font-sans">Export My Data</span>
                         </Button>
                       </div>
                     </div>
