@@ -42,7 +42,7 @@ export const AdminLayout = ({ children, title, description }: { children: React.
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
           </Link>
-          <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Operator Console</div>
+          <div className="px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">Admin Console</div>
           {adminNav.map((item) => {
             const locked = item.superOnly && !isSuperAdmin;
             return (

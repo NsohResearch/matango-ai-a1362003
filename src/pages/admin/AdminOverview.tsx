@@ -53,7 +53,7 @@ export default function AdminOverview() {
   ];
 
   return (
-    <AdminLayout title="Operator Console" description="Platform health and metrics at a glance.">
+    <AdminLayout title="Admin Console" description="Platform health and metrics at a glance.">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Total Users" value={userCount ?? "—"} change={12} icon={Users} />
         <StatCard title="Organizations" value={orgCount ?? "—"} change={8} icon={Building2} />
