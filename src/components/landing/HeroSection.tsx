@@ -1,9 +1,14 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import kahHero from "@/assets/kah-hero.webp";
 
 const HeroSection = () => {
+  const { user } = useAuth();
+
+  const ctaLabel = user ? "Continue The System" : "The System";
+  const ctaLink = user ? "/dashboard" : "/auth?mode=signup";
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-6 overflow-hidden bg-emerald-950">
       {/* Subtle warm halo */}
@@ -48,10 +53,10 @@ const HeroSection = () => {
         className="mt-10 flex flex-wrap items-center justify-center gap-4"
       >
         <Link
-          to="/auth?mode=signup"
+          to={ctaLink}
           className="inline-flex items-center gap-2 rounded-pill bg-primary px-8 py-3.5 font-medium text-primary-foreground hover:border hover:border-gold-400 hover:shadow-luxury transition-all"
         >
-          Start Your Growth Loop <ArrowRight className="h-4 w-4" />
+          {ctaLabel} <ArrowRight className="h-4 w-4" />
         </Link>
         <button className="inline-flex items-center gap-2 rounded-pill border border-cream-100/20 px-8 py-3.5 font-medium text-cream-50 hover:border-gold-400 hover:text-gold-400 transition-colors">
           <Play className="h-4 w-4" /> Watch Platform Tour

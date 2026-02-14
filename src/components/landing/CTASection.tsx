@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const CTASection = () => {
+  const { user } = useAuth();
+
+  const ctaLabel = user ? "Continue The System" : "The System";
+  const ctaLink = user ? "/dashboard" : "/auth?mode=signup";
+
   return (
     <section className="py-24 px-6 bg-cream-50">
       <div className="container mx-auto max-w-3xl text-center">
@@ -33,10 +39,10 @@ const CTASection = () => {
           className="mt-8"
         >
           <Link
-            to="/auth?mode=signup"
+            to={ctaLink}
             className="inline-flex items-center gap-2 rounded-pill bg-primary px-8 py-3.5 font-medium text-primary-foreground hover:border hover:border-gold-400 hover:shadow-luxury transition-all"
           >
-            Build Your Brand Brain <ArrowRight className="h-4 w-4" />
+            {ctaLabel} <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="mt-4 text-sm text-muted-foreground">Free tier available. No credit card required.</p>
         </motion.div>
