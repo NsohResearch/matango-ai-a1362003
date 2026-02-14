@@ -45,7 +45,7 @@ export default function AAOStudioPage() {
   return (
     <DashboardLayout>
       <div className="p-8 max-w-5xl">
-        <WorkflowNav currentStep={5} />
+        <WorkflowNav />
         <h1 className="font-display text-3xl font-bold mb-2">AAO Studio</h1>
         <p className="text-muted-foreground mb-8">Deploy your content through AI-Amplified Operators for autonomous distribution.</p>
 
