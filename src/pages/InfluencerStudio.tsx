@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon, Images } from "lucide-react";
-import { useInfluencers, useCreateInfluencer, useBrandBrains } from "@/hooks/useData";
+import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon, Images, Pencil, Trash2, Save } from "lucide-react";
+import { useInfluencers, useCreateInfluencer, useUpdateInfluencer, useDeleteInfluencer, useBrandBrains } from "@/hooks/useData";
 import { aiGenerate } from "@/lib/edge-functions";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,6 +27,8 @@ const STYLE_PRESETS = [
 const InfluencerStudioPage = () => {
   const { data: influencers, isLoading } = useInfluencers();
   const { data: brands } = useBrandBrains();
+  const update = useUpdateInfluencer();
+  const remove = useDeleteInfluencer();
   const create = useCreateInfluencer();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -37,6 +39,8 @@ const InfluencerStudioPage = () => {
   const [generating, setGenerating] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [referenceImages, setReferenceImages] = useState<{ file: File; preview: string }[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ name: string; bio: string; personality: string; persona_type: string }>({ name: "", bio: "", personality: "", persona_type: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "", bio: "", personality: "", persona_type: "Founder",
@@ -341,7 +345,9 @@ const InfluencerStudioPage = () => {
           <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
         ) : influencers && influencers.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {influencers.map((inf) => (
+            {influencers.map((inf) => {
+              const isEditing = editingId === inf.id;
+              return (
               <div key={inf.id} className="glass-card rounded-xl p-5 hover:border-primary/30 transition-colors group">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
@@ -351,61 +357,138 @@ const InfluencerStudioPage = () => {
                       inf.name.charAt(0)
                     )}
                   </div>
-                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${inf.status === "active" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {inf.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${inf.status === "active" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                      {inf.status}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (isEditing) {
+                          setEditingId(null);
+                        } else {
+                          setEditingId(inf.id);
+                          setEditForm({
+                            name: inf.name,
+                            bio: inf.bio || "",
+                            personality: inf.personality || "",
+                            persona_type: inf.persona_type || "custom",
+                          });
+                        }
+                      }}
+                      className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                      title={isEditing ? "Cancel edit" : "Edit influencer"}
+                    >
+                      {isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete "${inf.name}"? This cannot be undone.`)) {
+                          remove.mutate(inf.id);
+                        }
+                      }}
+                      className="p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Delete influencer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <h3 className="font-display font-semibold">{inf.name}</h3>
-                <p className="text-xs text-muted-foreground mt-0.5 capitalize">{inf.persona_type || "Custom"} persona</p>
-                {inf.bio && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{inf.bio}</p>}
 
-                {/* Training Images Review */}
-                {(() => {
-                  const stats = inf.stats as any;
-                  const trainingImages: string[] = stats?.training_images || [];
-                  if (trainingImages.length === 0 && !inf.avatar_url) return null;
-                  const images = trainingImages.length > 0 ? trainingImages : (inf.avatar_url ? [inf.avatar_url] : []);
-                  const isExpanded = expandedCard === inf.id;
-                  return (
-                    <div className="mt-3">
-                      <button
-                        onClick={() => setExpandedCard(isExpanded ? null : inf.id)}
-                        className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                      >
-                        <Images className="h-3.5 w-3.5" />
-                        {images.length} Training Image{images.length !== 1 ? "s" : ""}
-                        <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
-                      </button>
-                      {isExpanded && (
-                        <div className="mt-2 grid grid-cols-3 gap-2">
-                          {images.map((url, i) => (
-                            <div key={i} className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                              <img src={url} alt={`Training ${i + 1}`} className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {stats?.trained_at && (
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          Trained {new Date(stats.trained_at).toLocaleDateString()}
-                        </p>
-                      )}
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Name</label>
+                      <input value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                     </div>
-                  );
-                })()}
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Persona Type</label>
+                      <select value={editForm.persona_type} onChange={(e) => setEditForm((f) => ({ ...f, persona_type: e.target.value }))}
+                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        {PERSONA_TYPES.map((p) => <option key={p.value} value={p.value.toLowerCase()}>{p.label}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Bio</label>
+                      <input value={editForm.bio} onChange={(e) => setEditForm((f) => ({ ...f, bio: e.target.value }))}
+                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Brief description" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Personality</label>
+                      <textarea value={editForm.personality} onChange={(e) => setEditForm((f) => ({ ...f, personality: e.target.value }))}
+                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[60px]"
+                        placeholder="e.g. Confident, data-driven..." />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setEditingId(null)} className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                      <button
+                        onClick={() => {
+                          update.mutate({ id: inf.id, ...editForm }, { onSuccess: () => setEditingId(null) });
+                        }}
+                        disabled={update.isPending || !editForm.name}
+                        className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {update.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="font-display font-semibold">{inf.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5 capitalize">{inf.persona_type || "Custom"} persona</p>
+                    {inf.bio && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{inf.bio}</p>}
 
-                <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => navigate(`/video-scripts?influencerId=${inf.id}&brandId=${inf.brand_id || ""}`)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 flex items-center justify-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Generate Script
-                  </button>
-                  <button onClick={() => navigate(`/influencer/${inf.id}`)}
-                    className="p-2 rounded-lg bg-secondary text-muted-foreground hover:text-foreground">
-                    <Eye className="h-4 w-4" />
-                  </button>
-                </div>
+                    {/* Training Images Review */}
+                    {(() => {
+                      const stats = inf.stats as any;
+                      const trainingImages: string[] = stats?.training_images || [];
+                      if (trainingImages.length === 0 && !inf.avatar_url) return null;
+                      const images = trainingImages.length > 0 ? trainingImages : (inf.avatar_url ? [inf.avatar_url] : []);
+                      const isExpanded = expandedCard === inf.id;
+                      return (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => setExpandedCard(isExpanded ? null : inf.id)}
+                            className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <Images className="h-3.5 w-3.5" />
+                            {images.length} Training Image{images.length !== 1 ? "s" : ""}
+                            <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                          </button>
+                          {isExpanded && (
+                            <div className="mt-2 grid grid-cols-3 gap-2">
+                              {images.map((url, i) => (
+                                <div key={i} className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                                  <img src={url} alt={`Training ${i + 1}`} className="w-full h-full object-cover" />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {stats?.trained_at && (
+                            <p className="text-[10px] text-muted-foreground mt-1">
+                              Trained {new Date(stats.trained_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => navigate(`/video-scripts?influencerId=${inf.id}&brandId=${inf.brand_id || ""}`)}
+                        className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 flex items-center justify-center gap-1">
+                        <Sparkles className="h-3 w-3" /> Generate Script
+                      </button>
+                      <button onClick={() => navigate(`/influencer/${inf.id}`)}
+                        className="p-2 rounded-lg bg-secondary text-muted-foreground hover:text-foreground">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="glass-card rounded-xl p-12 text-center">
