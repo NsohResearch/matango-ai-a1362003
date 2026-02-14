@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { gdprProcess } from "@/lib/edge-functions";
 import PlanSelectionDrawer from "@/components/PlanSelectionDrawer";
 import { Button } from "@/components/ui/button";
+import DangerZonePanel from "@/components/DangerZonePanel";
 
 const AccountSettingsPage = () => {
   const { user, signOut } = useAuth();
@@ -160,13 +161,10 @@ const AccountSettingsPage = () => {
 
                 {tab === "danger" && (
                   <div>
-                    <h3 className="font-display font-semibold text-destructive mb-4">Danger Zone</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Once you delete your account, there is no going back. All data will be permanently removed after admin review (within 30 days per GDPR).</p>
-                    <div className="flex gap-3">
-                      <button onClick={signOut} className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90">Sign Out</button>
-                      <button onClick={handleRequestDeletion} disabled={deletionRequested}
-                        className="px-4 py-2 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 disabled:opacity-50">
-                        {deletionRequested ? "Deletion Requested" : "Delete Account"}
+                    <DangerZonePanel orgName={profile?.name || user?.email?.split("@")[0] || "CONFIRM"} />
+                    <div className="mt-6 pt-4 border-t border-border">
+                      <button onClick={signOut} className="px-4 py-2 rounded-lg bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80">
+                        Sign Out
                       </button>
                     </div>
                   </div>
