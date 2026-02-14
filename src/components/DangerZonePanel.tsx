@@ -11,8 +11,9 @@ import { toast } from "sonner";
 import { accountLifecycle } from "@/lib/edge-functions";
 import {
   PauseCircle, Play, CreditCard, ArrowDownCircle, Trash2,
-  RotateCcw, AlertTriangle, Loader2, Clock, ShieldAlert, Calendar,
+  RotateCcw, AlertTriangle, Loader2, Clock, ShieldAlert, Calendar, Info,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LifecycleStatus {
   account_status: string;
@@ -151,9 +152,16 @@ export default function DangerZonePanel({ orgName }: { orgName?: string }) {
             <CardContent className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <PauseCircle className="h-5 w-5 text-yellow-600 shrink-0" />
-                <div>
+                <div className="flex items-center gap-1.5">
                   <CardTitle className="text-sm">Pause Account</CardTitle>
-                  <CardDescription className="text-xs">Temporarily disable access and publishing. Reactivate anytime.</CardDescription>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[240px] text-xs">
+                      Temporarily disable access and publishing. Reactivate anytime.
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={() => openConfirm("pause", "Pause Account", "Publishing, jobs, and content generation will be blocked. Your data is retained.")}>
@@ -203,9 +211,17 @@ export default function DangerZonePanel({ orgName }: { orgName?: string }) {
             <CardContent className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <Trash2 className="h-5 w-5 text-destructive shrink-0" />
-                <div>
+                <div className="flex items-center gap-1.5">
                   <CardTitle className="text-sm text-destructive">Soft Delete Account</CardTitle>
-                  <CardDescription className="text-xs">Disable and hide account. Restore anytime within 6 months.</CardDescription>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[280px] text-xs">
+                      <p>Disable and hide account. Restore anytime within 6 months.</p>
+                      <p className="mt-1.5 text-muted-foreground"><strong>Permanent Deletion Policy:</strong> If not restored within 6 months, the account becomes permanently deleted after 1 year. This process is automated and irreversible.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
               <Button variant="destructive" size="sm" onClick={() => openConfirm("soft_delete", "Soft Delete Account", "Access will be disabled. Social connections revoked. Scheduled posts cancelled. Subscription cancelled. Restore within 6 months. Permanent deletion after 1 year.")}>
@@ -213,14 +229,6 @@ export default function DangerZonePanel({ orgName }: { orgName?: string }) {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Hard Delete Info */}
-          <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground flex items-start gap-2">
-            <Clock className="h-4 w-4 shrink-0 mt-0.5" />
-            <div>
-              <strong>Permanent Deletion Policy:</strong> If a soft-deleted account is not restored within 6 months, it becomes permanently deleted after 1 year. This process is automated and irreversible.
-            </div>
-          </div>
         </div>
       )}
 
