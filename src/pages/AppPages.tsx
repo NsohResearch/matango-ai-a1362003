@@ -19,7 +19,8 @@ export { default as WhiteLabel } from "@/pages/WhiteLabel";
 export { default as Brands } from "@/pages/Brands";
 export { default as VideoScripts } from "@/pages/VideoScripts";
 export { default as AssetLibrary } from "@/pages/AssetLibrary";
-export { AdminOverviewPage as AdminOverview, AdminTenantsPage as AdminTenants, AdminBillingPage as AdminBilling, AdminFeatureFlagsPage as AdminFeatureFlags, AdminAuditLogPage as AdminAuditLog, AdminSystemHealthPage as AdminSystemHealth, AdminModerationPage as AdminModeration, AdminCompliancePage as AdminCompliance, AdminGdprPage as AdminGdprRequests, AdminLeadsPage as AdminLeads } from "@/pages/Admin";
+export { default as AdminOverview } from "@/pages/admin/AdminOverview";
+export { AdminTenantsPage as AdminTenants, AdminBillingPage as AdminBilling, AdminFeatureFlagsPage as AdminFeatureFlags, AdminAuditLogPage as AdminAuditLog, AdminSystemHealthPage as AdminSystemHealth, AdminModerationPage as AdminModeration, AdminCompliancePage as AdminCompliance, AdminGdprPage as AdminGdprRequests, AdminLeadsPage as AdminLeads } from "@/pages/Admin";
 
 // Coming Soon pages with proper gating, explanations, and alternatives
 export const VideoStudioPro = () => (
