@@ -1,17 +1,24 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import WorkflowNav from "@/components/WorkflowNav";
 import { Video, Plus, Play, Loader2, Film, Clock, Wand2 } from "lucide-react";
 import { useVideoJobs, useVideoScripts, useInfluencers } from "@/hooks/useData";
+import { useSearchParams } from "react-router-dom";
 
 const VideoStudioPage = () => {
   const { data: jobs, isLoading } = useVideoJobs();
   const { data: scripts } = useVideoScripts();
   const { data: influencers } = useInfluencers();
+  const [searchParams] = useSearchParams();
+  const brandId = searchParams.get("brandId");
+  const influencerId = searchParams.get("influencerId");
+  const scriptId = searchParams.get("scriptId");
   const [showCreate, setShowCreate] = useState(false);
 
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
+        <WorkflowNav brandId={brandId} influencerId={influencerId} scriptId={scriptId} />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">

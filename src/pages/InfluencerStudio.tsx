@@ -1,8 +1,9 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import WorkflowNav from "@/components/WorkflowNav";
 import { Users, Plus, Sparkles, Eye, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useInfluencers, useCreateInfluencer } from "@/hooks/useData";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const PERSONA_TYPES = [
   { value: "founder", label: "Founder", desc: "Visionary leader sharing insights" },
@@ -15,6 +16,8 @@ const InfluencerStudioPage = () => {
   const { data: influencers, isLoading } = useInfluencers();
   const create = useCreateInfluencer();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const brandId = searchParams.get("brandId");
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", bio: "", personality: "", persona_type: "custom" });
 
@@ -26,6 +29,7 @@ const InfluencerStudioPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
+        <WorkflowNav brandId={brandId} />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">

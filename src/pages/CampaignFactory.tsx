@@ -1,8 +1,9 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import WorkflowNav from "@/components/WorkflowNav";
 import { Megaphone, Plus, Loader2, ChevronRight, Eye, BarChart3 } from "lucide-react";
 import { useCampaigns, useCreateCampaign, useBrandBrains } from "@/hooks/useData";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -18,6 +19,8 @@ const CampaignFactoryPage = () => {
   const { data: brands } = useBrandBrains();
   const create = useCreateCampaign();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const brandId = searchParams.get("brandId");
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: "", angle: "", target_icp: "", brand_id: "" });
 
@@ -31,6 +34,7 @@ const CampaignFactoryPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
+        <WorkflowNav brandId={brandId} />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">

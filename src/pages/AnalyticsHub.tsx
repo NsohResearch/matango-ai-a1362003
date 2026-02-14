@@ -1,4 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
+import WorkflowNav from "@/components/WorkflowNav";
 import { BarChart3, TrendingUp, Users, Eye, Heart, Share2, Loader2 } from "lucide-react";
 import { useAnalyticsData } from "@/hooks/useData";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -34,6 +35,7 @@ const AnalyticsHubPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
+        <WorkflowNav />
         <div className="mb-6">
           <h1 className="font-display text-3xl font-bold flex items-center gap-2">
             <BarChart3 className="h-8 w-8 text-primary" /> Analytics Hub

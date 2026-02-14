@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
 import PrivacyTermsDialog from "@/components/PrivacyTermsDialog";
+import TheSystemDropdown from "@/components/TheSystemDropdown";
 
 const Navbar = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -35,9 +35,7 @@ const Navbar = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <button className="flex items-center gap-1 text-sm text-cream-100/70 hover:text-gold-400 transition-colors">
-              The System <ChevronDown className="h-3 w-3" />
-            </button>
+            <TheSystemDropdown />
             <Link to="/about" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">About</Link>
             <Link to="/pricing" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Pricing</Link>
           </nav>
