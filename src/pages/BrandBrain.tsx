@@ -10,26 +10,44 @@ const STEPS = ["Basics", "ICP Personas", "Value Prop", "Claims & Proof", "Voice 
 const TONES = ["Professional", "Casual", "Bold", "Playful", "Authoritative", "Friendly", "Technical", "Inspirational"];
 const CATEGORIES = ["SaaS", "E-commerce", "Agency", "Fintech", "Health & Wellness", "Education", "Real Estate", "Media", "Consulting", "AI/ML", "B2B Services", "Consumer"];
 
+type BrandForm = {
+  id: string | undefined;
+  brand_name: string;
+  product_name: string;
+  tagline: string;
+  website_url: string;
+  category: string;
+  brand_tone: string;
+  icp_personas: { name: string; role: string; pain: string }[];
+  key_outcomes: string[];
+  differentiators: string[];
+  claims_proof: { claim: string; proof: string }[];
+  voice_rules: string[];
+  forbidden_phrases: string[];
+};
+
+const emptyForm: BrandForm = {
+  id: undefined,
+  brand_name: "",
+  product_name: "",
+  tagline: "",
+  website_url: "",
+  category: "",
+  brand_tone: "Professional",
+  icp_personas: [],
+  key_outcomes: [],
+  differentiators: [],
+  claims_proof: [],
+  voice_rules: [],
+  forbidden_phrases: [],
+};
+
 const BrandBrainPage = () => {
   const { data: brands, isLoading } = useBrandBrains();
   const upsert = useUpsertBrandBrain();
   const [step, setStep] = useState(0);
   const [enriching, setEnriching] = useState(false);
-  const [form, setForm] = useState({
-    id: undefined as string | undefined,
-    brand_name: "",
-    product_name: "",
-    tagline: "",
-    website_url: "",
-    category: "",
-    brand_tone: "Professional",
-    icp_personas: [] as { name: string; role: string; pain: string }[],
-    key_outcomes: [] as string[],
-    differentiators: [] as string[],
-    claims_proof: [] as { claim: string; proof: string }[],
-    voice_rules: [] as string[],
-    forbidden_phrases: [] as string[],
-  });
+  const [form, setForm] = useState<BrandForm>({ ...emptyForm });
 
   const updateField = (field: string, value: unknown) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -42,11 +60,11 @@ const BrandBrainPage = () => {
       website_url: brand.website_url || "",
       category: brand.category || "",
       brand_tone: brand.brand_tone || "Professional",
-      icp_personas: brand.icp_personas || [],
-      key_outcomes: brand.key_outcomes || [],
-      differentiators: brand.differentiators || [],
-      claims_proof: brand.claims_proof || [],
-      voice_rules: brand.voice_rules || [],
+      icp_personas: (brand.icp_personas as any) || [],
+      key_outcomes: (brand.key_outcomes as any) || [],
+      differentiators: (brand.differentiators as any) || [],
+      claims_proof: (brand.claims_proof as any) || [],
+      voice_rules: (brand.voice_rules as any) || [],
       forbidden_phrases: brand.forbidden_phrases || [],
     });
     setStep(0);
@@ -57,14 +75,38 @@ const BrandBrainPage = () => {
     setEnriching(true);
     try {
       const res = await aiGenerate(
-        `Analyze this website and extract brand information: ${form.website_url}. Return JSON with: brand_name, tagline, category, brand_tone, icp_personas (array of {name, role, pain}), key_outcomes (array of strings), differentiators (array of strings), claims_proof (array of {claim, proof}), voice_rules (array of strings).`,
+        `Analyze this website and extract comprehensive brand information: ${form.website_url}`,
         "brand-enrich"
       );
-      const parsed = JSON.parse(res.content.replace(/```json\\n?|```/g, ""));
-      setForm((f) => ({ ...f, ...parsed, id: f.id }));
-      toast.success("Brand enriched from website!");
-    } catch {
-      toast.error("Enrichment failed. Please fill manually.");
+
+      // The response content is already a JSON string from tool calling
+      let parsed: Record<string, unknown>;
+      try {
+        const raw = typeof res.content === "string" ? res.content : JSON.stringify(res.content);
+        parsed = JSON.parse(raw.replace(/```json\n?|```/g, ""));
+      } catch {
+        toast.error("Could not parse AI response. Please try again.");
+        return;
+      }
+
+      // Safely merge parsed data, keeping existing form id and website_url
+      setForm((f) => ({
+        ...f,
+        brand_name: (parsed.brand_name as string) || f.brand_name,
+        product_name: (parsed.product_name as string) || f.product_name,
+        tagline: (parsed.tagline as string) || f.tagline,
+        category: (parsed.category as string) || f.category,
+        brand_tone: (parsed.brand_tone as string) || f.brand_tone,
+        icp_personas: Array.isArray(parsed.icp_personas) ? parsed.icp_personas as any : f.icp_personas,
+        key_outcomes: Array.isArray(parsed.key_outcomes) ? parsed.key_outcomes as any : f.key_outcomes,
+        differentiators: Array.isArray(parsed.differentiators) ? parsed.differentiators as any : f.differentiators,
+        claims_proof: Array.isArray(parsed.claims_proof) ? parsed.claims_proof as any : f.claims_proof,
+        voice_rules: Array.isArray(parsed.voice_rules) ? parsed.voice_rules as any : f.voice_rules,
+        forbidden_phrases: Array.isArray(parsed.forbidden_phrases) ? parsed.forbidden_phrases as any : f.forbidden_phrases,
+      }));
+      toast.success("Brand enriched from website! Review each step and save.");
+    } catch (e: any) {
+      toast.error(e?.message || "Enrichment failed. Please fill manually.");
     } finally {
       setEnriching(false);
     }
@@ -72,7 +114,14 @@ const BrandBrainPage = () => {
 
   const handleSave = () => {
     if (!form.brand_name) { toast.error("Brand name is required"); return; }
-    upsert.mutate({ ...form, status: "active" });
+    upsert.mutate({ ...form, status: "active" }, {
+      onSuccess: (data: any) => {
+        // Update form with the returned ID so subsequent saves are updates
+        if (data?.id && !form.id) {
+          setForm((f) => ({ ...f, id: data.id }));
+        }
+      },
+    });
   };
 
   const completionScore = () => {
@@ -123,10 +172,34 @@ const BrandBrainPage = () => {
                 {b.brand_name || "Untitled Brand"}
               </button>
             ))}
-            <button onClick={() => setForm({ id: undefined, brand_name: "", product_name: "", tagline: "", website_url: "", category: "", brand_tone: "Professional", icp_personas: [], key_outcomes: [], differentiators: [], claims_proof: [], voice_rules: [], forbidden_phrases: [] })}
+            <button onClick={() => setForm({ ...emptyForm })}
               className="px-4 py-2 rounded-lg text-sm border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
               <Plus className="h-3 w-3" /> New Brand
             </button>
+          </div>
+        )}
+
+        {/* Pomelli-style URL input hero */}
+        {!form.id && !form.brand_name && (
+          <div className="glass-card rounded-xl p-8 mb-6 text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-2">
+              <Globe className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="font-display text-xl font-semibold text-foreground">Enter your website to get started</h2>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto">
+              Paste your URL and our AI will analyze your brand — extracting tone, personas, differentiators, and more.
+            </p>
+            <div className="flex gap-3 max-w-lg mx-auto">
+              <input value={form.website_url} onChange={(e) => updateField("website_url", e.target.value)}
+                className="flex-1 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="https://yourwebsite.com" />
+              <button onClick={handleEnrichFromUrl} disabled={enriching}
+                className="px-6 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50">
+                {enriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {enriching ? "Analyzing..." : "Analyze Brand"}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">Or skip and fill in manually below</p>
           </div>
         )}
 
@@ -144,16 +217,19 @@ const BrandBrainPage = () => {
         <div className="glass-card rounded-xl p-6 space-y-6">
           {step === 0 && (
             <>
-              <div className="flex gap-3">
-                <input value={form.website_url} onChange={(e) => updateField("website_url", e.target.value)}
-                  className="flex-1 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="https://yourwebsite.com" />
-                <button onClick={handleEnrichFromUrl} disabled={enriching}
-                  className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/90 transition-colors flex items-center gap-2 disabled:opacity-50">
-                  {enriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  Auto-Enrich
-                </button>
-              </div>
+              {/* Show URL input inline too when already started */}
+              {(form.id || form.brand_name) && (
+                <div className="flex gap-3">
+                  <input value={form.website_url} onChange={(e) => updateField("website_url", e.target.value)}
+                    className="flex-1 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="https://yourwebsite.com" />
+                  <button onClick={handleEnrichFromUrl} disabled={enriching}
+                    className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-accent/90 transition-colors flex items-center gap-2 disabled:opacity-50">
+                    {enriching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {enriching ? "Analyzing..." : "Auto-Enrich"}
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1 block">Brand Name *</label>
@@ -266,6 +342,7 @@ const BrandBrainPage = () => {
                   </div>
                 </div>
               ))}
+              {form.claims_proof.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No claims yet. Add your marketing claims with evidence.</p>}
             </>
           )}
 
@@ -309,8 +386,9 @@ const BrandBrainPage = () => {
             className="px-5 py-2.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">Back</button>
           <div className="flex gap-3">
             <button onClick={handleSave} disabled={upsert.isPending}
-              className="px-5 py-2.5 rounded-lg border border-primary text-sm font-medium text-primary hover:bg-primary/10 transition-colors">
-              {upsert.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Draft"}
+              className="px-5 py-2.5 rounded-lg border border-primary text-sm font-medium text-primary hover:bg-primary/10 transition-colors flex items-center gap-2">
+              {upsert.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Save Draft
             </button>
             {step < STEPS.length - 1 ? (
               <button onClick={() => setStep(step + 1)}
@@ -319,7 +397,8 @@ const BrandBrainPage = () => {
               </button>
             ) : (
               <button onClick={handleSave} disabled={upsert.isPending}
-                className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2">
+                {upsert.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Complete Brand Brain
               </button>
             )}
