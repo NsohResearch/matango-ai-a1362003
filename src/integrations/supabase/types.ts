@@ -1480,107 +1480,182 @@ export type Database = {
         Row: {
           account_status: string
           active_brand_id: string | null
+          address_line1: string | null
           assets_limit: number
           billing_status: string
+          city: string | null
+          company_email: string | null
+          company_phone: string | null
+          country: string | null
           created_at: string
           deleted_by_user_id: string | null
+          favicon_url: string | null
           hard_delete_at: string | null
           id: string
+          industry: string | null
+          legal_name: string | null
+          logo_url: string | null
           max_brands: number
           name: string
           owner_id: string
           paused_at: string | null
           paused_reason: string | null
           plan: string
+          postal_code: string | null
           restored_at: string | null
           slug: string
           soft_deleted_at: string | null
+          state: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           account_status?: string
           active_brand_id?: string | null
+          address_line1?: string | null
           assets_limit?: number
           billing_status?: string
+          city?: string | null
+          company_email?: string | null
+          company_phone?: string | null
+          country?: string | null
           created_at?: string
           deleted_by_user_id?: string | null
+          favicon_url?: string | null
           hard_delete_at?: string | null
           id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
           max_brands?: number
           name: string
           owner_id: string
           paused_at?: string | null
           paused_reason?: string | null
           plan?: string
+          postal_code?: string | null
           restored_at?: string | null
           slug: string
           soft_deleted_at?: string | null
+          state?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           account_status?: string
           active_brand_id?: string | null
+          address_line1?: string | null
           assets_limit?: number
           billing_status?: string
+          city?: string | null
+          company_email?: string | null
+          company_phone?: string | null
+          country?: string | null
           created_at?: string
           deleted_by_user_id?: string | null
+          favicon_url?: string | null
           hard_delete_at?: string | null
           id?: string
+          industry?: string | null
+          legal_name?: string | null
+          logo_url?: string | null
           max_brands?: number
           name?: string
           owner_id?: string
           paused_at?: string | null
           paused_reason?: string | null
           plan?: string
+          postal_code?: string | null
           restored_at?: string | null
           slug?: string
           soft_deleted_at?: string | null
+          state?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
           account_status: string
+          account_type: string
           avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
           created_at: string
           credits: number
+          display_name: string | null
           email: string | null
           id: string
+          linkedin_url: string | null
           name: string | null
           onboarding_completed: boolean
+          personal_logo_url: string | null
+          phone: string | null
           plan: string
+          primary_color: string | null
           role: string
+          role_title: string | null
+          timezone: string | null
+          typography_style: string | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
           account_status?: string
+          account_type?: string
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           credits?: number
+          display_name?: string | null
           email?: string | null
           id?: string
+          linkedin_url?: string | null
           name?: string | null
           onboarding_completed?: boolean
+          personal_logo_url?: string | null
+          phone?: string | null
           plan?: string
+          primary_color?: string | null
           role?: string
+          role_title?: string | null
+          timezone?: string | null
+          typography_style?: string | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
           account_status?: string
+          account_type?: string
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           credits?: number
+          display_name?: string | null
           email?: string | null
           id?: string
+          linkedin_url?: string | null
           name?: string | null
           onboarding_completed?: boolean
+          personal_logo_url?: string | null
+          phone?: string | null
           plan?: string
+          primary_color?: string | null
           role?: string
+          role_title?: string | null
+          timezone?: string | null
+          typography_style?: string | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2120,10 +2195,16 @@ export type Database = {
       white_label_settings: {
         Row: {
           accent_color: string | null
+          brand_font: string | null
           brand_name: string | null
+          client_portal_mode: string | null
           created_at: string
           custom_domain: string | null
           custom_footer: string | null
+          custom_login_url: string | null
+          domain_verification_token: string | null
+          domain_verified: boolean | null
+          email_header_logo_url: string | null
           favicon_url: string | null
           hide_branding: boolean | null
           id: string
@@ -2136,10 +2217,16 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          brand_font?: string | null
           brand_name?: string | null
+          client_portal_mode?: string | null
           created_at?: string
           custom_domain?: string | null
           custom_footer?: string | null
+          custom_login_url?: string | null
+          domain_verification_token?: string | null
+          domain_verified?: boolean | null
+          email_header_logo_url?: string | null
           favicon_url?: string | null
           hide_branding?: boolean | null
           id?: string
@@ -2152,10 +2239,16 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          brand_font?: string | null
           brand_name?: string | null
+          client_portal_mode?: string | null
           created_at?: string
           custom_domain?: string | null
           custom_footer?: string | null
+          custom_login_url?: string | null
+          domain_verification_token?: string | null
+          domain_verified?: boolean | null
+          email_header_logo_url?: string | null
           favicon_url?: string | null
           hide_branding?: boolean | null
           id?: string

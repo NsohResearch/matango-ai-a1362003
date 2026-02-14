@@ -1,11 +1,10 @@
 /**
- * OnboardingGate — Wraps protected pages and shows plan selection for new users.
- * Adapted from trpc to Supabase.
+ * OnboardingGate — Redirects to /onboarding/profile if profile incomplete.
  */
 import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useData";
-import PlanSelectionDrawer from "@/components/PlanSelectionDrawer";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -17,7 +16,8 @@ interface OnboardingGateProps {
 export default function OnboardingGate({ children, soft = false }: OnboardingGateProps) {
   const { user, loading: authLoading } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const [showPlanDrawer, setShowPlanDrawer] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [reconciled, setReconciled] = useState(false);
 
   // Post-checkout reconciliation
@@ -41,14 +41,15 @@ export default function OnboardingGate({ children, soft = false }: OnboardingGat
     }
   }, [user, reconciled]);
 
-  // Show plan selection for new users
+  // Redirect to onboarding if profile incomplete
   useEffect(() => {
     if (soft || authLoading || profileLoading || !user || !profile) return;
-    if (!profile.onboarding_completed && profile.plan === "free") {
-      const timer = setTimeout(() => setShowPlanDrawer(true), 800);
-      return () => clearTimeout(timer);
+    // Don't redirect if already on onboarding page
+    if (location.pathname.startsWith("/onboarding")) return;
+    if (!profile.onboarding_completed) {
+      navigate("/onboarding/profile", { replace: true });
     }
-  }, [profile, user, authLoading, profileLoading, soft]);
+  }, [profile, user, authLoading, profileLoading, soft, navigate, location.pathname]);
 
   if (authLoading || (user && profileLoading)) {
     return (
@@ -58,17 +59,5 @@ export default function OnboardingGate({ children, soft = false }: OnboardingGat
     );
   }
 
-  return (
-    <>
-      {children}
-      <PlanSelectionDrawer
-        open={showPlanDrawer}
-        onOpenChange={setShowPlanDrawer}
-        origin="onboarding"
-        onPlanSelected={(planId) => {
-          setShowPlanDrawer(false);
-        }}
-      />
-    </>
-  );
+  return <>{children}</>;
 }

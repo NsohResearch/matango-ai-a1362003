@@ -9,6 +9,7 @@ import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import KahChatWidget from "@/components/KahChatWidget";
 import Index from "./pages/Index";
+import OnboardingProfile from "./pages/OnboardingProfile";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/meet-kah" element={<MeetKah />} />
             <Route path="/discover" element={<Discover />} />
+            <Route path="/onboarding/profile" element={<P><OnboardingProfile /></P>} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
 
