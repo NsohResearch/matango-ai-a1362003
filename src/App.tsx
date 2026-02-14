@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import KahChatWidget from "@/components/KahChatWidget";
 import Index from "./pages/Index";
@@ -35,6 +36,10 @@ const queryClient = new QueryClient();
 
 const P = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute>{children}</ProtectedRoute>
+);
+
+const A = ({ children }: { children: React.ReactNode }) => (
+  <AdminRoute>{children}</AdminRoute>
 );
 
 const App = () => (
@@ -113,18 +118,21 @@ const App = () => (
             <Route path="/aao-glossary" element={<P><AAOGlossary /></P>} />
 
             {/* Protected — Admin */}
-            <Route path="/admin" element={<P><AdminOverview /></P>} />
-            <Route path="/admin/tenants" element={<P><AdminTenants /></P>} />
-            <Route path="/admin/tenants/:id" element={<P><AdminTenantDetail /></P>} />
-            <Route path="/admin/billing" element={<P><AdminBilling /></P>} />
-            <Route path="/admin/feature-flags" element={<P><AdminFeatureFlags /></P>} />
-            <Route path="/admin/audit-log" element={<P><AdminAuditLog /></P>} />
-            <Route path="/admin/integrations" element={<P><AdminIntegrations /></P>} />
-            <Route path="/admin/system-health" element={<P><AdminSystemHealth /></P>} />
-            <Route path="/admin/moderation" element={<P><AdminModeration /></P>} />
-            <Route path="/admin/compliance" element={<P><AdminCompliance /></P>} />
-            <Route path="/admin/gdpr" element={<P><AdminGdprRequests /></P>} />
-            <Route path="/admin/leads" element={<P><AdminLeads /></P>} />
+            <Route path="/admin" element={<A><AdminOverview /></A>} />
+            <Route path="/admin/tenants" element={<A><AdminTenants /></A>} />
+            <Route path="/admin/tenants/:id" element={<A><AdminTenantDetail /></A>} />
+            <Route path="/admin/billing" element={<A><AdminBilling /></A>} />
+            <Route path="/admin/feature-flags" element={<A><AdminFeatureFlags /></A>} />
+            <Route path="/admin/audit-log" element={<A><AdminAuditLog /></A>} />
+            <Route path="/admin/integrations" element={<A><AdminIntegrations /></A>} />
+            <Route path="/admin/system-health" element={<A><AdminSystemHealth /></A>} />
+            <Route path="/admin/moderation" element={<A><AdminModeration /></A>} />
+            <Route path="/admin/compliance" element={<A><AdminCompliance /></A>} />
+            <Route path="/admin/gdpr" element={<A><AdminGdprRequests /></A>} />
+            <Route path="/admin/leads" element={<A><AdminLeads /></A>} />
+
+            {/* Auth callback */}
+            <Route path="/auth/callback" element={<Auth />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

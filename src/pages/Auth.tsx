@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import matangoIcon from "@/assets/matango-icon.png";
+import PasswordStrength from "@/components/PasswordStrength";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -110,6 +111,7 @@ const Auth = () => {
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border border-emerald-700/50 bg-emerald-800/30 px-4 py-2.5 text-sm text-cream-50 placeholder:text-cream-100/30 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
                 placeholder="Password (min 6 characters)" minLength={6} required />
+              {isSignup && <PasswordStrength password={password} />}
               <button type="submit" disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:border hover:border-gold-400 transition-all disabled:opacity-50">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-4 w-4" />{isSignup ? "Create Account" : "Sign In"}<ArrowRight className="h-4 w-4 ml-1" /></>}
@@ -118,7 +120,23 @@ const Auth = () => {
           )}
 
           {showEmailForm && !isSignup && (
-            <button className="w-full text-center text-sm text-gold-400 hover:underline mt-3">Forgot your password?</button>
+            <button
+              onClick={async () => {
+                if (!email) { toast.error("Enter your email first"); return; }
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/auth?mode=reset`,
+                  });
+                  if (error) throw error;
+                  toast.success("Password reset email sent! Check your inbox.");
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to send reset email");
+                }
+              }}
+              className="w-full text-center text-sm text-gold-400 hover:underline mt-3"
+            >
+              Forgot your password?
+            </button>
           )}
 
           <p className="mt-6 text-center text-sm text-cream-100/40">
