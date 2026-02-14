@@ -60,7 +60,7 @@ export function BrandSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2 max-w-[200px]">
           <Building2 className="h-4 w-4 text-primary" />
-          <span className="truncate text-foreground">{activeBrand?.brand_name || "Select Brand"}</span>
+          <span className="truncate text-cream-50">{activeBrand?.brand_name || "Select Brand"}</span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
