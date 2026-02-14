@@ -21,7 +21,7 @@ const AssetLibraryPage = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-              <Library className="h-8 w-8 text-primary" /> Asset Library
+              <Library className="h-8 w-8 text-primary" /> Asset Gallery
             </h1>
             <p className="mt-1 text-muted-foreground">Manage your generated images, videos, and assets.</p>
           </div>

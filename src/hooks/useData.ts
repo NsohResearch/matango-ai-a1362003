@@ -99,7 +99,44 @@ export function useUpsertBrandBrain() {
   });
 }
 
-// ── Campaigns ─────────────────────────────────────────────
+export function useDeleteBrand() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("business_dna").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["brand-brains"] }); toast.success("Brand deleted"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useArchiveBrand() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("business_dna").update({ status: "archived", is_active: false }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["brand-brains"] }); toast.success("Brand archived"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useTransferBrand() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, newOwnerEmail }: { id: string; newOwnerEmail: string }) => {
+      // Look up the user by email in profiles
+      const { data: profile, error: lookupErr } = await supabase.from("profiles").select("user_id").eq("email", newOwnerEmail).single();
+      if (lookupErr || !profile) throw new Error("User not found with that email");
+      const { error } = await supabase.from("business_dna").update({ user_id: profile.user_id }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["brand-brains"] }); toast.success("Brand transferred"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
 export function useCampaigns() {
   const { user } = useAuth();
   return useQuery({
@@ -293,7 +330,7 @@ export function useContentTemplates() {
   });
 }
 
-// ── Asset Library ─────────────────────────────────────────
+// ── Asset Gallery ─────────────────────────────────────────
 export function useAssetLibrary() {
   const { user } = useAuth();
   return useQuery({
@@ -304,6 +341,21 @@ export function useAssetLibrary() {
       if (error) throw error;
       return data || [];
     },
+  });
+}
+
+export function useCreateAsset() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { type: string; url?: string; prompt?: string; tags?: string[]; metadata?: Record<string, unknown> }) => {
+      const payload = { type: values.type, url: values.url, prompt: values.prompt, tags: values.tags, metadata: values.metadata as any, user_id: user!.id };
+      const { data, error } = await supabase.from("asset_library").insert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["assets"] }); },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 

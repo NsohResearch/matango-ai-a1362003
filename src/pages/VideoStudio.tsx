@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText, ChevronRight, Upload, CheckCircle2, Sparkles } from "lucide-react";
-import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useAssetLibrary } from "@/hooks/useData";
+import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useAssetLibrary, useCreateAsset } from "@/hooks/useData";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { estimateCredits, formatCredits } from "@/lib/credits";
@@ -17,6 +17,7 @@ const VideoStudioPage = () => {
   const { data: influencers } = useInfluencers();
   const { data: assets } = useAssetLibrary();
   const createJob = useCreateVideoJob();
+  const createAsset = useCreateAsset();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const scriptId = searchParams.get("scriptId");
@@ -136,6 +137,12 @@ const VideoStudioPage = () => {
   const handleGenerateVideo = () => {
     if (itvUploadedUrls.length === 0) { toast.error("No uploaded images"); return; }
     setItvGenerating(true);
+
+    // Save uploaded images to Asset Gallery
+    for (const url of itvUploadedUrls) {
+      createAsset.mutate({ type: "image", url, prompt: "Video training reference", tags: ["training", "image-to-video"] });
+    }
+
     createJob.mutate(
       {
         job_type: "image-to-video",
@@ -144,8 +151,15 @@ const VideoStudioPage = () => {
         input_refs: { images: itvUploadedUrls, motion_type: itv.motion_type, camera_movement: itv.camera_movement, duration: itv.duration },
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
           toast.success("Image-to-video job queued!");
+          // Save video job reference to Asset Gallery
+          createAsset.mutate({
+            type: "video",
+            prompt: `Image-to-video: ${itv.motion_type} motion, ${itv.camera_movement} camera`,
+            tags: ["video", "image-to-video"],
+            metadata: { video_job_id: data?.id, images: itvUploadedUrls, settings: itv },
+          });
           setItvGenerating(false);
           setItvStep("gallery");
         },

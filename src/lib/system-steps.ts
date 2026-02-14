@@ -15,7 +15,7 @@ export const SYSTEM_STEPS: SystemStep[] = [
   { id: 1, title: "Campaign Blueprint", short: "Campaign", route: "/campaign-factory", icon: Megaphone },
   { id: 2, title: "Image & Training", short: "Images", route: "/influencer-studio", icon: ImagePlus },
   { id: 3, title: "Video Studio", short: "Video", route: "/video-studio", icon: Video },
-  { id: 4, title: "Asset Library", short: "Assets", route: "/asset-library", icon: Library },
+  { id: 4, title: "Asset Gallery", short: "Assets", route: "/asset-library", icon: Library },
   { id: 5, title: "AAO & Influencers", short: "AAO", route: "/aao-studio", icon: Users },
   { id: 6, title: "Campaign Factory", short: "Channels", route: "/video-scripts", icon: Layers },
   { id: 7, title: "Publish & Schedule", short: "Publish", route: "/schedule", icon: Calendar },

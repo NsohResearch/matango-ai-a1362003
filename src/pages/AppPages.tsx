@@ -44,7 +44,7 @@ export const CreateInfluencerPro = () => (
   <ComingSoonPage title="Create Influencer Pro" description="Advanced influencer creation with fine-tuned character controls and training data upload." icon={Wand2} tier="Agency" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
 export const GenerationWorkspace = () => (
-  <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Library", to: "/asset-library" }]} />
+  <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Gallery", to: "/asset-library" }]} />
 );
 export const Chat = () => (
   <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Basic" alternatives={[{ label: "Try K'ah Chat", to: "/meet-kah" }]} />
@@ -64,7 +64,7 @@ export const StoryStudio = () => (
   <ComingSoonPage title="Story Studio" description="Create multi-scene narratives and visual stories with AI-generated imagery and consistent characters." icon={BookOpen} tier="Agency" alternatives={[{ label: "Video Scripts", to: "/video-scripts" }, { label: "Video Studio", to: "/video-studio" }]} />
 );
 export const BulkCreate = () => (
-  <ComingSoonPage title="Bulk Create" description="Generate content at scale with batch processing for images, videos, and copy across all your campaigns." icon={Upload} tier="Agency" alternatives={[{ label: "Asset Library", to: "/asset-library" }, { label: "Campaign Factory", to: "/campaign-factory" }]} />
+  <ComingSoonPage title="Bulk Create" description="Generate content at scale with batch processing for images, videos, and copy across all your campaigns." icon={Upload} tier="Agency" alternatives={[{ label: "Asset Gallery", to: "/asset-library" }, { label: "Campaign Factory", to: "/campaign-factory" }]} />
 );
 export { default as AdminTenantDetail } from "@/pages/admin/AdminTenantDetail";
 export { default as AdminIntegrations } from "@/pages/admin/AdminIntegrations";
