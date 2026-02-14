@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Play } from "lucide-react";
+import kahHero from "@/assets/kah-hero.webp";
 
 const HeroSection = () => {
   return (
@@ -58,10 +59,25 @@ const HeroSection = () => {
       </motion.div>
 
       <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="mt-16 relative"
+      >
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-gold-500/20 to-emerald-500/20 blur-xl" />
+        <img
+          src={kahHero}
+          alt="Ka'h — AI-Amplified Operator"
+          className="relative rounded-3xl w-48 h-48 object-cover object-top mx-auto shadow-2xl ring-1 ring-white/10"
+        />
+        <p className="mt-3 text-sm text-gold-400 font-display">Ka'h — Your AI Operator</p>
+      </motion.div>
+
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="mt-16 gold-divider w-48"
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="mt-8 gold-divider w-48"
       />
 
       <motion.p
