@@ -320,6 +320,25 @@ export function useCreateVideoJob() {
       const { input_refs, ...rest } = values;
       const { data, error } = await supabase.from("video_jobs").insert({ ...rest, input_refs: input_refs as any, user_id: user!.id, status: "pending" }).select().single();
       if (error) throw error;
+
+      // Simulate status progression: pending → processing → completed
+      const jobId = data.id;
+      setTimeout(async () => {
+        await supabase.from("video_jobs").update({ status: "processing", progress: 25 }).eq("id", jobId);
+        qc.invalidateQueries({ queryKey: ["video-jobs"] });
+      }, 2000);
+      setTimeout(async () => {
+        await supabase.from("video_jobs").update({ status: "processing", progress: 75 }).eq("id", jobId);
+        qc.invalidateQueries({ queryKey: ["video-jobs"] });
+      }, 5000);
+      setTimeout(async () => {
+        await supabase.from("video_jobs").update({ status: "completed", progress: 100 }).eq("id", jobId);
+        // Also update any linked video outputs
+        await supabase.from("video_outputs").update({ status: "completed" } as any).eq("video_job_id", jobId);
+        qc.invalidateQueries({ queryKey: ["video-jobs"] });
+        qc.invalidateQueries({ queryKey: ["video-outputs"] });
+      }, 10000);
+
       return data;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-jobs"] }); toast.success("Video job queued!"); },

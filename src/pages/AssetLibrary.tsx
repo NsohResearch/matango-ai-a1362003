@@ -1,19 +1,47 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2 } from "lucide-react";
+import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2, CalendarDays, SlidersHorizontal } from "lucide-react";
 import { useAssetLibrary } from "@/hooks/useData";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const AssetLibraryPage = () => {
   const { data: assets, isLoading } = useAssetLibrary();
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filter, setFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<"all" | "7d" | "30d" | "90d">("all");
+  const [modelFilter, setModelFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filtered = assets?.filter((a) => {
-    const matchSearch = !search || (a.prompt || "").toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || a.type === filter;
-    return matchSearch && matchFilter;
-  }) || [];
+  // Extract unique models for filter dropdown
+  const models = useMemo(() => {
+    const set = new Set<string>();
+    assets?.forEach((a) => { if (a.model) set.add(a.model); });
+    return Array.from(set);
+  }, [assets]);
+
+  const filtered = useMemo(() => {
+    const now = new Date();
+    return (assets || [])
+      .filter((a) => {
+        const matchSearch = !search || (a.prompt || "").toLowerCase().includes(search.toLowerCase());
+        const matchType = filter === "all" || a.type === filter;
+        const matchModel = modelFilter === "all" || a.model === modelFilter;
+        let matchDate = true;
+        if (dateRange !== "all") {
+          const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
+          const cutoff = new Date(now);
+          cutoff.setDate(cutoff.getDate() - days);
+          matchDate = new Date(a.created_at) >= cutoff;
+        }
+        return matchSearch && matchType && matchModel && matchDate;
+      })
+      .sort((a, b) => {
+        const da = new Date(a.created_at).getTime();
+        const db = new Date(b.created_at).getTime();
+        return sortBy === "newest" ? db - da : da - db;
+      });
+  }, [assets, search, filter, dateRange, modelFilter, sortBy]);
 
   return (
     <DashboardLayout>
@@ -31,7 +59,7 @@ const AssetLibraryPage = () => {
           </div>
         </div>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
@@ -44,7 +72,47 @@ const AssetLibraryPage = () => {
                 className={`px-3 py-2 text-xs font-medium capitalize ${filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>{f}</button>
             ))}
           </div>
+          <button onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 rounded-lg border border-border text-xs font-medium flex items-center gap-1.5 ${showFilters ? "bg-primary/10 text-primary border-primary/30" : "text-muted-foreground"}`}>
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+          </button>
         </div>
+
+        {/* Advanced Filters */}
+        {showFilters && (
+          <div className="flex gap-3 mb-4 p-3 rounded-lg bg-secondary/50 border border-border flex-wrap items-end">
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Date Range</label>
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                {([["all", "All"], ["7d", "7 days"], ["30d", "30 days"], ["90d", "90 days"]] as const).map(([val, label]) => (
+                  <button key={val} onClick={() => setDateRange(val)}
+                    className={`px-2.5 py-1.5 text-[10px] font-medium ${dateRange === val ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {models.length > 0 && (
+              <div>
+                <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Model</label>
+                <select value={modelFilter} onChange={(e) => setModelFilter(e.target.value)}
+                  className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <option value="all">All models</option>
+                  {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Sort</label>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
+                className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+              </select>
+            </div>
+            <span className="text-[10px] text-muted-foreground ml-auto self-end pb-1">{filtered.length} asset{filtered.length !== 1 ? "s" : ""}</span>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
