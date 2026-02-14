@@ -19,6 +19,9 @@ export async function callEdgeFunction(functionName: string, body: Record<string
     body: JSON.stringify(body),
   });
 
+  if (res.status === 429) throw new Error("Rate limit exceeded. Please wait a moment and try again.");
+  if (res.status === 402) throw new Error("AI credits exhausted. Please add credits to continue.");
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(err.error || `Edge function error: ${res.status}`);
@@ -27,8 +30,11 @@ export async function callEdgeFunction(functionName: string, body: Record<string
   return res.json();
 }
 
-export const aiGenerate = (prompt: string, type?: string) =>
-  callEdgeFunction("ai-generate", { prompt, type });
+export const aiGenerate = (prompt: string, type?: string, model?: string) =>
+  callEdgeFunction("ai-generate", { prompt, type, model });
 
 export const kahChat = (message: string, session_id?: string) =>
   callEdgeFunction("kah-chat", { message, session_id });
+
+export const aaoExecute = (aao_type: string, context: string, options?: { campaign_id?: string; brand_id?: string; action?: string }) =>
+  callEdgeFunction("aao-execute", { aao_type, context, ...options });
