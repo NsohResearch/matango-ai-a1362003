@@ -48,24 +48,24 @@
   }
 
   [data-theme="dark"] {
-    /* Emerald Luxe — Dark (Emerald Noir) */
+    /* Emerald Luxe — Dark (Emerald Noir) — HIGH CONTRAST */
     --background: 160 40% 4%;
-    --foreground: 40 15% 90%;
+    --foreground: 40 10% 95%;
 
     --card: 155 30% 7%;
-    --card-foreground: 40 15% 90%;
+    --card-foreground: 40 10% 95%;
 
     --popover: 155 30% 7%;
-    --popover-foreground: 40 15% 90%;
+    --popover-foreground: 40 10% 95%;
 
-    --primary: 155 55% 30%;
+    --primary: 155 55% 35%;
     --primary-foreground: 40 20% 97%;
 
     --secondary: 155 20% 12%;
-    --secondary-foreground: 40 12% 80%;
+    --secondary-foreground: 40 10% 85%;
 
     --muted: 155 15% 14%;
-    --muted-foreground: 40 5% 50%;
+    --muted-foreground: 40 5% 65%;
 
     --accent: 42 55% 53%;
     --accent-foreground: 0 0% 7%;
@@ -73,17 +73,17 @@
     --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 155 20% 14%;
-    --input: 155 20% 14%;
-    --ring: 155 55% 30%;
+    --border: 155 15% 25%;
+    --input: 155 15% 25%;
+    --ring: 155 55% 35%;
 
     --sidebar-background: 155 40% 5%;
-    --sidebar-foreground: 40 15% 90%;
+    --sidebar-foreground: 40 10% 93%;
     --sidebar-primary: 42 55% 53%;
     --sidebar-primary-foreground: 0 0% 7%;
     --sidebar-accent: 155 25% 10%;
-    --sidebar-accent-foreground: 40 12% 80%;
-    --sidebar-border: 155 20% 12%;
+    --sidebar-accent-foreground: 40 10% 85%;
+    --sidebar-border: 155 20% 15%;
     --sidebar-ring: 42 55% 53%;
   }
 }
