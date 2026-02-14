@@ -359,6 +359,39 @@ export function useCreateAsset() {
   });
 }
 
+// ── Video Outputs ─────────────────────────────────────────
+export function useVideoOutputs(jobId?: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["video-outputs", jobId || user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let query = supabase.from("video_outputs" as any).select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (jobId) query = query.eq("video_job_id", jobId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+}
+
+export function useCreateVideoOutput() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: {
+      video_job_id: string; format_preset: string; aspect_ratio: string;
+      width: number; height: number; quality: string; is_preview: boolean; credit_cost: number;
+    }) => {
+      const { data, error } = await supabase.from("video_outputs" as any).insert({ ...values, user_id: user!.id, status: "queued" } as any).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-outputs"] }); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
 // ── Social Connections ────────────────────────────────────
 export function useSocialConnections() {
   const { user } = useAuth();
