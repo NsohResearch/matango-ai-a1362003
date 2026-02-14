@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check, Lock } from "lucide-react";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
+import { useSystemStatus } from "@/hooks/useSystemStatus";
 
 const TheSystemDropdown = () => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { statusByStep } = useSystemStatus();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -32,24 +34,44 @@ const TheSystemDropdown = () => {
             <p className="text-xs text-cream-100/50 mt-1">Follow the steps 0→9 to build your growth engine.</p>
           </div>
           <div className="max-h-[60vh] overflow-y-auto py-1">
-            {SYSTEM_STEPS.map((step) => (
-              <Link
-                key={step.id}
-                to={step.route}
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-800/50 transition-colors group"
-              >
-                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-800/60 text-xs font-bold text-cream-100/70 group-hover:text-gold-400 shrink-0">
-                  {step.id}
-                </span>
-                <step.icon className="h-4 w-4 text-primary shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-cream-50 group-hover:text-gold-400 transition-colors">
-                    {step.title}
+            {SYSTEM_STEPS.map((step) => {
+              const status = statusByStep[step.id] ?? "locked";
+              const isLocked = status === "locked";
+              const isComplete = status === "complete";
+
+              return isLocked ? (
+                <div
+                  key={step.id}
+                  className="flex items-center gap-3 px-4 py-2.5 opacity-40 cursor-not-allowed"
+                  title="Complete previous step first"
+                >
+                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-emerald-800/60 text-xs font-bold text-cream-100/40 shrink-0">
+                    {step.id}
+                  </span>
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-cream-50/40">{step.title}</div>
                   </div>
                 </div>
-              </Link>
-            ))}
+              ) : (
+                <Link
+                  key={step.id}
+                  to={step.route}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-800/50 transition-colors group"
+                >
+                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${isComplete ? "bg-accent/20 text-accent" : "bg-emerald-800/60 text-cream-100/70 group-hover:text-gold-400"}`}>
+                    {isComplete ? <Check className="h-3.5 w-3.5" /> : step.id}
+                  </span>
+                  <step.icon className={`h-4 w-4 shrink-0 ${isComplete ? "text-accent" : "text-primary"}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-sm font-medium transition-colors ${isComplete ? "text-accent" : "text-cream-50 group-hover:text-gold-400"}`}>
+                      {step.title}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
           <div className="p-3 border-t border-emerald-800/50">
             <button
