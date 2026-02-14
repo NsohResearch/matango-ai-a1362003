@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import KahChatWidget from "@/components/KahChatWidget";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const P = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
@@ -132,6 +134,7 @@ const App = () => (
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
