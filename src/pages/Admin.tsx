@@ -1,5 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { ShieldCheck, Users, BarChart3, Flag, ScrollText, Cpu, AlertTriangle, Globe, FileText, Zap, Loader2 } from "lucide-react";
+import { ShieldCheck, Users, BarChart3, Flag, ScrollText, Cpu, AlertTriangle, Globe, FileText, Zap, Loader2, Plug } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const adminNav = [
@@ -8,6 +8,7 @@ const adminNav = [
   { to: "/admin/billing", icon: Zap, label: "Billing" },
   { to: "/admin/feature-flags", icon: Flag, label: "Feature Flags" },
   { to: "/admin/audit-log", icon: ScrollText, label: "Audit Log" },
+  { to: "/admin/integrations", icon: Plug, label: "Integrations" },
   { to: "/admin/system-health", icon: Cpu, label: "System Health" },
   { to: "/admin/moderation", icon: AlertTriangle, label: "Moderation" },
   { to: "/admin/compliance", icon: ShieldCheck, label: "Compliance" },

@@ -1,0 +1,12 @@
+{
+  "name": "Matango.ai",
+  "short_name": "Matango",
+  "description": "One loop. One brand brain. Always-on growth.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061E17",
+  "theme_color": "#145F48",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ]
+}
