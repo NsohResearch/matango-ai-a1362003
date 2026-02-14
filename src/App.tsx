@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -29,97 +31,103 @@ import {
 
 const queryClient = new QueryClient();
 
+const P = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>{children}</ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public */}
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/meet-kah" element={<MeetKah />} />
-          <Route path="/discover" element={<Discover />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public */}
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/meet-kah" element={<MeetKah />} />
+            <Route path="/discover" element={<Discover />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
 
-          {/* Dashboard */}
-          <Route path="/dashboard" element={<Dashboard />} />
+            {/* Protected — Dashboard */}
+            <Route path="/dashboard" element={<P><Dashboard /></P>} />
 
-          {/* Core */}
-          <Route path="/brand-brain" element={<BrandBrain />} />
-          <Route path="/campaign-factory" element={<CampaignFactory />} />
+            {/* Protected — Core */}
+            <Route path="/brand-brain" element={<P><BrandBrain /></P>} />
+            <Route path="/campaign-factory" element={<P><CampaignFactory /></P>} />
 
-          {/* Create */}
-          <Route path="/influencer-studio" element={<InfluencerStudio />} />
-          <Route path="/influencer/:id" element={<InfluencerDetail />} />
-          <Route path="/create-influencer" element={<CreateInfluencer />} />
-          <Route path="/create-influencer-pro" element={<CreateInfluencerPro />} />
-          <Route path="/generation-workspace" element={<GenerationWorkspace />} />
-          <Route path="/generation-workspace/:id" element={<GenerationWorkspace />} />
-          <Route path="/video-studio" element={<VideoStudio />} />
-          <Route path="/video-studio-pro" element={<VideoStudioPro />} />
-          <Route path="/video-scripts" element={<VideoScripts />} />
-          <Route path="/story-studio" element={<StoryStudio />} />
-          <Route path="/asset-library" element={<AssetLibrary />} />
-          <Route path="/templates" element={<Templates />} />
-          <Route path="/template-marketplace" element={<TemplateMarketplace />} />
-          <Route path="/bulk-create" element={<BulkCreate />} />
-          <Route path="/chat/:id" element={<Chat />} />
+            {/* Protected — Create */}
+            <Route path="/influencer-studio" element={<P><InfluencerStudio /></P>} />
+            <Route path="/influencer/:id" element={<P><InfluencerDetail /></P>} />
+            <Route path="/create-influencer" element={<P><CreateInfluencer /></P>} />
+            <Route path="/create-influencer-pro" element={<P><CreateInfluencerPro /></P>} />
+            <Route path="/generation-workspace" element={<P><GenerationWorkspace /></P>} />
+            <Route path="/generation-workspace/:id" element={<P><GenerationWorkspace /></P>} />
+            <Route path="/video-studio" element={<P><VideoStudio /></P>} />
+            <Route path="/video-studio-pro" element={<P><VideoStudioPro /></P>} />
+            <Route path="/video-scripts" element={<P><VideoScripts /></P>} />
+            <Route path="/story-studio" element={<P><StoryStudio /></P>} />
+            <Route path="/asset-library" element={<P><AssetLibrary /></P>} />
+            <Route path="/templates" element={<P><Templates /></P>} />
+            <Route path="/template-marketplace" element={<P><TemplateMarketplace /></P>} />
+            <Route path="/bulk-create" element={<P><BulkCreate /></P>} />
+            <Route path="/chat/:id" element={<P><Chat /></P>} />
 
-          {/* Distribute */}
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/:id" element={<CampaignDetail />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/social-connections" element={<SocialConnections />} />
+            {/* Protected — Distribute */}
+            <Route path="/campaigns" element={<P><Campaigns /></P>} />
+            <Route path="/campaigns/:id" element={<P><CampaignDetail /></P>} />
+            <Route path="/schedule" element={<P><Schedule /></P>} />
+            <Route path="/social-connections" element={<P><SocialConnections /></P>} />
 
-          {/* Redirects */}
-          <Route path="/studio" element={<Navigate to="/influencer-studio" replace />} />
-          <Route path="/social" element={<Navigate to="/social-connections" replace />} />
-          <Route path="/video" element={<Navigate to="/video-studio" replace />} />
+            {/* Redirects */}
+            <Route path="/studio" element={<Navigate to="/influencer-studio" replace />} />
+            <Route path="/social" element={<Navigate to="/social-connections" replace />} />
+            <Route path="/video" element={<Navigate to="/video-studio" replace />} />
 
-          {/* Analyze */}
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/analytics-hub" element={<AnalyticsHub />} />
-          <Route path="/ab-testing" element={<ABTesting />} />
-          <Route path="/leads" element={<Leads />} />
+            {/* Protected — Analyze */}
+            <Route path="/analytics" element={<P><Analytics /></P>} />
+            <Route path="/analytics-hub" element={<P><AnalyticsHub /></P>} />
+            <Route path="/ab-testing" element={<P><ABTesting /></P>} />
+            <Route path="/leads" element={<P><Leads /></P>} />
 
-          {/* Manage */}
-          <Route path="/brands" element={<Brands />} />
-          <Route path="/brands/new" element={<Brands />} />
-          <Route path="/white-label" element={<WhiteLabel />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/account-settings" element={<AccountSettings />} />
-          <Route path="/settings" element={<AccountSettings />} />
-          <Route path="/ai-providers" element={<AIProvidersPage />} />
-          <Route path="/usage-analytics" element={<UsageAnalyticsPage />} />
+            {/* Protected — Manage */}
+            <Route path="/brands" element={<P><Brands /></P>} />
+            <Route path="/brands/new" element={<P><Brands /></P>} />
+            <Route path="/white-label" element={<P><WhiteLabel /></P>} />
+            <Route path="/team" element={<P><Team /></P>} />
+            <Route path="/notifications" element={<P><Notifications /></P>} />
+            <Route path="/account-settings" element={<P><AccountSettings /></P>} />
+            <Route path="/settings" element={<P><AccountSettings /></P>} />
+            <Route path="/ai-providers" element={<P><AIProvidersPage /></P>} />
+            <Route path="/usage-analytics" element={<P><UsageAnalyticsPage /></P>} />
 
-          {/* AAO */}
-          <Route path="/aao-studio" element={<AAOStudioPage />} />
-          <Route path="/aao-glossary" element={<AAOGlossary />} />
+            {/* Protected — AAO */}
+            <Route path="/aao-studio" element={<P><AAOStudioPage /></P>} />
+            <Route path="/aao-glossary" element={<P><AAOGlossary /></P>} />
 
-          {/* Admin */}
-          <Route path="/admin" element={<AdminOverview />} />
-          <Route path="/admin/tenants" element={<AdminTenants />} />
-          <Route path="/admin/tenants/:id" element={<AdminTenantDetail />} />
-          <Route path="/admin/billing" element={<AdminBilling />} />
-          <Route path="/admin/feature-flags" element={<AdminFeatureFlags />} />
-          <Route path="/admin/audit-log" element={<AdminAuditLog />} />
-          <Route path="/admin/integrations" element={<AdminIntegrations />} />
-          <Route path="/admin/system-health" element={<AdminSystemHealth />} />
-          <Route path="/admin/moderation" element={<AdminModeration />} />
-          <Route path="/admin/compliance" element={<AdminCompliance />} />
-          <Route path="/admin/gdpr" element={<AdminGdprRequests />} />
-          <Route path="/admin/leads" element={<AdminLeads />} />
+            {/* Protected — Admin */}
+            <Route path="/admin" element={<P><AdminOverview /></P>} />
+            <Route path="/admin/tenants" element={<P><AdminTenants /></P>} />
+            <Route path="/admin/tenants/:id" element={<P><AdminTenantDetail /></P>} />
+            <Route path="/admin/billing" element={<P><AdminBilling /></P>} />
+            <Route path="/admin/feature-flags" element={<P><AdminFeatureFlags /></P>} />
+            <Route path="/admin/audit-log" element={<P><AdminAuditLog /></P>} />
+            <Route path="/admin/integrations" element={<P><AdminIntegrations /></P>} />
+            <Route path="/admin/system-health" element={<P><AdminSystemHealth /></P>} />
+            <Route path="/admin/moderation" element={<P><AdminModeration /></P>} />
+            <Route path="/admin/compliance" element={<P><AdminCompliance /></P>} />
+            <Route path="/admin/gdpr" element={<P><AdminGdprRequests /></P>} />
+            <Route path="/admin/leads" element={<P><AdminLeads /></P>} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
