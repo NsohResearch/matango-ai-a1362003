@@ -9,37 +9,37 @@ const steps = [
 
 const OneLoopSection = () => {
   return (
-    <section className="py-24 px-6">
+    <section className="py-24 px-6 bg-emerald-950">
       <div className="container mx-auto max-w-5xl">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-display text-3xl md:text-4xl font-bold">
-            Matango.ai Replaces the Tool Parade{" "}
-            <span className="text-gradient-primary">With One Continuous Loop</span>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream-50">
+            One Continuous Loop,{" "}
+            <span className="text-gradient-accent italic">Not a Tool Parade</span>
           </h2>
-          <p className="mt-3 text-muted-foreground">One system. One brand brain. Always-on growth.</p>
+          <p className="mt-3 text-cream-100/50">One system. One brand brain. Always-on growth.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {steps.map((step, i) => (
             <motion.div
               key={step.num}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-card rounded-xl p-6 relative overflow-hidden group"
+              className="bg-emerald-900/50 border border-emerald-800/50 rounded-xl p-6 relative overflow-hidden group"
             >
-              <div className="absolute top-4 right-4 font-display text-4xl font-bold text-primary/10 group-hover:text-primary/20 transition-colors">
+              <div className="absolute top-4 right-4 font-display text-4xl font-bold text-gold-500/10 group-hover:text-gold-500/20 transition-colors">
                 {step.num}
               </div>
-              <span className="text-xs font-medium text-primary uppercase tracking-wider">{step.label}</span>
-              <h3 className="font-display text-xl font-semibold mt-2 mb-2">{step.title}</h3>
-              <p className="text-sm text-muted-foreground">{step.desc}</p>
+              <span className="text-xs font-medium text-gold-400 uppercase tracking-wider">{step.label}</span>
+              <h3 className="font-display text-xl font-semibold mt-2 mb-2 text-cream-50">{step.title}</h3>
+              <p className="text-sm text-cream-100/50">{step.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -50,8 +50,8 @@ const OneLoopSection = () => {
           viewport={{ once: true }}
           className="mt-8 text-center"
         >
-          <span className="inline-flex items-center gap-2 text-sm text-primary">
-            <span className="h-2 w-2 rounded-full bg-primary animate-glow-pulse" />
+          <span className="inline-flex items-center gap-2 text-sm text-gold-400">
+            <span className="h-2 w-2 rounded-full bg-gold-400" />
             Continuous improvement loop
           </span>
         </motion.div>

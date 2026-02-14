@@ -15,7 +15,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-8">
-        <h1 className="font-display text-3xl font-bold">Dashboard</h1>
+        <h1 className="font-display text-3xl font-semibold text-foreground">Dashboard</h1>
         <p className="mt-2 text-muted-foreground">Your AI marketing command center.</p>
 
         <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -23,10 +23,10 @@ const Dashboard = () => {
             <Link
               key={link.to}
               to={link.to}
-              className="glass-card rounded-xl p-6 hover:bg-secondary/50 transition-colors group"
+              className="bg-card border border-border rounded-xl p-6 hover:border-gold-500/30 hover:shadow-luxury-sm transition-all group"
             >
-              <link.icon className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="font-display font-semibold">{link.label}</h3>
+              <link.icon className="h-8 w-8 text-gold-500 mb-3 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
+              <h3 className="font-display font-semibold text-card-foreground">{link.label}</h3>
               <p className="text-sm text-muted-foreground mt-1">{link.desc}</p>
             </Link>
           ))}
