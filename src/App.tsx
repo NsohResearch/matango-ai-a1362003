@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
 import MeetKah from "./pages/MeetKah";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import {
   BrandBrain, InfluencerStudio, VideoStudio, VideoStudioPro,
   CampaignFactory, Campaigns, CampaignDetail, Schedule,
@@ -41,6 +43,8 @@ const App = () => (
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/meet-kah" element={<MeetKah />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
 
           {/* Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
