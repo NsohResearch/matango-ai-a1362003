@@ -64,6 +64,31 @@ export function useCreateInfluencer() {
   });
 }
 
+export function useUpdateInfluencer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...values }: { id: string; name?: string; bio?: string; personality?: string; persona_type?: string; avatar_url?: string; status?: string; tags?: string[] }) => {
+      const { data, error } = await supabase.from("influencers").update(values).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["influencers"] }); toast.success("Influencer updated!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDeleteInfluencer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("influencers").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["influencers"] }); toast.success("Influencer deleted"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
 // ── Brand Brain ───────────────────────────────────────────
 export function useBrandBrains() {
   const { user } = useAuth();
