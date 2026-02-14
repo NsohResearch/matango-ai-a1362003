@@ -23,16 +23,16 @@ export function useSystemStatus() {
 
     // Completion checks per step — each checks real DB data
     const completions: boolean[] = [
-      /* 0 Brand Brain */ (brands?.length ?? 0) > 0 && !!brands?.[0]?.brand_name,
-      /* 1 Campaign    */ (campaigns?.length ?? 0) > 0,
-      /* 2 Images      */ (influencers?.length ?? 0) > 0,
-      /* 3 Video       */ (videoJobs?.length ?? 0) > 0,
-      /* 4 Assets      */ (assets?.length ?? 0) > 0,
-      /* 5 AAO         */ (influencers?.length ?? 0) > 0 && (brands?.length ?? 0) > 0,
-      /* 6 Channels    */ (campaigns?.length ?? 0) > 0 && (videoJobs?.length ?? 0) > 0,
-      /* 7 Publish     */ (posts?.length ?? 0) > 0,
-      /* 8 Scale       */ false, // manual — always incomplete until explicitly set
-      /* 9 K'ah        */ false, // informational — always accessible once step 0 done
+      /* 0 Brand Brain       */ (brands?.length ?? 0) > 0 && !!brands?.[0]?.brand_name,
+      /* 1 Influencer Studio */ (influencers?.length ?? 0) > 0,
+      /* 2 Campaign Blueprint*/ (campaigns?.length ?? 0) > 0,
+      /* 3 Campaign Factory  */ (campaigns?.length ?? 0) > 0 && (influencers?.length ?? 0) > 0,
+      /* 4 Video Studio      */ (videoJobs?.length ?? 0) > 0,
+      /* 5 Asset Gallery     */ (assets?.length ?? 0) > 0,
+      /* 6 AAO & Automation  */ (brands?.length ?? 0) > 0 && (campaigns?.length ?? 0) > 0,
+      /* 7 Publish & Schedule*/ (posts?.length ?? 0) > 0,
+      /* 8 Scale & Customize */ false,
+      /* 9 K'ah              */ false,
     ];
 
     for (let i = 0; i < SYSTEM_STEPS.length; i++) {
