@@ -21,45 +21,46 @@ export function useSystemStatus() {
   const statusByStep = useMemo(() => {
     const map: Record<number, StepStatus> = {};
 
-    // Completion checks per step
+    // Completion checks per step — each checks real DB data
     const completions: boolean[] = [
       /* 0 Brand Brain */ (brands?.length ?? 0) > 0 && !!brands?.[0]?.brand_name,
       /* 1 Campaign    */ (campaigns?.length ?? 0) > 0,
       /* 2 Images      */ (influencers?.length ?? 0) > 0,
       /* 3 Video       */ (videoJobs?.length ?? 0) > 0,
       /* 4 Assets      */ (assets?.length ?? 0) > 0,
-      /* 5 AAO         */ (influencers?.length ?? 0) > 0, // reuse for now
-      /* 6 Channels    */ (campaigns?.length ?? 0) > 0,   // reuse
+      /* 5 AAO         */ (influencers?.length ?? 0) > 0 && (brands?.length ?? 0) > 0,
+      /* 6 Channels    */ (campaigns?.length ?? 0) > 0 && (videoJobs?.length ?? 0) > 0,
       /* 7 Publish     */ (posts?.length ?? 0) > 0,
-      /* 8 Scale       */ false, // manual
-      /* 9 K'ah        */ false, // always accessible
+      /* 8 Scale       */ false, // manual — always incomplete until explicitly set
+      /* 9 K'ah        */ false, // informational — always accessible once step 0 done
     ];
 
     for (let i = 0; i < SYSTEM_STEPS.length; i++) {
-      if (currentStepId === i) {
+      // Step 0 is always unlocked
+      const previousComplete = i === 0 ? true : completions[i - 1];
+      // Special case: step 9 (K'ah) is accessible once step 0 is complete
+      const isKah = i === 9;
+      const isUnlocked = i === 0 || previousComplete || (isKah && completions[0]);
+
+      if (!isUnlocked) {
+        map[i] = "locked";
+      } else if (currentStepId === i) {
         map[i] = "in_progress";
       } else if (completions[i]) {
         map[i] = "complete";
-      } else if (i === 0 || completions[i - 1] || (map[i - 1] === "complete" || map[i - 1] === "in_progress")) {
-        map[i] = "ready";
       } else {
-        // Check if any previous step is complete/in_progress — simplified sequential unlock
-        let unlocked = i === 0;
-        for (let j = 0; j < i; j++) {
-          if (completions[j] || j === currentStepId) { unlocked = true; break; }
-        }
-        map[i] = unlocked ? "ready" : "ready"; // Keep all ready for now to avoid blocking navigation
+        map[i] = "ready";
       }
     }
 
     return map;
   }, [brands, campaigns, influencers, videoJobs, assets, posts, currentStepId]);
 
-  // Find next incomplete step
+  // Find next incomplete step that is unlocked
   const nextStepId = useMemo(() => {
     if (currentStepId === null) return 0;
     for (let i = currentStepId + 1; i < SYSTEM_STEPS.length; i++) {
-      if (statusByStep[i] !== "complete") return i;
+      if (statusByStep[i] !== "complete" && statusByStep[i] !== "locked") return i;
     }
     return null;
   }, [currentStepId, statusByStep]);
