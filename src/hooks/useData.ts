@@ -229,6 +229,21 @@ export function useCreateScheduledPost() {
   });
 }
 
+export function useBatchCreateScheduledPosts() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (posts: { platform: string; content: string; scheduled_for: string; campaign_id?: string }[]) => {
+      const rows = posts.map((p) => ({ ...p, user_id: user!.id }));
+      const { data, error } = await supabase.from("scheduled_posts").insert(rows).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => { qc.invalidateQueries({ queryKey: ["scheduled-posts"] }); toast.success(`${data.length} posts scheduled!`); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
 // ── Video Scripts ─────────────────────────────────────────
 export function useVideoScripts() {
   const { user } = useAuth();
