@@ -931,6 +931,45 @@ export type Database = {
         }
         Relationships: []
       }
+      gdpr_requests: {
+        Row: {
+          admin_id: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          processed_at: string | null
+          request_type: string
+          result_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          request_type: string
+          result_url?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          request_type?: string
+          result_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       influencer_content: {
         Row: {
           content_type: string | null
@@ -1698,6 +1737,33 @@ export type Database = {
           },
         ]
       }
+      usage_events: {
+        Row: {
+          created_at: string
+          credits_used: number
+          event_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1936,6 +2002,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_credits_remaining: { Args: { p_user_id: string }; Returns: number }
       get_user_role: { Args: { p_user_id: string }; Returns: string }
       has_role: {
         Args: {

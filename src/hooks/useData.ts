@@ -348,3 +348,137 @@ export function useCreateAAOTask() {
     onError: (err: Error) => toast.error(err.message),
   });
 }
+
+// ── Usage Events ──────────────────────────────────────────
+export function useUsageEvents(timeRange: string = "30d") {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["usage-events", user?.id, timeRange],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const days = timeRange === "7d" ? 7 : timeRange === "90d" ? 90 : 30;
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      const { data, error } = await supabase.from("usage_events").select("*").eq("user_id", user!.id).gte("created_at", since.toISOString()).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+export function useTrackUsage() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { event_type: string; credits_used?: number; metadata?: Record<string, unknown> }) => {
+      const { data, error } = await supabase.from("usage_events").insert([{
+        event_type: values.event_type,
+        user_id: user!.id,
+        credits_used: values.credits_used || 1,
+        metadata: (values.metadata || {}) as any,
+      }]).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["usage-events"] }); },
+  });
+}
+
+// ── GDPR Requests ─────────────────────────────────────────
+export function useGdprRequests() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["gdpr-requests", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("gdpr_requests").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── White Label Settings ──────────────────────────────────
+export function useWhiteLabelSettings(orgId?: string) {
+  return useQuery({
+    queryKey: ["white-label", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("white_label_settings").select("*").eq("org_id", orgId!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpsertWhiteLabelSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: Record<string, unknown> & { org_id: string }) => {
+      const { data, error } = await supabase.from("white_label_settings").upsert(values, { onConflict: "org_id" }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["white-label"] }); toast.success("White-label settings saved!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Organizations ─────────────────────────────────────────
+export function useOrganization() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["organization", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("memberships").select("organization_id, role, organizations(*)").eq("user_id", user!.id).limit(1).maybeSingle();
+      if (error) throw error;
+      return data?.organizations as any || null;
+    },
+  });
+}
+
+// ── Social Connection Mutations ───────────────────────────
+export function useConnectSocial() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { platform: string; platform_username?: string }) => {
+      const { data, error } = await supabase.from("social_connections").insert({
+        ...values,
+        user_id: user!.id,
+        platform_username: values.platform_username || `${values.platform}_user`,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["social-connections"] }); toast.success("Platform connected!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDisconnectSocial() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (connectionId: string) => {
+      const { error } = await supabase.from("social_connections").delete().eq("id", connectionId);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["social-connections"] }); toast.success("Platform disconnected."); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Auto Insights ─────────────────────────────────────────
+export function useAutoInsights() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["auto-insights", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("auto_insights").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}

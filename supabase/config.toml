@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.kah-chat]
 verify_jwt = false
+
+[functions.aao-execute]
+verify_jwt = false
+
+[functions.gdpr-process]
+verify_jwt = false
+
+[functions.analytics-seed]
+verify_jwt = false
