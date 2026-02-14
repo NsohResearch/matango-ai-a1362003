@@ -7,7 +7,7 @@
  * Step 5: Confirmation + preview
  */
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
@@ -293,10 +293,12 @@ export default function OnboardingProfile() {
       {/* Header */}
       <header className="border-b border-sidebar-border bg-sidebar">
         <div className="container mx-auto flex items-center gap-3 py-4 px-6">
-          <img src={matangoIcon} alt="matango.ai" className="h-8 w-8 rounded-lg" />
-          <span className="font-display text-lg font-semibold text-sidebar-foreground">
-            matango<span className="text-gold-400">.ai</span>
-          </span>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={matangoIcon} alt="matango.ai" className="h-8 w-8 rounded-lg" />
+            <span className="font-display text-lg font-semibold text-sidebar-foreground">
+              matango<span className="text-gold-400">.ai</span>
+            </span>
+          </Link>
         </div>
       </header>
 
