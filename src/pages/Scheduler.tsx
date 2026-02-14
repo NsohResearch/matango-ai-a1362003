@@ -1,7 +1,9 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import WorkflowNav from "@/components/WorkflowNav";
 import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock } from "lucide-react";
 import { useScheduledPosts } from "@/hooks/useData";
+import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from "date-fns";
 
 const PLATFORMS = ["instagram", "tiktok", "linkedin", "twitter", "youtube", "facebook"];
@@ -32,6 +34,7 @@ const SchedulerPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
+        <WorkflowNav />
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">

@@ -2,7 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Brain, Users, Video, Megaphone, Calendar, BarChart3,
   LayoutDashboard, Palette, Settings, Zap, Globe, FlaskConical,
-  FileText, Library, BookOpen, UserCircle, Layers, Upload
+  FileText, Library, BookOpen, UserCircle, Layers, Upload,
+  Rocket, Sparkles, Plug, TrendingUp, Target, Share2
 } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
 
@@ -19,38 +20,37 @@ const navGroups = [
     label: "Create",
     items: [
       { to: "/influencer-studio", icon: Users, label: "Influencer Studio" },
-      { to: "/video-studio", icon: Video, label: "Video Studio" },
       { to: "/video-scripts", icon: FileText, label: "Video Scripts" },
-      { to: "/story-studio", icon: BookOpen, label: "Story Studio" },
+      { to: "/video-studio", icon: Video, label: "Video Studio" },
+      { to: "/aao-studio", icon: Rocket, label: "AAO Studio" },
       { to: "/asset-library", icon: Library, label: "Asset Library" },
-      { to: "/templates", icon: Layers, label: "Templates" },
+      { to: "/story-studio", icon: BookOpen, label: "Story Studio" },
       { to: "/bulk-create", icon: Upload, label: "Bulk Create" },
     ],
   },
   {
     label: "Distribute",
     items: [
-      { to: "/campaigns", icon: Megaphone, label: "Campaigns" },
-      { to: "/schedule", icon: Calendar, label: "Scheduler" },
+      { to: "/schedule", icon: Calendar, label: "Publish & Track" },
       { to: "/social-connections", icon: Globe, label: "Social Connections" },
+      { to: "/leads", icon: Target, label: "Leads & CRM" },
     ],
   },
   {
     label: "Analyze",
     items: [
-      { to: "/analytics", icon: BarChart3, label: "Analytics" },
       { to: "/analytics-hub", icon: BarChart3, label: "Analytics Hub" },
       { to: "/ab-testing", icon: FlaskConical, label: "A/B Testing" },
-      { to: "/leads", icon: Zap, label: "Leads" },
     ],
   },
   {
-    label: "Manage",
+    label: "Scale",
     items: [
+      { to: "/team", icon: Share2, label: "Team & Sharing" },
       { to: "/brands", icon: Palette, label: "Brands" },
-      { to: "/team", icon: Users, label: "Team" },
       { to: "/white-label", icon: Palette, label: "White Label" },
-      { to: "/account-settings", icon: Settings, label: "Settings" },
+      { to: "/ai-providers", icon: Plug, label: "AI Providers" },
+      { to: "/usage-analytics", icon: TrendingUp, label: "Usage Analytics" },
     ],
   },
 ];
@@ -101,7 +101,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-sidebar-border">
+        <div className="p-3 border-t border-sidebar-border space-y-0.5">
+          <Link
+            to="/meet-kah"
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"
+          >
+            <Sparkles className="h-4 w-4" />
+            Meet K'ah
+          </Link>
           <Link
             to="/account-settings"
             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"

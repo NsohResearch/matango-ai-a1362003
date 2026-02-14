@@ -1,4 +1,5 @@
-import StubPage from "@/components/StubPage";
+import ComingSoonPage from "@/components/ComingSoonPage";
+import { Video, Megaphone, Eye, Layers, Users, Wand2, Palette, Sparkles, BookOpen, Upload, Plug, TrendingUp, Rocket, BookMarked } from "lucide-react";
 
 // Re-export real pages
 export { default as BrandBrain } from "@/pages/BrandBrain";
@@ -20,23 +21,61 @@ export { default as VideoScripts } from "@/pages/VideoScripts";
 export { default as AssetLibrary } from "@/pages/AssetLibrary";
 export { AdminOverviewPage as AdminOverview, AdminTenantsPage as AdminTenants, AdminBillingPage as AdminBilling, AdminFeatureFlagsPage as AdminFeatureFlags, AdminAuditLogPage as AdminAuditLog, AdminSystemHealthPage as AdminSystemHealth, AdminModerationPage as AdminModeration, AdminCompliancePage as AdminCompliance, AdminGdprPage as AdminGdprRequests, AdminLeadsPage as AdminLeads } from "@/pages/Admin";
 
-// Stub pages for remaining features
-export const VideoStudioPro = () => <StubPage title="Video Studio Pro" description="Advanced video creation with professional tools." />;
-export const Campaigns = () => <StubPage title="Campaigns" description="View and manage all your campaigns." />;
-export const CampaignDetail = () => <StubPage title="Campaign Detail" description="Campaign details and performance." />;
-export const Analytics = () => <StubPage title="Analytics" description="Track campaign performance and insights." />;
-export const TemplateMarketplace = () => <StubPage title="Template Marketplace" description="Browse and install community templates." />;
-export const CreateInfluencer = () => <StubPage title="Create Influencer" description="Create a new AI influencer." />;
-export const CreateInfluencerPro = () => <StubPage title="Create Influencer Pro" description="Advanced influencer creation with character controls." />;
-export const GenerationWorkspace = () => <StubPage title="Generation Workspace" description="Your influencer image generation workspace." />;
-export const Chat = () => <StubPage title="Chat" description="Chat with your AI influencer." />;
-export const Discover = () => <StubPage title="Discover" description="Explore AI influencer profiles and templates." />;
-export const InfluencerDetail = () => <StubPage title="Influencer Detail" description="View and manage influencer profile." />;
-export const AAOGlossary = () => <StubPage title="AAO Glossary" description="Learn about AI-Amplified Operators terminology." />;
-export const AAOStudioPage = () => <StubPage title="AAO Studio" description="Create and configure your AI-Amplified Operators." />;
-export const AIProvidersPage = () => <StubPage title="AI Providers" description="Configure AI model providers and API keys." />;
-export const UsageAnalyticsPage = () => <StubPage title="Usage Analytics" description="Track your platform usage and credits." />;
-export const StoryStudio = () => <StubPage title="Story Studio" description="Create multi-scene stories and narratives." />;
-export const BulkCreate = () => <StubPage title="Bulk Create" description="Generate content at scale." />;
-export const AdminTenantDetail = () => <StubPage title="Tenant Detail" description="Tenant details and configuration." />;
-export const AdminIntegrations = () => <StubPage title="Admin Integrations" description="Manage platform integrations." />;
+// Coming Soon pages with proper gating, explanations, and alternatives
+export const VideoStudioPro = () => (
+  <ComingSoonPage title="Video Studio Pro" description="Advanced video creation with professional editing tools, lip-sync, and multi-scene composition." icon={Video} tier="Agency" alternatives={[{ label: "Use Video Studio", to: "/video-studio" }]} />
+);
+export const Campaigns = () => (
+  <ComingSoonPage title="Campaign Manager" description="View and manage all your active campaigns with unified metrics." icon={Megaphone} tier="Basic" alternatives={[{ label: "Create in Campaign Factory", to: "/campaign-factory" }]} />
+);
+export const CampaignDetail = () => (
+  <ComingSoonPage title="Campaign Detail" description="Detailed campaign performance view with asset-level analytics." icon={Megaphone} tier="Basic" alternatives={[{ label: "View Analytics Hub", to: "/analytics-hub" }]} />
+);
+export const Analytics = () => (
+  <ComingSoonPage title="Analytics" description="Track campaign performance and audience insights across channels." icon={TrendingUp} tier="Basic" alternatives={[{ label: "Go to Analytics Hub", to: "/analytics-hub" }]} />
+);
+export const TemplateMarketplace = () => (
+  <ComingSoonPage title="Template Marketplace" description="Browse and install community-created templates for campaigns, scripts, and content." icon={Layers} tier="Agency" alternatives={[{ label: "Browse Templates", to: "/templates" }]} />
+);
+export const CreateInfluencer = () => (
+  <ComingSoonPage title="Create Influencer" description="Create a new AI influencer persona with custom traits and visual identity." icon={Users} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+);
+export const CreateInfluencerPro = () => (
+  <ComingSoonPage title="Create Influencer Pro" description="Advanced influencer creation with fine-tuned character controls and training data upload." icon={Wand2} tier="Agency" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+);
+export const GenerationWorkspace = () => (
+  <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Library", to: "/asset-library" }]} />
+);
+export const Chat = () => (
+  <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Basic" alternatives={[{ label: "Try K'ah Chat", to: "/meet-kah" }]} />
+);
+export const Discover = () => (
+  <ComingSoonPage title="Discover" description="Explore AI influencer profiles, trending templates, and community creations." icon={Eye} tier="Free" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+);
+export const InfluencerDetail = () => (
+  <ComingSoonPage title="Influencer Detail" description="View and manage individual influencer profile, content gallery, and performance." icon={Users} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+);
+export const AAOGlossary = () => (
+  <ComingSoonPage title="AAO Glossary" description="Reference guide for AI-Amplified Operator terminology and concepts." icon={BookMarked} tier="Free" alternatives={[{ label: "Meet K'ah", to: "/meet-kah" }]} />
+);
+export const AAOStudioPage = () => (
+  <ComingSoonPage title="AAO Studio" description="Create, configure, and deploy your AI-Amplified Operators for autonomous marketing execution." icon={Rocket} tier="Agency" alternatives={[{ label: "Campaign Factory", to: "/campaign-factory" }, { label: "Meet K'ah", to: "/meet-kah" }]} />
+);
+export const AIProvidersPage = () => (
+  <ComingSoonPage title="AI Providers" description="Configure custom AI model providers and API keys (BYOK). Use your own OpenAI, Anthropic, or Replicate keys." icon={Plug} tier="Agency" alternatives={[{ label: "Account Settings", to: "/account-settings" }]} />
+);
+export const UsageAnalyticsPage = () => (
+  <ComingSoonPage title="Usage Analytics" description="Track your platform usage, API credits, generation costs, and billing metrics in real-time." icon={TrendingUp} tier="Basic" alternatives={[{ label: "Analytics Hub", to: "/analytics-hub" }, { label: "Account Settings", to: "/account-settings" }]} />
+);
+export const StoryStudio = () => (
+  <ComingSoonPage title="Story Studio" description="Create multi-scene narratives and visual stories with AI-generated imagery and consistent characters." icon={BookOpen} tier="Agency" alternatives={[{ label: "Video Scripts", to: "/video-scripts" }, { label: "Video Studio", to: "/video-studio" }]} />
+);
+export const BulkCreate = () => (
+  <ComingSoonPage title="Bulk Create" description="Generate content at scale with batch processing for images, videos, and copy across all your campaigns." icon={Upload} tier="Agency" alternatives={[{ label: "Asset Library", to: "/asset-library" }, { label: "Campaign Factory", to: "/campaign-factory" }]} />
+);
+export const AdminTenantDetail = () => (
+  <ComingSoonPage title="Tenant Detail" description="Detailed tenant configuration, usage limits, and white-label settings." icon={Users} tier="Admin" alternatives={[{ label: "View All Tenants", to: "/admin/tenants" }]} />
+);
+export const AdminIntegrations = () => (
+  <ComingSoonPage title="Admin Integrations" description="Manage platform-wide integrations, webhooks, and third-party connections." icon={Plug} tier="Admin" alternatives={[{ label: "Admin Overview", to: "/admin" }]} />
+);

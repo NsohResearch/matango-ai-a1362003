@@ -18,7 +18,7 @@ import TermsOfService from "./pages/TermsOfService";
 import {
   BrandBrain, InfluencerStudio, VideoStudio, VideoStudioPro,
   CampaignFactory, Campaigns, CampaignDetail, Schedule,
-  Analytics, AnalyticsHub, ABTesting, Templates, TemplateMarketplace,
+  AnalyticsHub, ABTesting, Templates, TemplateMarketplace,
   Leads, SocialConnections, VideoScripts, Brands, WhiteLabel,
   Team, Notifications, AccountSettings, CreateInfluencer,
   CreateInfluencerPro, GenerationWorkspace, Chat, Discover,
@@ -88,9 +88,9 @@ const App = () => (
             <Route path="/studio" element={<Navigate to="/influencer-studio" replace />} />
             <Route path="/social" element={<Navigate to="/social-connections" replace />} />
             <Route path="/video" element={<Navigate to="/video-studio" replace />} />
+            <Route path="/analytics" element={<Navigate to="/analytics-hub" replace />} />
 
             {/* Protected — Analyze */}
-            <Route path="/analytics" element={<P><Analytics /></P>} />
             <Route path="/analytics-hub" element={<P><AnalyticsHub /></P>} />
             <Route path="/ab-testing" element={<P><ABTesting /></P>} />
             <Route path="/leads" element={<P><Leads /></P>} />
