@@ -59,14 +59,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen" data-theme="dark">
       {/* Sidebar */}
-      <aside className="hidden lg:flex w-64 flex-col border-r border-border bg-sidebar overflow-y-auto">
-        <div className="p-4 border-b border-border">
+      <aside className="hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar overflow-y-auto">
+        <div className="p-4 border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2">
             <img src={matangoIcon} alt="matango.ai" className="h-7 w-7 rounded-lg" />
-            <span className="font-display text-sm font-semibold">
-              matango<span className="text-primary">.ai</span>
+            <span className="font-display text-sm font-semibold text-sidebar-foreground">
+              matango<span className="text-gold-400">.ai</span>
             </span>
           </Link>
         </div>
@@ -74,7 +74,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <nav className="flex-1 p-3 space-y-5">
           {navGroups.map((group) => (
             <div key={group.label}>
-              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
                 {group.label}
               </span>
               <ul className="mt-1.5 space-y-0.5">
@@ -86,8 +86,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                         to={item.to}
                         className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                           isActive
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                            ? "bg-sidebar-accent text-gold-400 font-medium"
+                            : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
                         }`}
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
@@ -101,10 +101,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-sidebar-border">
           <Link
             to="/account-settings"
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"
           >
             <UserCircle className="h-4 w-4" />
             Account
@@ -113,7 +113,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-background">
         {children}
       </main>
     </div>

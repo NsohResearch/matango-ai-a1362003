@@ -10,7 +10,7 @@ interface Message {
 const KahChatWidget = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hey there! 👋 I'm K'ah, your AI marketing guide. Ask me anything about Matango.ai or AI-powered marketing!" },
+    { role: "assistant", content: "Hello! I'm K'ah, your AI marketing guide. Ask me anything about Matango.ai or AI-powered marketing." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ const KahChatWidget = () => {
       setSessionId(res.session_id);
       setMessages((m) => [...m, { role: "assistant", content: res.reply }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again!" }]);
+      setMessages((m) => [...m, { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -42,20 +42,19 @@ const KahChatWidget = () => {
     <>
       {/* FAB */}
       <button onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center glow-primary">
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-emerald-900 text-gold-400 shadow-luxury hover:bg-emerald-800 transition-all flex items-center justify-center ring-2 ring-gold-500/30">
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
 
-      {/* Chat window */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[500px] glass-card rounded-2xl flex flex-col shadow-2xl border border-border overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-h-[500px] bg-emerald-900 border border-emerald-800/50 rounded-2xl flex flex-col shadow-luxury overflow-hidden">
           {/* Header */}
-          <div className="p-4 border-b border-border bg-primary/5">
+          <div className="p-4 border-b border-emerald-800/50 bg-emerald-950/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">K</div>
+              <div className="w-8 h-8 rounded-full bg-gold-500/20 ring-1 ring-gold-500/40 flex items-center justify-center text-sm font-bold text-gold-400 font-display">K</div>
               <div>
-                <h4 className="text-sm font-semibold">K'ah</h4>
-                <p className="text-[10px] text-muted-foreground">Your AI Marketing Guide</p>
+                <h4 className="text-sm font-semibold text-cream-50">K'ah</h4>
+                <p className="text-[10px] text-cream-100/40">Your AI Marketing Guide</p>
               </div>
             </div>
           </div>
@@ -65,7 +64,7 @@ const KahChatWidget = () => {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm ${
-                  m.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  m.role === "user" ? "bg-primary text-primary-foreground" : "bg-emerald-800/50 text-cream-50"
                 }`}>
                   {m.content}
                 </div>
@@ -73,18 +72,18 @@ const KahChatWidget = () => {
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-secondary rounded-xl px-3 py-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <div className="bg-emerald-800/50 rounded-xl px-3 py-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-cream-100/40" />
                 </div>
               </div>
             )}
           </div>
 
           {/* Input */}
-          <div className="p-3 border-t border-border">
+          <div className="p-3 border-t border-emerald-800/50">
             <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2">
               <input value={input} onChange={(e) => setInput(e.target.value)}
-                className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="flex-1 rounded-lg border border-emerald-700/50 bg-emerald-800/30 px-3 py-2 text-sm text-cream-50 placeholder:text-cream-100/30 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
                 placeholder="Ask K'ah anything..." />
               <button type="submit" disabled={loading || !input.trim()}
                 className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">

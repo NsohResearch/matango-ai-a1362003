@@ -25,33 +25,33 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 glass-card">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-emerald-900 border-b border-emerald-800/50">
         <div className="container mx-auto flex items-center justify-between py-3 px-6">
           <Link to="/" className="flex items-center gap-2">
             <img src={matangoIcon} alt="matango.ai" className="h-8 w-8 rounded-lg" />
-            <span className="font-display text-lg font-semibold tracking-tight">
-              matango<span className="text-primary">.ai</span>
+            <span className="font-display text-lg font-semibold tracking-tight text-cream-50">
+              matango<span className="text-gold-400">.ai</span>
             </span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button className="flex items-center gap-1 text-sm text-cream-100/70 hover:text-gold-400 transition-colors">
               The System <ChevronDown className="h-3 w-3" />
             </button>
-            <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</Link>
-            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+            <Link to="/about" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">About</Link>
+            <Link to="/pricing" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Pricing</Link>
           </nav>
 
           <div className="flex items-center gap-4">
             <button
               onClick={(e) => handleLoginClick(e, "/auth")}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors"
             >
               Login
             </button>
             <button
               onClick={(e) => handleLoginClick(e, "/auth?mode=signup")}
-              className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="rounded-pill bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:border hover:border-gold-400 hover:shadow-luxury-sm transition-all"
             >
               Deploy Your AAO
             </button>
