@@ -21,10 +21,20 @@ serve(async (req) => {
   );
 
   try {
-    // Auth
+    // Auth — use per-request client for getClaims, service role for data ops
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Not authenticated");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("Not authenticated");
+
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
     const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error("Auth failed");
+
+    // Fetch full user for email etc.
     const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
     if (userError || !userData.user) throw new Error("Auth failed");
     const user = userData.user;
