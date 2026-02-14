@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon } from "lucide-react";
+import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon, Images } from "lucide-react";
 import { useInfluencers, useCreateInfluencer, useBrandBrains } from "@/hooks/useData";
 import { aiGenerate } from "@/lib/edge-functions";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -33,6 +33,7 @@ const InfluencerStudioPage = () => {
   const brandId = searchParams.get("brandId");
 
   const [showCreate, setShowCreate] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [referenceImages, setReferenceImages] = useState<{ file: File; preview: string }[]>([]);
@@ -83,8 +84,9 @@ const InfluencerStudioPage = () => {
       const path = `training/${influencerId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("training-images").upload(path, img.file, { contentType: img.file.type });
       if (error) { console.error("Upload error:", error); continue; }
-      const { data: urlData } = supabase.storage.from("training-images").getPublicUrl(path);
-      urls.push(urlData.publicUrl);
+      const { data: signedData, error: signError } = await supabase.storage.from("training-images").createSignedUrl(path, 60 * 60 * 24 * 7);
+      if (signError || !signedData?.signedUrl) { console.error("Signed URL error:", signError); continue; }
+      urls.push(signedData.signedUrl);
     }
     return urls;
   };
@@ -143,7 +145,10 @@ const InfluencerStudioPage = () => {
               try {
                 const urls = await uploadImagesToStorage(data.id);
                 if (urls.length > 0) {
-                  await supabase.from("influencers").update({ avatar_url: urls[0] }).eq("id", data.id);
+                  await supabase.from("influencers").update({
+                    avatar_url: urls[0],
+                    stats: { training_images: urls, trained_at: new Date().toISOString() },
+                  }).eq("id", data.id);
                 }
                 toast.success(`Influencer created with ${urls.length} training image(s)!`);
               } catch (err) {
@@ -339,8 +344,12 @@ const InfluencerStudioPage = () => {
             {influencers.map((inf) => (
               <div key={inf.id} className="glass-card rounded-xl p-5 hover:border-primary/30 transition-colors group">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
-                    {inf.name.charAt(0)}
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
+                    {inf.avatar_url ? (
+                      <img src={inf.avatar_url} alt={inf.name} className="w-full h-full object-cover" />
+                    ) : (
+                      inf.name.charAt(0)
+                    )}
                   </div>
                   <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${inf.status === "active" ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {inf.status}
@@ -349,6 +358,42 @@ const InfluencerStudioPage = () => {
                 <h3 className="font-display font-semibold">{inf.name}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5 capitalize">{inf.persona_type || "Custom"} persona</p>
                 {inf.bio && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{inf.bio}</p>}
+
+                {/* Training Images Review */}
+                {(() => {
+                  const stats = inf.stats as any;
+                  const trainingImages: string[] = stats?.training_images || [];
+                  if (trainingImages.length === 0 && !inf.avatar_url) return null;
+                  const images = trainingImages.length > 0 ? trainingImages : (inf.avatar_url ? [inf.avatar_url] : []);
+                  const isExpanded = expandedCard === inf.id;
+                  return (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setExpandedCard(isExpanded ? null : inf.id)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Images className="h-3.5 w-3.5" />
+                        {images.length} Training Image{images.length !== 1 ? "s" : ""}
+                        <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                      </button>
+                      {isExpanded && (
+                        <div className="mt-2 grid grid-cols-3 gap-2">
+                          {images.map((url, i) => (
+                            <div key={i} className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+                              <img src={url} alt={`Training ${i + 1}`} className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {stats?.trained_at && (
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Trained {new Date(stats.trained_at).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => navigate(`/video-scripts?influencerId=${inf.id}&brandId=${inf.brand_id || ""}`)}
                     className="flex-1 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 flex items-center justify-center gap-1">
