@@ -1,62 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  Brain, Users, Video, Megaphone, Calendar, BarChart3,
-  LayoutDashboard, Palette, Settings, Zap, Globe, FlaskConical,
-  FileText, Library, BookOpen, UserCircle, Layers, Upload,
-  Rocket, Sparkles, Plug, TrendingUp, Target, Share2
+  LayoutDashboard, UserCircle, Sparkles, Bell, Settings
 } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
+import SystemProgress from "@/components/system/SystemProgress";
+import { SYSTEM_STEPS } from "@/lib/system-steps";
 
-const navGroups = [
-  {
-    label: "Core",
-    items: [
-      { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-      { to: "/brand-brain", icon: Brain, label: "Brand Brain" },
-      { to: "/campaign-factory", icon: Megaphone, label: "Campaign Factory" },
-    ],
-  },
-  {
-    label: "Create",
-    items: [
-      { to: "/influencer-studio", icon: Users, label: "Influencer Studio" },
-      { to: "/video-scripts", icon: FileText, label: "Video Scripts" },
-      { to: "/video-studio", icon: Video, label: "Video Studio" },
-      { to: "/aao-studio", icon: Rocket, label: "AAO Studio" },
-      { to: "/asset-library", icon: Library, label: "Asset Library" },
-      { to: "/story-studio", icon: BookOpen, label: "Story Studio" },
-      { to: "/bulk-create", icon: Upload, label: "Bulk Create" },
-    ],
-  },
-  {
-    label: "Distribute",
-    items: [
-      { to: "/schedule", icon: Calendar, label: "Publish & Track" },
-      { to: "/social-connections", icon: Globe, label: "Social Connections" },
-      { to: "/leads", icon: Target, label: "Leads & CRM" },
-    ],
-  },
-  {
-    label: "Analyze",
-    items: [
-      { to: "/analytics-hub", icon: BarChart3, label: "Analytics Hub" },
-      { to: "/ab-testing", icon: FlaskConical, label: "A/B Testing" },
-    ],
-  },
-  {
-    label: "Scale",
-    items: [
-      { to: "/team", icon: Share2, label: "Team & Sharing" },
-      { to: "/brands", icon: Palette, label: "Brands" },
-      { to: "/white-label", icon: Palette, label: "White Label" },
-      { to: "/ai-providers", icon: Plug, label: "AI Providers" },
-      { to: "/usage-analytics", icon: TrendingUp, label: "Usage Analytics" },
-    ],
-  },
+const utilItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/notifications", icon: Bell, label: "Notifications" },
+  { to: "/account-settings", icon: Settings, label: "Settings" },
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const isSystemPage = SYSTEM_STEPS.some((s) => location.pathname.startsWith(s.route));
 
   return (
     <div className="flex h-screen" data-theme="dark">
@@ -72,33 +30,62 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         <nav className="flex-1 p-3 space-y-5">
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
-                {group.label}
-              </span>
-              <ul className="mt-1.5 space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = location.pathname === item.to;
-                  return (
-                    <li key={item.to}>
-                      <Link
-                        to={item.to}
-                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
-                          isActive
-                            ? "bg-sidebar-accent text-gold-400 font-medium"
-                            : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+          {/* The System — sequential steps */}
+          <div>
+            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+              The System
+            </span>
+            <ul className="mt-1.5 space-y-0.5">
+              {SYSTEM_STEPS.map((step) => {
+                const isActive = location.pathname.startsWith(step.route);
+                return (
+                  <li key={step.id}>
+                    <Link
+                      to={step.route}
+                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-gold-400 font-medium"
+                          : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                      }`}
+                    >
+                      <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sidebar-accent text-[10px] font-bold text-sidebar-foreground shrink-0">
+                        {step.id}
+                      </span>
+                      <step.icon className="h-4 w-4 shrink-0" />
+                      {step.title}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Utility */}
+          <div>
+            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+              Manage
+            </span>
+            <ul className="mt-1.5 space-y-0.5">
+              {utilItems.map((item) => {
+                const isActive = location.pathname === item.to;
+                return (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isActive
+                          ? "bg-sidebar-accent text-gold-400 font-medium"
+                          : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-0.5">
@@ -121,6 +108,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto bg-background">
+        {isSystemPage && <SystemProgress />}
         {children}
       </main>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import WorkflowNav from "@/components/WorkflowNav";
+import StepTransition from "@/components/system/StepTransition";
 import { Brain, Globe, Sparkles, ChevronRight, Check, Plus, Trash2, Loader2 } from "lucide-react";
 import { useBrandBrains, useUpsertBrandBrain } from "@/hooks/useData";
 import { aiGenerate } from "@/lib/edge-functions";
@@ -140,7 +140,7 @@ const BrandBrainPage = () => {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-5xl">
-        <WorkflowNav brandId={form.id} />
+        {/* SystemProgress is rendered by DashboardLayout */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display text-3xl font-bold flex items-center gap-2">
@@ -404,6 +404,11 @@ const BrandBrainPage = () => {
             )}
           </div>
         </div>
+        <StepTransition
+          stepId={0}
+          isComplete={completionScore() >= 50}
+          message="Your Brand Brain is ready! Time to create your first campaign."
+        />
       </div>
     </DashboardLayout>
   );
