@@ -289,13 +289,13 @@ export default function OnboardingProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-theme="dark">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-sidebar-border bg-sidebar">
         <div className="container mx-auto flex items-center gap-3 py-4 px-6">
           <img src={matangoIcon} alt="matango.ai" className="h-8 w-8 rounded-lg" />
-          <span className="font-display text-lg font-semibold text-foreground">
-            matango<span className="text-accent">.ai</span>
+          <span className="font-display text-lg font-semibold text-sidebar-foreground">
+            matango<span className="text-gold-400">.ai</span>
           </span>
         </div>
       </header>
