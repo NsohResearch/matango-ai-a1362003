@@ -38,3 +38,9 @@ export const kahChat = (message: string, session_id?: string) =>
 
 export const aaoExecute = (aao_type: string, context: string, options?: { campaign_id?: string; brand_id?: string; action?: string }) =>
   callEdgeFunction("aao-execute", { aao_type, context, ...options });
+
+export const gdprProcess = (action: string, request_id?: string) =>
+  callEdgeFunction("gdpr-process", { action, request_id });
+
+export const analyticsSeed = (action: string) =>
+  callEdgeFunction("analytics-seed", { action });

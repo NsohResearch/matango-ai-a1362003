@@ -1,22 +1,58 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Settings, User, CreditCard, Bell, Shield, Trash2, Loader2 } from "lucide-react";
+import { Settings, User, CreditCard, Bell, Shield, Trash2, Loader2, Download } from "lucide-react";
 import { useProfile } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { gdprProcess } from "@/lib/edge-functions";
+import PlanSelectionDrawer from "@/components/PlanSelectionDrawer";
+import { Button } from "@/components/ui/button";
 
 const AccountSettingsPage = () => {
   const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const [tab, setTab] = useState("profile");
   const [name, setName] = useState("");
+  const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deletionRequested, setDeletionRequested] = useState(false);
 
   const handleUpdateProfile = async () => {
     if (!user) return;
     const { error } = await supabase.from("profiles").update({ name }).eq("user_id", user.id);
     if (error) toast.error(error.message);
     else toast.success("Profile updated!");
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const result = await gdprProcess("export_data");
+      const blob = new Blob([JSON.stringify(result.export, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `matango-data-export-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Data exported successfully!");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleRequestDeletion = async () => {
+    if (!confirm("Are you sure you want to request account deletion? This action cannot be undone. Your data will be permanently deleted after admin review.")) return;
+    try {
+      await gdprProcess("request_deletion");
+      setDeletionRequested(true);
+      toast.success("Deletion request submitted. An admin will process it within 30 days.");
+    } catch (err: any) {
+      toast.error(err.message);
+    }
   };
 
   const tabs = [
@@ -79,12 +115,17 @@ const AccountSettingsPage = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-medium capitalize">{profile?.plan || "Free"} Plan</div>
-                          <div className="text-sm text-muted-foreground">Current plan</div>
+                          <div className="text-sm text-muted-foreground">{profile?.credits || 0} credits remaining this month</div>
                         </div>
-                        <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Upgrade</button>
+                        <Button onClick={() => setPlanDrawerOpen(true)}>Upgrade</Button>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">Billing management will be available through Stripe integration.</p>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <p>• Free: 50 credits/month (5/day limit)</p>
+                      <p>• Basic ($199/mo): 500 credits/month</p>
+                      <p>• Agency ($399/mo): Unlimited credits</p>
+                      <p>• Agency++: Custom pricing</p>
+                    </div>
                   </div>
                 )}
 
@@ -102,11 +143,17 @@ const AccountSettingsPage = () => {
 
                 {tab === "security" && (
                   <div>
-                    <h3 className="font-display font-semibold mb-4">Security</h3>
-                    <button className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Change Password</button>
-                    <div className="mt-6">
-                      <h4 className="text-sm font-medium mb-2">Active Sessions</h4>
-                      <p className="text-sm text-muted-foreground">You are currently signed in on this device.</p>
+                    <h3 className="font-display font-semibold mb-4">Security & Data</h3>
+                    <div className="space-y-4">
+                      <button className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Change Password</button>
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Data Export (GDPR)</h4>
+                        <p className="text-xs text-muted-foreground mb-2">Download all your data as a JSON file.</p>
+                        <Button variant="outline" size="sm" onClick={handleExportData} disabled={exporting}>
+                          {exporting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Download className="h-3 w-3 mr-1" />}
+                          Export My Data
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -114,9 +161,14 @@ const AccountSettingsPage = () => {
                 {tab === "danger" && (
                   <div>
                     <h3 className="font-display font-semibold text-destructive mb-4">Danger Zone</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Once you delete your account, there is no going back. All data will be permanently removed after 90 days.</p>
-                    <button onClick={signOut} className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 mr-3">Sign Out</button>
-                    <button className="px-4 py-2 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10">Delete Account</button>
+                    <p className="text-sm text-muted-foreground mb-4">Once you delete your account, there is no going back. All data will be permanently removed after admin review (within 30 days per GDPR).</p>
+                    <div className="flex gap-3">
+                      <button onClick={signOut} className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90">Sign Out</button>
+                      <button onClick={handleRequestDeletion} disabled={deletionRequested}
+                        className="px-4 py-2 rounded-lg border border-destructive text-destructive text-sm font-medium hover:bg-destructive/10 disabled:opacity-50">
+                        {deletionRequested ? "Deletion Requested" : "Delete Account"}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -124,6 +176,7 @@ const AccountSettingsPage = () => {
           </div>
         </div>
       </div>
+      <PlanSelectionDrawer open={planDrawerOpen} onOpenChange={setPlanDrawerOpen} origin="upgrade" />
     </DashboardLayout>
   );
 };

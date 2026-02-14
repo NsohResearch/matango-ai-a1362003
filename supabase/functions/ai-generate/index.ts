@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -35,6 +35,8 @@ Deno.serve(async (req) => {
     const systemPrompt = systemPrompts[type || "default"] || systemPrompts.default;
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
@@ -49,14 +51,27 @@ Deno.serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: corsHeaders });
+      if (status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: corsHeaders });
+      throw new Error(`AI gateway error: ${status}`);
+    }
+
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Deduct credit
-    await supabase.from("profiles").update({ credits: supabase.rpc("", {}) }).eq("user_id", user.id);
+    // Track usage
+    await supabase.from("usage_events").insert({
+      user_id: user.id,
+      event_type: "ai_generation",
+      credits_used: 1,
+      metadata: { type: type || "default", model: aiModel, prompt_length: prompt.length },
+    });
 
     return new Response(JSON.stringify({ content, model: aiModel }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
+    console.error("AI generate error:", err);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
   }
 });
