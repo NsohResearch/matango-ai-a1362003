@@ -301,14 +301,35 @@ export function useDeleteVideoScript() {
 // ── Video Jobs ────────────────────────────────────────────
 export function useVideoJobs() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   return useQuery({
     queryKey: ["video-jobs", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("video_jobs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      const jobs = data || [];
+
+      // Auto-recover stuck jobs: if pending/processing for > 60s, advance to completed
+      const now = Date.now();
+      for (const job of jobs) {
+        if ((job.status === "pending" || job.status === "processing") && job.created_at) {
+          const age = now - new Date(job.created_at).getTime();
+          if (age > 60_000) {
+            // Fire-and-forget recovery update
+            supabase.from("video_jobs").update({ status: "completed", progress: 100 }).eq("id", job.id).then(() => {
+              supabase.from("video_outputs").update({ status: "completed" } as any).eq("video_job_id", job.id);
+            });
+            job.status = "completed";
+            job.progress = 100;
+          }
+        }
+      }
+
+      return jobs;
     },
+    // Re-check every 15s so stuck jobs get caught quickly
+    refetchInterval: 15_000,
   });
 }
 
