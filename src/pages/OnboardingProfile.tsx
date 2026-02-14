@@ -352,14 +352,14 @@ export default function OnboardingProfile() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl font-bold text-foreground mb-2 font-body">
           {step === 1 && "Welcome to Matango.ai"}
           {step === 2 && (accountType === "individual" ? "Your Identity" : "Company Details")}
           {step === 3 && "Branding & Theme"}
           {step === 4 && accountType === "company" && "White-Label Settings"}
           {step === (accountType === "company" ? 5 : 4) && "Confirmation"}
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-8 font-body text-base">
           {step === 1 && "Let's set up your identity and brand."}
           {step === 2 && "Tell us about yourself."}
           {step === 3 && "Customize your look & feel."}
@@ -377,8 +377,8 @@ export default function OnboardingProfile() {
               onClick={() => setAccountType("individual")}
             >
               <User className="h-8 w-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground mb-1">Individual</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-foreground mb-1 text-base">Individual</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Personal brand, creator, or solo founder.
               </p>
             </Card>
@@ -389,8 +389,8 @@ export default function OnboardingProfile() {
               onClick={() => setAccountType("company")}
             >
               <Building2 className="h-8 w-8 text-primary mb-3" />
-              <h3 className="font-semibold text-foreground mb-1">Company / Agency</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="font-semibold text-foreground mb-1 text-base">Company / Agency</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Business with team, clients, or white-label needs.
               </p>
             </Card>
@@ -453,11 +453,11 @@ export default function OnboardingProfile() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <Label>Company Name *</Label>
-              <Input value={company.company_name} onChange={(e) => setCompany({ ...company, company_name: e.target.value })} placeholder="Acme Corp" />
+              <Input value={company.company_name} onChange={(e) => setCompany({ ...company, company_name: e.target.value })} placeholder="Matango, Inc." />
             </div>
             <div>
               <Label>Company Email</Label>
-              <Input type="email" value={company.company_email} onChange={(e) => setCompany({ ...company, company_email: e.target.value })} placeholder="hello@acme.com" />
+              <Input type="email" value={company.company_email} onChange={(e) => setCompany({ ...company, company_email: e.target.value })} placeholder="hello@matango.ai" />
             </div>
             <div>
               <Label>Company Phone</Label>
@@ -492,11 +492,11 @@ export default function OnboardingProfile() {
             </div>
             <div>
               <Label>Website</Label>
-              <Input value={company.website} onChange={(e) => setCompany({ ...company, website: e.target.value })} placeholder="https://acme.com" />
+              <Input value={company.website} onChange={(e) => setCompany({ ...company, website: e.target.value })} placeholder="https://matango.ai" />
             </div>
             <div className="md:col-span-2">
               <Label>Legal Name (for invoices)</Label>
-              <Input value={company.legal_name} onChange={(e) => setCompany({ ...company, legal_name: e.target.value })} placeholder="Acme Corp Inc." />
+              <Input value={company.legal_name} onChange={(e) => setCompany({ ...company, legal_name: e.target.value })} placeholder="Matango, Inc." />
             </div>
           </div>
         )}
