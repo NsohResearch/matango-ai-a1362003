@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, Check, Lock } from "lucide-react";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
 import { useSystemStatus } from "@/hooks/useSystemStatus";
+import { useAuth } from "@/hooks/useAuth";
 
 const TheSystemDropdown = () => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { statusByStep } = useSystemStatus();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -75,10 +77,10 @@ const TheSystemDropdown = () => {
           </div>
           <div className="p-3 border-t border-emerald-800/50">
             <button
-              onClick={() => { setOpen(false); navigate("/brand-brain"); }}
+              onClick={() => { setOpen(false); navigate(user ? "/dashboard" : "/auth?mode=signup"); }}
               className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Start The System →
+              {user ? "Continue The System →" : "The System →"}
             </button>
           </div>
         </div>
