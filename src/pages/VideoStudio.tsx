@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText, ChevronRight, Upload, CheckCircle2, Sparkles } from "lucide-react";
-import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useAssetLibrary, useCreateAsset } from "@/hooks/useData";
+import { Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText, ChevronRight, Upload, CheckCircle2, Sparkles, Monitor, Lock, Copy, Eye } from "lucide-react";
+import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useAssetLibrary, useCreateAsset, useVideoOutputs, useCreateVideoOutput } from "@/hooks/useData";
+import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { estimateCredits, formatCredits } from "@/lib/credits";
+import { FORMAT_PRESETS, QUALITY_OPTIONS, MAX_FINAL_RENDERS, getPreset, getResolution, getAllowedQualities, type VideoQuality } from "@/lib/video-formats";
 import StepTransition from "@/components/system/StepTransition";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,6 +20,9 @@ const VideoStudioPage = () => {
   const { data: assets } = useAssetLibrary();
   const createJob = useCreateVideoJob();
   const createAsset = useCreateAsset();
+  const { subscription } = useAuth();
+  const plan = subscription.plan || "free";
+  const allowedQualities = getAllowedQualities(plan);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const scriptId = searchParams.get("scriptId");
@@ -27,11 +32,11 @@ const VideoStudioPage = () => {
   const [stv, setStv] = useState({
     script_id: scriptId || "",
     influencer_id: searchParams.get("influencerId") || "",
-    aspect_ratio: "9:16",
+    format_preset: "VERTICAL_9_16",
     background_style: "studio",
     music_mood: "minimal",
     captions: true,
-    quality: "standard_720p",
+    quality: "720P" as VideoQuality,
   });
 
   // Image to Video — multi-step state
@@ -42,6 +47,7 @@ const VideoStudioPage = () => {
   const [itvTraining, setItvTraining] = useState(false);
   const [itvTrainProgress, setItvTrainProgress] = useState(0);
   const [itvGenerating, setItvGenerating] = useState(false);
+  const [itvJobId, setItvJobId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [itv, setItv] = useState({
@@ -50,18 +56,29 @@ const VideoStudioPage = () => {
     motion_type: "subtle",
     camera_movement: "push-in",
     lip_sync: false,
-    aspect_ratio: "9:16",
-    quality: "standard_720p",
+    format_preset: "VERTICAL_9_16",
+    quality: "720P" as VideoQuality,
   });
+
+  // Video outputs for current job
+  const { data: videoOutputs } = useVideoOutputs(itvJobId || undefined);
+  const createVideoOutput = useCreateVideoOutput();
 
   const MAX_IMAGES = 3;
   const MAX_SIZE_MB = 10;
 
-  const itvCredits = estimateCredits("image-to-video-preview", itv.duration, itv.quality);
+  const selectedPreset = getPreset(itv.format_preset);
+  const selectedRes = getResolution(selectedPreset, itv.quality);
+  const isPreview = itv.quality === "PREVIEW_LOW";
+  const itvCredits = estimateCredits(isPreview ? "image-to-video-preview" : "image-to-video-final", itv.duration, itv.quality === "PREVIEW_LOW" ? "preview_low" : itv.quality === "4K" ? "pro_4k" : itv.quality === "1080P" ? "hd_1080p" : undefined);
+
+  const finalRenderCount = videoOutputs?.filter((o) => !o.is_preview && ["queued", "running", "succeeded", "completed", "pending"].includes(o.status)).length || 0;
+  const canFinalRender = finalRenderCount < MAX_FINAL_RENDERS;
 
   const selectedScript = scripts?.find((s) => s.id === stv.script_id);
   const sceneCount = selectedScript ? (Array.isArray(selectedScript.scenes) ? selectedScript.scenes.length : 0) : 0;
-  const stvCredits = estimateCredits("script-to-video-preview", stv.quality === "standard_720p" ? undefined : 30, stv.quality);
+  const stvPreset = getPreset(stv.format_preset);
+  const stvCredits = estimateCredits(stv.quality === "PREVIEW_LOW" ? "script-to-video-preview" : "script-to-video-final", stv.quality === "720P" ? undefined : 30, stv.quality === "PREVIEW_LOW" ? "preview_low" : stv.quality === "4K" ? "pro_4k" : stv.quality === "1080P" ? "hd_1080p" : undefined);
 
   // Image upload helpers
   const addFiles = useCallback((files: FileList | File[]) => {
@@ -101,10 +118,11 @@ const VideoStudioPage = () => {
         const ext = img.file.name.split(".").pop() || "jpg";
         const path = `video-training/${crypto.randomUUID()}.${ext}`;
         const { error } = await supabase.storage.from("training-images").upload(path, img.file, { contentType: img.file.type });
-        if (error) { console.error("Upload error:", error); continue; }
+        if (error) { console.error("Upload error:", error); toast.error(`Failed to upload ${img.file.name}: ${error.message}`); continue; }
         const { data: urlData } = supabase.storage.from("training-images").getPublicUrl(path);
         urls.push(urlData.publicUrl);
       }
+      if (urls.length === 0) { toast.error("No images were uploaded successfully"); setItvUploading(false); return; }
       setItvUploadedUrls(urls);
       toast.success(`${urls.length} image(s) uploaded`);
       setItvStep("train");
@@ -136,6 +154,19 @@ const VideoStudioPage = () => {
   // Step 3: Generate video
   const handleGenerateVideo = () => {
     if (itvUploadedUrls.length === 0) { toast.error("No uploaded images"); return; }
+
+    // Enforce max 3 final renders
+    if (!isPreview && !canFinalRender) {
+      toast.error(`You've reached the max of ${MAX_FINAL_RENDERS} final renders for this project. Duplicate project to generate more.`);
+      return;
+    }
+
+    // Enforce plan quality
+    if (!allowedQualities.includes(itv.quality)) {
+      toast.error("Upgrade your plan for this quality level.");
+      return;
+    }
+
     setItvGenerating(true);
 
     // Save uploaded images to Asset Gallery
@@ -143,23 +174,50 @@ const VideoStudioPage = () => {
       createAsset.mutate({ type: "image", url, prompt: "Video training reference", tags: ["training", "image-to-video"] });
     }
 
+    const res = getResolution(selectedPreset, itv.quality);
+
     createJob.mutate(
       {
         job_type: "image-to-video",
         influencer_id: itv.influencer_id || undefined,
         lip_sync: itv.lip_sync,
-        input_refs: { images: itvUploadedUrls, motion_type: itv.motion_type, camera_movement: itv.camera_movement, duration: itv.duration },
+        input_refs: {
+          images: itvUploadedUrls,
+          motion_type: itv.motion_type,
+          camera_movement: itv.camera_movement,
+          duration: itv.duration,
+          format_preset: itv.format_preset,
+          quality: itv.quality,
+          width: res.w,
+          height: res.h,
+        },
       },
       {
         onSuccess: (data: any) => {
-          toast.success("Image-to-video job queued!");
+          const jobId = data?.id;
+          setItvJobId(jobId);
+
+          // Create video output record
+          createVideoOutput.mutate({
+            video_job_id: jobId,
+            format_preset: itv.format_preset,
+            aspect_ratio: selectedPreset.aspect,
+            width: res.w,
+            height: res.h,
+            quality: itv.quality,
+            is_preview: isPreview,
+            credit_cost: itvCredits,
+          });
+
           // Save video job reference to Asset Gallery
           createAsset.mutate({
             type: "video",
-            prompt: `Image-to-video: ${itv.motion_type} motion, ${itv.camera_movement} camera`,
-            tags: ["video", "image-to-video"],
-            metadata: { video_job_id: data?.id, images: itvUploadedUrls, settings: itv },
+            prompt: `Image-to-video: ${selectedPreset.label} ${itv.quality} – ${itv.motion_type} motion, ${itv.camera_movement} camera`,
+            tags: ["video", "image-to-video", selectedPreset.aspect],
+            metadata: { video_job_id: jobId, images: itvUploadedUrls, settings: itv, format: itv.format_preset, quality: itv.quality },
           });
+
+          toast.success(isPreview ? "Preview render queued!" : "Final render queued!");
           setItvGenerating(false);
           setItvStep("gallery");
         },
@@ -170,12 +228,14 @@ const VideoStudioPage = () => {
 
   const handleScriptToVideo = () => {
     if (!stv.script_id) { toast.error("Select a script first"); return; }
+    if (!allowedQualities.includes(stv.quality)) { toast.error("Upgrade your plan for this quality level."); return; }
     createJob.mutate(
       {
         job_type: "text-to-video",
         script_id: stv.script_id || undefined,
         influencer_id: stv.influencer_id || undefined,
         lip_sync: false,
+        input_refs: { format_preset: stv.format_preset, quality: stv.quality },
       },
       { onSuccess: () => toast.success("Video job queued! Processing will begin shortly.") }
     );
@@ -186,6 +246,7 @@ const VideoStudioPage = () => {
     setItvImages([]);
     setItvUploadedUrls([]);
     setItvTrainProgress(0);
+    setItvJobId(null);
   };
 
   const imageVideoJobs = jobs?.filter((j) => j.job_type === "image-to-video") || [];
@@ -196,6 +257,76 @@ const VideoStudioPage = () => {
     { key: "generate", label: "Generate", num: 3 },
     { key: "gallery", label: "Gallery", num: 4 },
   ];
+
+  // Format & Quality selector component
+  const FormatQualityPanel = ({ preset, quality, onPresetChange, onQualityChange }: {
+    preset: string; quality: VideoQuality;
+    onPresetChange: (v: string) => void; onQualityChange: (v: VideoQuality) => void;
+  }) => (
+    <div className="space-y-4 p-4 rounded-lg border border-border bg-secondary/50">
+      <div className="flex items-center gap-2 mb-1">
+        <Monitor className="h-4 w-4 text-primary" />
+        <h4 className="text-sm font-semibold">Format & Quality</h4>
+      </div>
+
+      {/* Format Preset Tiles */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-2 block">Aspect Ratio</label>
+        <div className="grid grid-cols-5 gap-2">
+          {FORMAT_PRESETS.map((fp) => {
+            const active = fp.id === preset;
+            return (
+              <button key={fp.id} onClick={() => onPresetChange(fp.id)}
+                className={`p-2 rounded-lg border text-center transition-colors ${active ? "border-primary bg-primary/10 text-foreground" : "border-border hover:border-primary/40 text-muted-foreground"}`}>
+                <div className="text-xs font-medium truncate">{fp.aspect}</div>
+                <div className="text-[10px] mt-0.5 truncate">{fp.label.split("/")[0].trim()}</div>
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-1.5">
+          {getPreset(preset).platforms.join(", ")}
+        </p>
+      </div>
+
+      {/* Quality Selector */}
+      <div>
+        <label className="text-xs font-medium text-muted-foreground mb-2 block">Output Quality</label>
+        <div className="grid grid-cols-2 gap-2">
+          {QUALITY_OPTIONS.map((q) => {
+            const allowed = allowedQualities.includes(q.value);
+            const active = q.value === quality;
+            return (
+              <button key={q.value} onClick={() => allowed && onQualityChange(q.value)} disabled={!allowed}
+                className={`p-2 rounded-lg border text-left transition-colors relative ${
+                  active ? "border-primary bg-primary/10" :
+                  allowed ? "border-border hover:border-primary/40" :
+                  "border-border/50 opacity-50 cursor-not-allowed"
+                }`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">{q.label}</span>
+                  {!allowed && <Lock className="h-3 w-3 text-muted-foreground" />}
+                </div>
+                {!allowed && (
+                  <span className="text-[10px] text-muted-foreground">Upgrade required</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Resolution Info */}
+      {(() => {
+        const res = getResolution(getPreset(preset), quality);
+        return (
+          <div className="text-[10px] text-muted-foreground bg-muted px-3 py-1.5 rounded">
+            Output: {res.w}×{res.h} · {getPreset(preset).aspect} · {quality === "PREVIEW_LOW" ? "Preview" : quality}
+          </div>
+        );
+      })()}
+    </div>
+  );
 
   return (
     <DashboardLayout>
@@ -227,7 +358,7 @@ const VideoStudioPage = () => {
             <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
               <Wand2 className="h-5 w-5 text-primary" /> Script → Video
             </h3>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Script *</label>
                 <select value={stv.script_id} onChange={(e) => setStv((f) => ({ ...f, script_id: e.target.value }))}
@@ -245,15 +376,6 @@ const VideoStudioPage = () => {
                   className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
                   <option value="">No influencer</option>
                   {influencers?.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Aspect Ratio</label>
-                <select value={stv.aspect_ratio} onChange={(e) => setStv((f) => ({ ...f, aspect_ratio: e.target.value }))}
-                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                  <option value="9:16">9:16 (Vertical)</option>
-                  <option value="16:9">16:9 (Horizontal)</option>
-                  <option value="1:1">1:1 (Square)</option>
                 </select>
               </div>
             </div>
@@ -286,11 +408,20 @@ const VideoStudioPage = () => {
                 </label>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Format & Quality for Script-to-Video */}
+            <FormatQualityPanel
+              preset={stv.format_preset}
+              quality={stv.quality}
+              onPresetChange={(v) => setStv((f) => ({ ...f, format_preset: v }))}
+              onQualityChange={(v) => setStv((f) => ({ ...f, quality: v }))}
+            />
+
+            <div className="flex items-center gap-3 mt-4">
               <button onClick={handleScriptToVideo} disabled={createJob.isPending || !stv.script_id}
                 className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
-                {createJob.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                Queue Video Render
+                {createJob.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : stv.quality === "PREVIEW_LOW" ? <Eye className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {stv.quality === "PREVIEW_LOW" ? "Generate Preview" : "Render Final"}
               </button>
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Zap className="h-3 w-3" /> ~{formatCredits(stvCredits)}
@@ -448,7 +579,7 @@ const VideoStudioPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Duration (sec)</label>
                     <select value={itv.duration} onChange={(e) => setItv((f) => ({ ...f, duration: parseInt(e.target.value) }))}
@@ -479,17 +610,6 @@ const VideoStudioPage = () => {
                       <option value="handheld">Handheld</option>
                     </select>
                   </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Aspect Ratio</label>
-                    <select value={itv.aspect_ratio} onChange={(e) => setItv((f) => ({ ...f, aspect_ratio: e.target.value }))}
-                      className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                      <option value="9:16">9:16</option>
-                      <option value="16:9">16:9</option>
-                      <option value="1:1">1:1</option>
-                    </select>
-                  </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Influencer</label>
                     <select value={itv.influencer_id} onChange={(e) => setItv((f) => ({ ...f, influencer_id: e.target.value }))}
@@ -498,25 +618,42 @@ const VideoStudioPage = () => {
                       {influencers?.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
                     </select>
                   </div>
-                  <div className="flex items-end">
-                    <label className="flex items-center gap-2 text-sm pb-2.5">
-                      <input type="checkbox" checked={itv.lip_sync} onChange={(e) => setItv((f) => ({ ...f, lip_sync: e.target.checked }))}
-                        className="rounded border-border" />
-                      Lip Sync (+{formatCredits(estimateCredits("lip-sync"))})
-                    </label>
-                  </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <button onClick={handleGenerateVideo} disabled={itvGenerating}
-                    className="px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
-                    {itvGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                    {itvGenerating ? "Generating..." : "Generate Video"}
-                  </button>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Zap className="h-3 w-3" /> ~{formatCredits(itvCredits)}
-                    {itv.lip_sync ? ` + ${formatCredits(estimateCredits("lip-sync"))} lip-sync` : ""}
-                  </span>
+                <div className="flex items-center gap-4 mb-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={itv.lip_sync} onChange={(e) => setItv((f) => ({ ...f, lip_sync: e.target.checked }))}
+                      className="rounded border-border" />
+                    Lip Sync (+{formatCredits(estimateCredits("lip-sync"))})
+                  </label>
+                </div>
+
+                {/* Format & Quality Panel */}
+                <FormatQualityPanel
+                  preset={itv.format_preset}
+                  quality={itv.quality}
+                  onPresetChange={(v) => setItv((f) => ({ ...f, format_preset: v }))}
+                  onQualityChange={(v) => setItv((f) => ({ ...f, quality: v as VideoQuality }))}
+                />
+
+                {/* Render Count + Actions */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center gap-3">
+                    <button onClick={handleGenerateVideo} disabled={itvGenerating}
+                      className="px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
+                      {itvGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : isPreview ? <Eye className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      {itvGenerating ? "Generating..." : isPreview ? "Generate Preview" : "Render Final"}
+                    </button>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Zap className="h-3 w-3" /> ~{formatCredits(itvCredits)}
+                      {itv.lip_sync ? ` + ${formatCredits(estimateCredits("lip-sync"))} lip-sync` : ""}
+                    </span>
+                  </div>
+                  {!isPreview && (
+                    <div className={`text-xs font-medium px-3 py-1.5 rounded-full ${canFinalRender ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
+                      Final renders: {finalRenderCount} / {MAX_FINAL_RENDERS}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -529,11 +666,50 @@ const VideoStudioPage = () => {
                     <Film className="h-4 w-4 text-primary" />
                     <h4 className="text-sm font-semibold">Generated Videos</h4>
                   </div>
-                  <button onClick={resetItvFlow}
-                    className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20">
-                    + New Video
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {canFinalRender && (
+                      <button onClick={() => setItvStep("generate")}
+                        className="px-3 py-1.5 rounded-lg bg-accent/10 text-accent-foreground text-xs font-medium hover:bg-accent/20 flex items-center gap-1">
+                        <Copy className="h-3 w-3" /> Re-render in another size
+                      </button>
+                    )}
+                    <button onClick={resetItvFlow}
+                      className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20">
+                      + New Video
+                    </button>
+                  </div>
                 </div>
+
+                {/* Render counter */}
+                <div className={`mb-4 text-xs font-medium px-3 py-2 rounded-lg w-fit ${canFinalRender ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
+                  Final renders used: {finalRenderCount} / {MAX_FINAL_RENDERS}
+                  {!canFinalRender && " — Duplicate project to generate more."}
+                </div>
+
+                {/* Video Outputs List */}
+                {videoOutputs && videoOutputs.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Render Outputs</h5>
+                    {videoOutputs.map((out) => (
+                      <div key={out.id} className="rounded-lg border border-border p-3 flex items-center gap-4">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="text-xs font-medium">{out.format_preset.replace(/_/g, " ")}</span>
+                          <span className="text-[10px] text-muted-foreground">{out.aspect_ratio}</span>
+                          <span className="text-[10px] text-muted-foreground">{out.width}×{out.height}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${out.is_preview ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"}`}>
+                            {out.is_preview ? "Preview" : out.quality}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          out.status === "completed" || out.status === "succeeded" ? "bg-primary/20 text-primary" :
+                          out.status === "running" || out.status === "queued" || out.status === "pending" ? "bg-accent/20 text-accent-foreground" :
+                          "bg-destructive/20 text-destructive"
+                        }`}>{out.status}</span>
+                        <span className="text-[10px] text-muted-foreground">{out.credit_cost} cr</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {imageVideoJobs.length > 0 ? (
                   <div className="grid sm:grid-cols-2 gap-4">

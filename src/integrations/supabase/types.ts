@@ -1861,6 +1861,88 @@ export type Database = {
           },
         ]
       }
+      video_outputs: {
+        Row: {
+          aspect_ratio: string
+          brand_id: string | null
+          created_at: string
+          credit_cost: number
+          format_preset: string
+          height: number
+          id: string
+          is_preview: boolean
+          org_id: string | null
+          output_url: string | null
+          quality: string
+          status: string
+          thumb_url: string | null
+          updated_at: string
+          user_id: string
+          video_job_id: string | null
+          width: number
+        }
+        Insert: {
+          aspect_ratio?: string
+          brand_id?: string | null
+          created_at?: string
+          credit_cost?: number
+          format_preset?: string
+          height?: number
+          id?: string
+          is_preview?: boolean
+          org_id?: string | null
+          output_url?: string | null
+          quality?: string
+          status?: string
+          thumb_url?: string | null
+          updated_at?: string
+          user_id: string
+          video_job_id?: string | null
+          width?: number
+        }
+        Update: {
+          aspect_ratio?: string
+          brand_id?: string | null
+          created_at?: string
+          credit_cost?: number
+          format_preset?: string
+          height?: number
+          id?: string
+          is_preview?: boolean
+          org_id?: string | null
+          output_url?: string | null
+          quality?: string
+          status?: string
+          thumb_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_job_id?: string | null
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_outputs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_outputs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_outputs_video_job_id_fkey"
+            columns: ["video_job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_scenes: {
         Row: {
           aspect_ratio: string | null
