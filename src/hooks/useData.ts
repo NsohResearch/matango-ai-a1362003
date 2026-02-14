@@ -258,6 +258,31 @@ export function useCreateVideoScript() {
   });
 }
 
+export function useUpdateVideoScript() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...values }: { id: string; title?: string; platform?: string; duration?: number; script_type?: string; scenes?: unknown; delivery_notes?: string }) => {
+      const { data, error } = await supabase.from("video_scripts").update(values as any).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-scripts"] }); toast.success("Script updated!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDeleteVideoScript() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("video_scripts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-scripts"] }); toast.success("Script deleted"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
 // ── Video Jobs ────────────────────────────────────────────
 export function useVideoJobs() {
   const { user } = useAuth();

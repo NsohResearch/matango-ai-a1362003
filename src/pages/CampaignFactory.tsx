@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WorkflowNav from "@/components/WorkflowNav";
-import { Megaphone, Plus, Loader2, ChevronRight, Eye, BarChart3, Sparkles, X } from "lucide-react";
+import { Megaphone, Plus, Loader2, ChevronRight, Eye, BarChart3, Sparkles, X, History, Copy } from "lucide-react";
 import { useCampaigns, useCreateCampaign, useBrandBrains } from "@/hooks/useData";
 import { aaoExecute } from "@/lib/edge-functions";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -27,11 +27,25 @@ const CampaignFactoryPage = () => {
   const [generatingAssets, setGeneratingAssets] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", angle: "", target_icp: "", brand_id: brandId || "" });
 
+  // Last 5 campaigns for reuse
+  const recentCampaigns = (campaigns || []).slice(0, 5);
+
   const handleCreate = () => {
     if (!form.name) return;
     create.mutate({ ...form, brand_id: form.brand_id || undefined }, {
       onSuccess: () => { setShowCreate(false); setForm({ name: "", angle: "", target_icp: "", brand_id: "" }); },
     });
+  };
+
+  const handleReuse = (campaign: typeof recentCampaigns[0]) => {
+    setForm({
+      name: `${campaign.name} (Copy)`,
+      angle: campaign.angle || "",
+      target_icp: campaign.target_icp || "",
+      brand_id: campaign.brand_id || "",
+    });
+    setShowCreate(true);
+    toast.info(`Loaded "${campaign.name}" as template — edit and save as new.`);
   };
 
   const handleGenerateAssets = async (campaignId: string, campaignName: string, angle?: string | null, targetIcp?: string | null) => {
@@ -72,6 +86,30 @@ Generate at least 6 assets across platforms.`,
             <Plus className="h-4 w-4" /> New Campaign
           </button>
         </div>
+
+        {/* Recent Campaigns for Reuse */}
+        {!showCreate && recentCampaigns.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 mb-3">
+              <History className="h-4 w-4" /> Recent Campaigns — click to reuse
+            </h3>
+            <div className="flex gap-2 flex-wrap">
+              {recentCampaigns.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleReuse(c)}
+                  className="px-3 py-2 rounded-lg border border-border bg-secondary/50 hover:border-primary/30 hover:bg-secondary transition-colors text-left group/reuse flex items-center gap-2"
+                >
+                  <div>
+                    <span className="text-sm font-medium block">{c.name}</span>
+                    {c.angle && <span className="text-[11px] text-muted-foreground line-clamp-1">{c.angle}</span>}
+                  </div>
+                  <Copy className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover/reuse:opacity-100 transition-opacity shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {showCreate && (
           <div className="glass-card rounded-xl p-6 mb-6 border border-primary/20">
