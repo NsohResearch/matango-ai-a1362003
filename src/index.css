@@ -36,9 +36,6 @@
 
     --radius: 0.75rem;
 
-    --glow-primary: 0 0 40px hsl(168 80% 50% / 0.3);
-    --glow-accent: 0 0 60px hsl(155 70% 45% / 0.2);
-
     --sidebar-background: 180 15% 6%;
     --sidebar-foreground: 160 20% 92%;
     --sidebar-primary: 168 80% 50%;
@@ -56,28 +53,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
-  }
-}
-
-@layer utilities {
-  .glow-primary {
-    box-shadow: var(--glow-primary);
-  }
-
-  .glow-accent {
-    box-shadow: var(--glow-accent);
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
-  }
-
-  .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
