@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import KahChatWidget from "@/components/KahChatWidget";
+import { useBrandingBootstrap } from "@/hooks/useBrandingBootstrap";
 import Index from "./pages/Index";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import NotFound from "./pages/NotFound";
@@ -43,11 +44,17 @@ const A = ({ children }: { children: React.ReactNode }) => (
   <AdminRoute>{children}</AdminRoute>
 );
 
+const BrandingBootstrap = () => {
+  useBrandingBootstrap();
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
+        <BrandingBootstrap />
         <Toaster />
         <Sonner />
         <BrowserRouter>
