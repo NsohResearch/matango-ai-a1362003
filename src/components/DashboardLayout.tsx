@@ -90,7 +90,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </ul>
           </div>
 
-          {/* Operator Console — admin only */}
+          {/* Admin Console — admin only */}
           {isAdminOrAbove && (
             <div>
               <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
@@ -107,7 +107,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     }`}
                   >
                     <ShieldCheck className="h-4 w-4 shrink-0" />
-                    Operator Console
+                    Admin Console
                   </Link>
                 </li>
               </ul>

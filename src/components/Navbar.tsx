@@ -91,7 +91,7 @@ const Navbar = () => {
                   {isAdminOrAbove && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="cursor-pointer flex items-center gap-2 text-cream-50 hover:text-gold-400">
-                        <BarChart3 className="h-4 w-4 text-gold-400" /> Operator Console
+                        <BarChart3 className="h-4 w-4 text-gold-400" /> Admin Console
                       </Link>
                     </DropdownMenuItem>
                   )}
