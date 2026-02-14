@@ -3,34 +3,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 
+// ── Profiles ──────────────────────────────────────────────
 export function useProfile() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user!.id)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
       if (error) throw error;
       return data;
     },
   });
 }
 
+// ── User Roles ────────────────────────────────────────────
+export function useUserRoles() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["user-roles", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user!.id);
+      if (error) throw error;
+      return (data || []).map((r: any) => r.role as string);
+    },
+  });
+}
+
+export function useHasRole(role: string) {
+  const { data: roles } = useUserRoles();
+  return roles?.includes(role) || false;
+}
+
+// ── Influencers ───────────────────────────────────────────
 export function useInfluencers() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["influencers", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("influencers")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("influencers").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -42,33 +55,23 @@ export function useCreateInfluencer() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: { name: string; bio?: string; personality?: string; persona_type?: string }) => {
-      const { data, error } = await supabase
-        .from("influencers")
-        .insert({ ...values, user_id: user!.id })
-        .select()
-        .single();
+      const { data, error } = await supabase.from("influencers").insert({ ...values, user_id: user!.id }).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["influencers"] });
-      toast.success("Influencer created!");
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["influencers"] }); toast.success("Influencer created!"); },
     onError: (err: Error) => toast.error(err.message),
   });
 }
 
+// ── Brand Brain ───────────────────────────────────────────
 export function useBrandBrains() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["brand-brains", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("business_dna")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("business_dna").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -82,43 +85,28 @@ export function useUpsertBrandBrain() {
     mutationFn: async (values: Record<string, unknown> & { id?: string }) => {
       const payload = { ...values, user_id: user!.id };
       if (values.id) {
-        const { data, error } = await supabase
-          .from("business_dna")
-          .update(payload)
-          .eq("id", values.id)
-          .select()
-          .single();
+        const { data, error } = await supabase.from("business_dna").update(payload).eq("id", values.id).select().single();
         if (error) throw error;
         return data;
       } else {
-        const { data, error } = await supabase
-          .from("business_dna")
-          .insert(payload)
-          .select()
-          .single();
+        const { data, error } = await supabase.from("business_dna").insert(payload).select().single();
         if (error) throw error;
         return data;
       }
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["brand-brains"] });
-      toast.success("Brand saved!");
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["brand-brains"] }); toast.success("Brand saved!"); },
     onError: (err: Error) => toast.error(err.message),
   });
 }
 
+// ── Campaigns ─────────────────────────────────────────────
 export function useCampaigns() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["campaigns", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("unified_campaigns")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("unified_campaigns").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
@@ -130,186 +118,233 @@ export function useCreateCampaign() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: { name: string; angle?: string; target_icp?: string; brand_id?: string }) => {
-      const { data, error } = await supabase
-        .from("unified_campaigns")
-        .insert({ ...values, user_id: user!.id })
-        .select()
-        .single();
+      const { data, error } = await supabase.from("unified_campaigns").insert({ ...values, user_id: user!.id }).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["campaigns"] });
-      toast.success("Campaign created!");
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["campaigns"] }); toast.success("Campaign created!"); },
     onError: (err: Error) => toast.error(err.message),
   });
 }
 
+export function useCampaignAssets(campaignId?: string) {
+  return useQuery({
+    queryKey: ["campaign-assets", campaignId],
+    enabled: !!campaignId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("campaign_assets").select("*").eq("campaign_id", campaignId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Scheduled Posts ───────────────────────────────────────
 export function useScheduledPosts() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["scheduled-posts", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("scheduled_posts")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("scheduled_for", { ascending: true });
+      const { data, error } = await supabase.from("scheduled_posts").select("*").eq("user_id", user!.id).order("scheduled_for", { ascending: true });
       if (error) throw error;
       return data || [];
     },
   });
 }
 
-export function useAnalyticsData() {
+export function useCreateScheduledPost() {
+  const qc = useQueryClient();
   const { user } = useAuth();
-  return useQuery({
-    queryKey: ["analytics-data", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("analytics_data")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("date", { ascending: false })
-        .limit(30);
+  return useMutation({
+    mutationFn: async (values: { platform: string; content: string; scheduled_for: string; campaign_id?: string; influencer_id?: string; image_url?: string }) => {
+      const { data, error } = await supabase.from("scheduled_posts").insert({ ...values, user_id: user!.id }).select().single();
       if (error) throw error;
-      return data || [];
+      return data;
     },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["scheduled-posts"] }); toast.success("Post scheduled!"); },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 
+// ── Video Scripts ─────────────────────────────────────────
 export function useVideoScripts() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["video-scripts", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("video_scripts")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("video_scripts").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
   });
 }
 
-export function useLeads() {
+export function useCreateVideoScript() {
+  const qc = useQueryClient();
   const { user } = useAuth();
-  return useQuery({
-    queryKey: ["leads", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("leads")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+  return useMutation({
+    mutationFn: async (values: { title: string; platform?: string; duration?: number; script_type?: string; scenes?: unknown; delivery_notes?: string }) => {
+      const payload = { ...values, user_id: user!.id } as any;
+      const { data, error } = await supabase.from("video_scripts").insert(payload).select().single();
       if (error) throw error;
-      return data || [];
+      return data;
     },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-scripts"] }); toast.success("Script created!"); },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 
-export function useNotifications() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["notifications", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
-export function useAbTests() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["ab-tests", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("ab_tests")
-        .select("*, ab_test_variants(*)")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
-export function useContentTemplates() {
-  return useQuery({
-    queryKey: ["content-templates"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_templates")
-        .select("*")
-        .order("usage_count", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
-export function useAssetLibrary() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["assets", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("asset_library")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
-export function useSocialConnections() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: ["social-connections", user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("social_connections")
-        .select("*")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-}
-
+// ── Video Jobs ────────────────────────────────────────────
 export function useVideoJobs() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["video-jobs", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("video_jobs")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("video_jobs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
     },
+  });
+}
+
+export function useCreateVideoJob() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { job_type: string; script_id?: string; influencer_id?: string; lip_sync?: boolean }) => {
+      const { data, error } = await supabase.from("video_jobs").insert({ ...values, user_id: user!.id, status: "pending" }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-jobs"] }); toast.success("Video job queued!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Analytics ─────────────────────────────────────────────
+export function useAnalyticsData() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["analytics-data", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("analytics_data").select("*").eq("user_id", user!.id).order("date", { ascending: false }).limit(30);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Leads ─────────────────────────────────────────────────
+export function useLeads() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["leads", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("leads").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Notifications ─────────────────────────────────────────
+export function useNotifications() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["notifications", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("notifications").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── A/B Tests ─────────────────────────────────────────────
+export function useAbTests() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["ab-tests", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ab_tests").select("*, ab_test_variants(*)").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Content Templates ─────────────────────────────────────
+export function useContentTemplates() {
+  return useQuery({
+    queryKey: ["content-templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("content_templates").select("*").order("usage_count", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Asset Library ─────────────────────────────────────────
+export function useAssetLibrary() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["assets", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("asset_library").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── Social Connections ────────────────────────────────────
+export function useSocialConnections() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["social-connections", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("social_connections").select("*").eq("user_id", user!.id);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+// ── AAO Activity ──────────────────────────────────────────
+export function useAAOActivity() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["aao-activity", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("aao_activity_log").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+export function useCreateAAOTask() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { aao_type: string; action: string; description?: string; metadata?: Record<string, unknown> }) => {
+      const payload = { ...values, user_id: user!.id, status: "running" } as any;
+      const { data, error } = await supabase.from("aao_activity_log").insert(payload).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["aao-activity"] }); },
+    onError: (err: Error) => toast.error(err.message),
   });
 }

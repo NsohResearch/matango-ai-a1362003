@@ -1,10 +1,11 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WorkflowNav from "@/components/WorkflowNav";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock } from "lucide-react";
-import { useScheduledPosts } from "@/hooks/useData";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock, X, Send } from "lucide-react";
+import { useScheduledPosts, useCreateScheduledPost, useCampaigns } from "@/hooks/useData";
 import { useSearchParams } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from "date-fns";
+import { toast } from "sonner";
 
 const PLATFORMS = ["instagram", "tiktok", "linkedin", "twitter", "youtube", "facebook"];
 const PLATFORM_COLORS: Record<string, string> = {
@@ -18,8 +19,17 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 const SchedulerPage = () => {
   const { data: posts, isLoading } = useScheduledPosts();
+  const { data: campaigns } = useCampaigns();
+  const createPost = useCreateScheduledPost();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "list">("month");
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({
+    platform: "instagram",
+    content: "",
+    scheduled_for: "",
+    campaign_id: "",
+  });
 
   const days = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -30,6 +40,15 @@ const SchedulerPage = () => {
 
   const getPostsForDay = (day: Date) =>
     posts?.filter((p) => isSameDay(new Date(p.scheduled_for), day)) || [];
+
+  const handleCreate = () => {
+    if (!form.content) { toast.error("Add post content"); return; }
+    if (!form.scheduled_for) { toast.error("Select a date and time"); return; }
+    createPost.mutate(
+      { ...form, campaign_id: form.campaign_id || undefined },
+      { onSuccess: () => { setShowCreate(false); setForm({ platform: "instagram", content: "", scheduled_for: "", campaign_id: "" }); } }
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -51,11 +70,60 @@ const SchedulerPage = () => {
                 </button>
               ))}
             </div>
-            <button className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex items-center gap-2">
+            <button onClick={() => setShowCreate(true)}
+              className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 flex items-center gap-2">
               <Plus className="h-4 w-4" /> Schedule Post
             </button>
           </div>
         </div>
+
+        {/* Create post dialog */}
+        {showCreate && (
+          <div className="glass-card rounded-xl p-6 mb-6 border border-primary/20">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-semibold">Schedule New Post</h3>
+              <button onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Platform *</label>
+                  <select value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    {PLATFORMS.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Date & Time *</label>
+                  <input type="datetime-local" value={form.scheduled_for} onChange={(e) => setForm((f) => ({ ...f, scheduled_for: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Campaign</label>
+                  <select value={form.campaign_id} onChange={(e) => setForm((f) => ({ ...f, campaign_id: e.target.value }))}
+                    className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <option value="">No campaign</option>
+                    {campaigns?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Content *</label>
+                <textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
+                  placeholder="Write your post content..." />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground">Cancel</button>
+                <button onClick={handleCreate} disabled={createPost.isPending}
+                  className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
+                  {createPost.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Schedule
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Calendar header */}
         <div className="flex items-center justify-between mb-4">
@@ -127,7 +195,11 @@ const SchedulerPage = () => {
               <div className="glass-card rounded-xl p-12 text-center">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="font-display text-lg font-semibold mb-2">No scheduled posts</h3>
-                <p className="text-sm text-muted-foreground">Schedule your first post to start publishing.</p>
+                <p className="text-sm text-muted-foreground mb-4">Schedule your first post to start publishing.</p>
+                <button onClick={() => setShowCreate(true)}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium">
+                  Schedule First Post
+                </button>
               </div>
             )}
           </div>
