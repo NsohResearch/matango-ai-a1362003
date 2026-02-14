@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight } from "lucide-react";
+import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon } from "lucide-react";
 import { useInfluencers, useCreateInfluencer, useBrandBrains } from "@/hooks/useData";
 import { aiGenerate } from "@/lib/edge-functions";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { estimateCredits, formatCredits } from "@/lib/credits";
 import StepTransition from "@/components/system/StepTransition";
+import { supabase } from "@/integrations/supabase/client";
 
 const PERSONA_TYPES = [
   { value: "Founder", label: "Founder", desc: "Visionary leader sharing insights" },
@@ -33,6 +34,9 @@ const InfluencerStudioPage = () => {
 
   const [showCreate, setShowCreate] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [referenceImages, setReferenceImages] = useState<{ file: File; preview: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "", bio: "", personality: "", persona_type: "Founder",
     style_preset: "realistic", brand_id: brandId || "",
@@ -41,6 +45,49 @@ const InfluencerStudioPage = () => {
 
   const activeBrand = brands?.find((b) => b.id === form.brand_id);
   const creditCost = estimateCredits("influencer-assist");
+
+  const MAX_IMAGES = 3;
+  const MAX_SIZE_MB = 10;
+
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const newFiles = Array.from(files).filter((f) => {
+      if (!f.type.startsWith("image/")) { toast.error(`${f.name} is not an image`); return false; }
+      if (f.size > MAX_SIZE_MB * 1024 * 1024) { toast.error(`${f.name} exceeds ${MAX_SIZE_MB}MB`); return false; }
+      return true;
+    });
+    setReferenceImages((prev) => {
+      const remaining = MAX_IMAGES - prev.length;
+      if (remaining <= 0) { toast.error(`Maximum ${MAX_IMAGES} images allowed`); return prev; }
+      const toAdd = newFiles.slice(0, remaining);
+      if (newFiles.length > remaining) toast.warning(`Only ${remaining} more image(s) allowed`);
+      return [...prev, ...toAdd.map((file) => ({ file, preview: URL.createObjectURL(file) }))];
+    });
+  }, []);
+
+  const removeImage = (index: number) => {
+    setReferenceImages((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+  }, [addFiles]);
+
+  const uploadImagesToStorage = async (influencerId: string): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const img of referenceImages) {
+      const ext = img.file.name.split(".").pop() || "jpg";
+      const path = `training/${influencerId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("training-images").upload(path, img.file, { contentType: img.file.type });
+      if (error) { console.error("Upload error:", error); continue; }
+      const { data: urlData } = supabase.storage.from("training-images").getPublicUrl(path);
+      urls.push(urlData.publicUrl);
+    }
+    return urls;
+  };
 
   const handleAIAssist = async () => {
     if (!form.brand_id) { toast.error("Select a Brand Brain first"); return; }
@@ -78,24 +125,47 @@ const InfluencerStudioPage = () => {
     }
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!form.name) return;
-    create.mutate(
-      {
-        name: form.name,
-        bio: form.bio,
-        personality: form.personality,
-        persona_type: form.persona_type.toLowerCase(),
-      },
-      {
-        onSuccess: (data) => {
-          setShowCreate(false);
-          setForm({ name: "", bio: "", personality: "", persona_type: "Founder", style_preset: "realistic", brand_id: brandId || "", character_weight: 0.8, tags: "" });
-          toast.success("Influencer created! Proceed to script generation.");
+    setUploadingImages(true);
+    try {
+      create.mutate(
+        {
+          name: form.name,
+          bio: form.bio,
+          personality: form.personality,
+          persona_type: form.persona_type.toLowerCase(),
         },
-      }
-    );
+        {
+          onSuccess: async (data: any) => {
+            // Upload reference images if any
+            if (referenceImages.length > 0 && data?.id) {
+              try {
+                const urls = await uploadImagesToStorage(data.id);
+                if (urls.length > 0) {
+                  await supabase.from("influencers").update({ avatar_url: urls[0] }).eq("id", data.id);
+                }
+                toast.success(`Influencer created with ${urls.length} training image(s)!`);
+              } catch (err) {
+                toast.warning("Influencer created but image upload failed");
+              }
+            } else {
+              toast.success("Influencer created! Proceed to script generation.");
+            }
+            setShowCreate(false);
+            setReferenceImages([]);
+            setForm({ name: "", bio: "", personality: "", persona_type: "Founder", style_preset: "realistic", brand_id: brandId || "", character_weight: 0.8, tags: "" });
+            setUploadingImages(false);
+          },
+          onError: () => setUploadingImages(false),
+        }
+      );
+    } catch {
+      setUploadingImages(false);
+    }
   };
+
+  const isCreating = create.isPending || uploadingImages;
 
   return (
     <DashboardLayout>
@@ -200,12 +270,62 @@ const InfluencerStudioPage = () => {
                 placeholder="e.g. Confident, data-driven, uses clear analogies..." />
             </div>
 
+            {/* Reference Images Upload */}
+            <div className="mb-4 p-4 rounded-lg bg-secondary/30 border border-border">
+              <div className="flex items-center gap-2 mb-1">
+                <Upload className="h-4 w-4 text-primary" />
+                <h4 className="text-sm font-semibold">Reference Images</h4>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Upload 1–3 high-quality images. More images improve training quality.
+              </p>
+
+              {/* Thumbnails */}
+              {referenceImages.length > 0 && (
+                <div className="flex gap-3 mb-3">
+                  {referenceImages.map((img, i) => (
+                    <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group/thumb">
+                      <img src={img.preview} alt={`Reference ${i + 1}`} className="w-full h-full object-cover" />
+                      <button onClick={() => removeImage(i)}
+                        className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Dropzone */}
+              {referenceImages.length < MAX_IMAGES && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                >
+                  <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG up to {MAX_SIZE_MB}MB each (max {MAX_IMAGES} images)
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Cancel</button>
-              <button onClick={handleCreate} disabled={create.isPending || !form.name}
+              <button onClick={() => { setShowCreate(false); setReferenceImages([]); }} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+              <button onClick={handleCreate} disabled={isCreating || !form.name}
                 className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
-                {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
-                Create Influencer
+                {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {referenceImages.length > 0 ? "Create Influencer & Start Training" : "Create Influencer"}
               </button>
             </div>
           </div>
