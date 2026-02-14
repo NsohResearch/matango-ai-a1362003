@@ -93,7 +93,7 @@ export default function DangerZonePanel({ orgName }: { orgName?: string }) {
   const isPaused = status?.account_status === "paused";
   const isSoftDeleted = status?.account_status === "soft_deleted";
   const isBillingStopped = status?.billing_status === "billing_stopped";
-  const isActive = status?.account_status === "active";
+  const isActive = !status || status?.account_status === "active";
   const isPremium = status?.plan && status.plan !== "free";
 
   return (
