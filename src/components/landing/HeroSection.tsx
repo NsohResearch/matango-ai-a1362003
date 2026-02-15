@@ -71,10 +71,10 @@ const HeroSection = () => {
         <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-gold-500/20 to-emerald-500/20 blur-xl" />
         <img
           src={kahHero}
-          alt="Ka'h — AI-Amplified Operator"
+          alt="K'ah — AI-Amplified Operator"
           className="relative rounded-3xl w-48 h-48 object-cover object-top mx-auto shadow-2xl ring-1 ring-white/10"
         />
-        <p className="mt-3 text-sm text-gold-400 font-display text-center">Hi, I am Ka'h</p>
+        <p className="mt-3 text-sm text-gold-400 font-display text-center">Hi, I am K'ah</p>
       </motion.div>
 
       <motion.div
