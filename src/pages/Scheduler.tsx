@@ -18,6 +18,42 @@ const PLATFORM_COLORS: Record<string, string> = {
   facebook: "bg-indigo-500/20 text-indigo-400",
 };
 
+/** Anomaly detection: flag burst posting or off-hours scheduling */
+function detectAnomalies(posts: any[], newPost?: { scheduled_for: string; platform: string }): string[] {
+  const warnings: string[] = [];
+  const allPosts = newPost ? [...(posts || []), newPost] : (posts || []);
+  
+  if (newPost?.scheduled_for) {
+    const hour = new Date(newPost.scheduled_for).getHours();
+    if (hour < 6 || hour > 23) {
+      warnings.push("Off-hours: This post is scheduled between midnight and 6 AM, which typically has low engagement.");
+    }
+  }
+
+  // Burst detection: >5 posts on the same day
+  const dateCounts: Record<string, number> = {};
+  allPosts.forEach((p) => {
+    const day = (p.scheduled_for || "").slice(0, 10);
+    if (day) dateCounts[day] = (dateCounts[day] || 0) + 1;
+  });
+  Object.entries(dateCounts).forEach(([day, count]) => {
+    if (count > 5) warnings.push(`Burst posting: ${count} posts scheduled on ${day}. This may trigger platform rate limits or appear spammy.`);
+  });
+
+  // Same platform, same hour
+  if (newPost?.scheduled_for && newPost?.platform) {
+    const sameSlot = (posts || []).filter((p) =>
+      p.platform === newPost.platform &&
+      p.scheduled_for?.slice(0, 13) === newPost.scheduled_for.slice(0, 13)
+    );
+    if (sameSlot.length > 0) {
+      warnings.push(`Duplicate slot: Another ${newPost.platform} post is already scheduled for the same hour.`);
+    }
+  }
+
+  return warnings;
+}
+
 interface BatchRow {
   id: string;
   platform: string;
@@ -89,6 +125,9 @@ const SchedulerPage = () => {
 
   const getPostsForDay = (day: Date) =>
     posts?.filter((p) => isSameDay(new Date(p.scheduled_for), day)) || [];
+
+  // Anomaly warnings for current form
+  const anomalyWarnings = form.scheduled_for ? detectAnomalies(posts || [], { scheduled_for: form.scheduled_for, platform: form.selectedPlatforms[0] || form.platform }) : [];
 
   const handleCreate = () => {
     if (!form.content) { toast.error("Add post content"); return; }
@@ -321,6 +360,17 @@ const SchedulerPage = () => {
                   className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
                   placeholder="Write your post content..." />
               </div>
+
+              {/* Anomaly warnings */}
+              {anomalyWarnings.length > 0 && (
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 space-y-1">
+                  {anomalyWarnings.map((w, i) => (
+                    <p key={i} className="text-xs text-destructive flex items-start gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" /> {w}
+                    </p>
+                  ))}
+                </div>
+              )}
 
               {/* Hashtags */}
               <div>
