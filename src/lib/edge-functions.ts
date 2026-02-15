@@ -47,3 +47,12 @@ export const analyticsSeed = (action: string) =>
 
 export const accountLifecycle = (action: string, params?: Record<string, unknown>) =>
   callEdgeFunction("account-lifecycle", { action, ...params });
+
+export const processVideoJob = (action: string, params?: Record<string, unknown>) =>
+  callEdgeFunction("process-video-job", { action, ...params });
+
+export const processTrainingJob = (action: string, params?: Record<string, unknown>) =>
+  callEdgeFunction("process-training-job", { action, ...params });
+
+export const publishPosts = (action: string, params?: Record<string, unknown>) =>
+  callEdgeFunction("publish-posts", { action, ...params });
