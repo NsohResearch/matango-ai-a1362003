@@ -1,20 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
 import matangoIcon from "@/assets/matango-icon.png";
 import PasswordStrength from "@/components/PasswordStrength";
+import { WELCOME_GREETINGS } from "@/lib/i18n/translations";
+import { useI18n } from "@/lib/i18n/context";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isSignup, setIsSignup] = useState(searchParams.get("mode") === "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [greetingIdx, setGreetingIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGreetingIdx((i) => (i + 1) % WELCOME_GREETINGS.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     const { error } = await lovable.auth.signInWithOAuth("google", {
@@ -47,6 +59,8 @@ const Auth = () => {
     }
   };
 
+  const greeting = WELCOME_GREETINGS[greetingIdx];
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-emerald-950 px-6">
       <div className="w-full max-w-sm">
@@ -58,11 +72,23 @@ const Auth = () => {
         </Link>
 
         <div className="bg-emerald-900/60 border border-emerald-800/50 rounded-2xl p-8 shadow-luxury">
-          <h2 className="font-display text-2xl font-semibold text-center mb-1 text-cream-50">
-            {isSignup ? "Get Started" : "Welcome Back"}
-          </h2>
+          {/* Rotating welcome */}
+          <div className="h-10 mb-1 flex items-center justify-center overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={greeting.lang}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                className="font-display text-2xl font-semibold text-cream-50 text-center"
+              >
+                {isSignup ? greeting.text : greeting.text}
+              </motion.h2>
+            </AnimatePresence>
+          </div>
           <p className="text-sm text-cream-100/50 text-center mb-8">
-            {isSignup ? "Start your AI marketing journey" : "Sign in to your dashboard"}
+            {isSignup ? t("signup_subtitle") : t("sign_in_subtitle")}
           </p>
 
           {/* OAuth */}
@@ -75,7 +101,7 @@ const Auth = () => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Continue with Google
+              {t("continue_google")}
             </button>
 
             <button disabled className="w-full flex items-center justify-center gap-3 rounded-lg border border-emerald-800/30 bg-emerald-900/30 px-4 py-3 text-sm font-medium text-cream-100/30 cursor-not-allowed">
@@ -93,7 +119,7 @@ const Auth = () => {
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-emerald-800/50" /></div>
             <div className="relative flex justify-center">
-              <span className="bg-emerald-900/60 px-3 text-xs uppercase tracking-wider text-cream-100/40">or continue with email</span>
+              <span className="bg-emerald-900/60 px-3 text-xs uppercase tracking-wider text-cream-100/40">{t("or_continue_email")}</span>
             </div>
           </div>
 
@@ -101,20 +127,20 @@ const Auth = () => {
           {!showEmailForm ? (
             <button onClick={() => setShowEmailForm(true)}
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:border hover:border-gold-400 transition-all">
-              <Mail className="h-4 w-4" /> Continue with Email <ArrowRight className="h-4 w-4 ml-1" />
+              <Mail className="h-4 w-4" /> {t("continue_email")} <ArrowRight className="h-4 w-4 ml-1" />
             </button>
           ) : (
             <form className="space-y-4" onSubmit={handleEmailAuth}>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-lg border border-emerald-700/50 bg-emerald-800/30 px-4 py-2.5 text-sm text-cream-50 placeholder:text-cream-100/30 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
-                placeholder="Enter your email" required />
+                placeholder={t("email_placeholder")} required />
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border border-emerald-700/50 bg-emerald-800/30 px-4 py-2.5 text-sm text-cream-50 placeholder:text-cream-100/30 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
-                placeholder="Password (min 6 characters)" minLength={6} required />
+                placeholder={t("password_placeholder")} minLength={6} required />
               {isSignup && <PasswordStrength password={password} />}
               <button type="submit" disabled={loading}
                 className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:border hover:border-gold-400 transition-all disabled:opacity-50">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-4 w-4" />{isSignup ? "Create Account" : "Sign In"}<ArrowRight className="h-4 w-4 ml-1" /></>}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-4 w-4" />{isSignup ? t("create_account") : t("sign_in")}<ArrowRight className="h-4 w-4 ml-1" /></>}
               </button>
             </form>
           )}
@@ -135,21 +161,21 @@ const Auth = () => {
               }}
               className="w-full text-center text-sm text-gold-400 hover:underline mt-3"
             >
-              Forgot your password?
+              {t("forgot_password")}
             </button>
           )}
 
           <p className="mt-6 text-center text-sm text-cream-100/40">
-            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            {isSignup ? t("have_account") : t("no_account")}{" "}
             <button onClick={() => setIsSignup(!isSignup)} className="text-gold-400 hover:underline font-medium">
-              {isSignup ? "Sign in" : "Sign up"}
+              {isSignup ? t("sign_in") : t("sign_up")}
             </button>
           </p>
 
           <p className="mt-4 text-center text-[11px] text-cream-100/30 leading-relaxed">
-            By continuing, you agree to our{" "}
-            <a href="/terms" className="text-gold-400/70 hover:underline">Terms</a> and{" "}
-            <a href="/privacy" className="text-gold-400/70 hover:underline">Privacy Policy</a>
+            {t("terms_agree")}{" "}
+            <a href="/terms" className="text-gold-400/70 hover:underline">{t("terms")}</a> and{" "}
+            <a href="/privacy" className="text-gold-400/70 hover:underline">{t("privacy")}</a>
           </p>
         </div>
       </div>

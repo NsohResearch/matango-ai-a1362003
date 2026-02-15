@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { I18nProvider } from "@/lib/i18n/context";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -55,6 +56,7 @@ const App = () => (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <I18nProvider>
       <AuthProvider>
         <BrandingBootstrap />
         <Toaster />
@@ -153,6 +155,7 @@ const App = () => (
           <KahChatWidget />
         </BrowserRouter>
       </AuthProvider>
+      </I18nProvider>
     </TooltipProvider>
   </QueryClientProvider>
   </ErrorBoundary>
