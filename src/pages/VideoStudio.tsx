@@ -513,6 +513,22 @@ const VideoStudioPage = () => {
                             "bg-muted text-muted-foreground"
                           }`}>{job.status}</span>
                         </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {job.output_url && (
+                              <a href={job.output_url} download className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted">
+                                <Download className="h-3 w-3" />
+                              </a>
+                            )}
+                            <button onClick={() => deleteJob.mutate(job.id)}
+                              className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -943,14 +959,29 @@ const VideoStudioPage = () => {
                               </div>
                             )}
                           </div>
-                          <div className="p-3 flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground"><Clock className="h-3 w-3 inline mr-1" />{new Date(job.created_at).toLocaleDateString()}</span>
-                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                              job.status === "completed" ? "bg-primary/20 text-primary" :
-                              job.status === "processing" ? "bg-accent/20 text-accent-foreground" :
-                              job.status === "failed" ? "bg-destructive/20 text-destructive" :
-                              "bg-muted text-muted-foreground"
-                            }`}>{job.status}</span>
+                          <div className="p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                job.status === "completed" ? "bg-primary/20 text-primary" :
+                                job.status === "processing" ? "bg-accent/20 text-accent-foreground" :
+                                job.status === "failed" ? "bg-destructive/20 text-destructive" :
+                                "bg-muted text-muted-foreground"
+                              }`}>{job.status}</span>
+                            </div>
+                            <div className="flex gap-1 mt-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                              {job.output_url && (
+                                <a href={job.output_url} download className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted">
+                                  <Download className="h-3.5 w-3.5" />
+                                </a>
+                              )}
+                              <button onClick={() => deleteJob.mutate(job.id)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1008,7 +1039,7 @@ const VideoStudioPage = () => {
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleDateString()}
+                          <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {job.output_url && (
