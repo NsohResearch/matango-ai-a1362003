@@ -5,13 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const LTX_BASE = "https://api.ltx.video/v1";
+
 /**
- * Edge function to process video jobs.
- * Replaces the setTimeout simulation with proper job lifecycle:
- * - Validates the job request
- * - Creates the job with "queued" status
- * - Simulates processing (will be replaced with real AI provider later)
- * - Updates status to "completed" with proper tracking
+ * Production edge function for video generation via LTX-2.
+ * Supports text-to-video and image-to-video via LTX API.
+ * NO simulation — real AI provider calls only.
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -26,6 +25,7 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ltxApiKey = Deno.env.get("LTX_API_KEY");
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const token = authHeader.replace("Bearer ", "");
@@ -36,11 +36,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (!ltxApiKey) {
+      return new Response(JSON.stringify({ error: "Video provider not configured. LTX_API_KEY is missing." }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const { action, job_id } = body;
 
     if (action === "create") {
-      const { job_type, script_id, influencer_id, lip_sync, input_refs } = body;
+      const { job_type, script_id, influencer_id, lip_sync, input_refs, prompt, duration, resolution } = body;
 
       // Check credits
       const { data: credits } = await supabase.rpc("get_credits_remaining", { p_user_id: user.id });
@@ -50,7 +56,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Create the job
+      // Create the job record
       const { data: job, error: jobError } = await supabase.from("video_jobs").insert({
         user_id: user.id,
         job_type: job_type || "image-to-video",
@@ -64,7 +70,7 @@ Deno.serve(async (req) => {
 
       if (jobError) throw new Error(jobError.message);
 
-      // Create render_job for proper tracking
+      // Create render_job for tracking
       const renderType = job_type === "text-to-video" ? "script_to_video" : "image_to_video";
       await supabase.from("render_jobs").insert({
         user_id: user.id,
@@ -84,50 +90,200 @@ Deno.serve(async (req) => {
         metadata: { job_id: job.id, job_type },
       });
 
-      // Process the job asynchronously
-      // In production, this would call an AI video provider
-      // For now, we simulate processing with proper status updates
+      // ====== REAL LTX-2 API CALL ======
       (async () => {
         try {
           // Update to processing
           await supabase.from("video_jobs").update({
             status: "processing",
-            progress: 25,
+            progress: 10,
           }).eq("id", job.id);
-
           await supabase.from("render_jobs").update({
             status: "processing",
-            progress: 25,
+            progress: 10,
             started_at: new Date().toISOString(),
           }).eq("video_job_id", job.id);
 
-          // Simulate AI processing time
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+          // Determine LTX endpoint and payload
+          const isTextToVideo = job_type === "text-to-video";
+          const ltxEndpoint = isTextToVideo
+            ? `${LTX_BASE}/text-to-video`
+            : `${LTX_BASE}/image-to-video`;
 
-          await supabase.from("video_jobs").update({ progress: 75 }).eq("id", job.id);
-          await supabase.from("render_jobs").update({ progress: 75 }).eq("video_job_id", job.id);
+          const ltxPayload: Record<string, unknown> = {
+            model: "ltx-2-pro",
+            duration: duration || 8,
+            resolution: resolution || "1080p",
+          };
 
-          await new Promise((resolve) => setTimeout(resolve, 3000));
+          if (isTextToVideo) {
+            ltxPayload.prompt = prompt || input_refs?.prompt || "A professional product showcase video";
+          } else {
+            // Image-to-video: resolve the source image URL
+            const imageUrl = input_refs?.image_url || input_refs?.source_image;
+            if (!imageUrl) {
+              throw new Error("No source image provided for image-to-video generation");
+            }
+
+            // If it's a storage path, generate a signed URL for LTX to access
+            let resolvedImageUrl = imageUrl;
+            if (!imageUrl.startsWith("http")) {
+              const bucket = input_refs?.bucket || "content";
+              const { data: signedData } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(imageUrl, 3600); // 1hr for LTX to download
+              if (signedData?.signedUrl) {
+                resolvedImageUrl = signedData.signedUrl;
+              } else {
+                throw new Error("Failed to resolve source image URL");
+              }
+            }
+
+            ltxPayload.image_uri = resolvedImageUrl;
+            ltxPayload.prompt = prompt || input_refs?.prompt || "Animate this image with natural motion";
+          }
+
+          console.log(`Calling LTX API: ${ltxEndpoint}`, JSON.stringify(ltxPayload));
+
+          // Submit to LTX-2
+          const ltxResponse = await fetch(ltxEndpoint, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${ltxApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(ltxPayload),
+          });
+
+          if (!ltxResponse.ok) {
+            const errBody = await ltxResponse.text();
+            console.error(`LTX API error (${ltxResponse.status}):`, errBody);
+            throw new Error(`LTX API error: ${ltxResponse.status} — ${errBody}`);
+          }
+
+          // LTX returns video content directly for synchronous calls,
+          // or a task_id for async calls. Handle both patterns.
+          const contentType = ltxResponse.headers.get("content-type") || "";
+
+          if (contentType.includes("application/json")) {
+            // Async mode: LTX returned a task_id for polling
+            const ltxResult = await ltxResponse.json();
+            const taskId = ltxResult.task_id || ltxResult.id;
+
+            if (!taskId) {
+              throw new Error("LTX returned JSON but no task_id");
+            }
+
+            // Store provider job ID
+            await supabase.from("render_jobs").update({
+              provider_job_id: taskId,
+              progress: 25,
+            }).eq("video_job_id", job.id);
+            await supabase.from("video_jobs").update({ progress: 25 }).eq("id", job.id);
+
+            // Poll for completion
+            let pollAttempts = 0;
+            const maxPolls = 120; // 10 minutes max (5s intervals)
+            let completed = false;
+
+            while (pollAttempts < maxPolls && !completed) {
+              await new Promise((r) => setTimeout(r, 5000)); // 5s polling interval
+              pollAttempts++;
+
+              const statusResponse = await fetch(`${LTX_BASE}/status/${taskId}`, {
+                headers: { "Authorization": `Bearer ${ltxApiKey}` },
+              });
+
+              if (!statusResponse.ok) {
+                console.warn(`LTX status poll failed (attempt ${pollAttempts}):`, statusResponse.status);
+                continue;
+              }
+
+              const statusData = await statusResponse.json();
+              const ltxStatus = statusData.status;
+              const ltxProgress = statusData.progress || 0;
+
+              // Update progress
+              const mappedProgress = Math.min(90, 25 + Math.round(ltxProgress * 0.65));
+              await supabase.from("video_jobs").update({ progress: mappedProgress }).eq("id", job.id);
+              await supabase.from("render_jobs").update({ progress: mappedProgress }).eq("video_job_id", job.id);
+
+              if (ltxStatus === "completed" || ltxStatus === "success") {
+                const videoUrl = statusData.video_url || statusData.output_url;
+                if (videoUrl) {
+                  // Download the video and upload to our storage
+                  const videoResponse = await fetch(videoUrl);
+                  if (!videoResponse.ok) throw new Error("Failed to download video from LTX");
+                  const videoBlob = await videoResponse.blob();
+
+                  const objectKey = `${user.id}/${job.id}/output.mp4`;
+                  const { error: uploadError } = await supabase.storage
+                    .from("videos")
+                    .upload(objectKey, videoBlob, { contentType: "video/mp4" });
+
+                  if (uploadError) {
+                    console.error("Storage upload error:", uploadError);
+                    throw new Error(`Failed to store video: ${uploadError.message}`);
+                  }
+
+                  // Create video_output record with storage path (NOT signed URL)
+                  await supabase.from("video_outputs").insert({
+                    video_job_id: job.id,
+                    user_id: user.id,
+                    status: "completed",
+                    url: objectKey, // storage path only
+                  });
+                }
+
+                completed = true;
+              } else if (ltxStatus === "failed" || ltxStatus === "error") {
+                throw new Error(`LTX processing failed: ${statusData.error || statusData.message || "Unknown error"}`);
+              }
+            }
+
+            if (!completed) {
+              throw new Error("LTX processing timed out after 10 minutes");
+            }
+
+          } else {
+            // Synchronous mode: LTX returned video bytes directly
+            const videoBlob = await ltxResponse.blob();
+
+            await supabase.from("video_jobs").update({ progress: 75 }).eq("id", job.id);
+            await supabase.from("render_jobs").update({ progress: 75 }).eq("video_job_id", job.id);
+
+            // Upload to storage
+            const objectKey = `${user.id}/${job.id}/output.mp4`;
+            const { error: uploadError } = await supabase.storage
+              .from("videos")
+              .upload(objectKey, videoBlob, { contentType: "video/mp4" });
+
+            if (uploadError) throw new Error(`Failed to store video: ${uploadError.message}`);
+
+            // Create video_output record
+            await supabase.from("video_outputs").insert({
+              video_job_id: job.id,
+              user_id: user.id,
+              status: "completed",
+              url: objectKey,
+            });
+          }
 
           // Complete the job
           await supabase.from("video_jobs").update({
             status: "completed",
             progress: 100,
           }).eq("id", job.id);
-
           await supabase.from("render_jobs").update({
             status: "completed",
             progress: 100,
             completed_at: new Date().toISOString(),
           }).eq("video_job_id", job.id);
 
-          // Update linked video outputs
-          await supabase.from("video_outputs").update({
-            status: "completed",
-          }).eq("video_job_id", job.id);
+          console.log(`Video job ${job.id} completed successfully via LTX-2`);
 
         } catch (err) {
-          console.error("Job processing error:", err);
+          console.error("Video job processing error:", err);
           const errorMsg = err instanceof Error ? err.message : "Unknown error";
           await supabase.from("video_jobs").update({
             status: "failed",
