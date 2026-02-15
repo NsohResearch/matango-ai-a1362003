@@ -305,7 +305,7 @@ const VideoStudioPage = () => {
                   "border-border/50 opacity-50 cursor-not-allowed"
                 }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">{q.label}</span>
+                  <span className="text-sm font-semibold text-foreground">{q.label}</span>
                   {!allowed && <Lock className="h-3 w-3 text-muted-foreground" />}
                 </div>
                 {!allowed && (
