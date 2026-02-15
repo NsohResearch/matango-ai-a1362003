@@ -56,6 +56,8 @@ const Navbar = () => {
             <TheSystemDropdown />
             <Link to="/about" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">About</Link>
             <Link to="/pricing" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Pricing</Link>
+            <Link to="/support" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Support</Link>
+            <Link to="/investors" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Investors</Link>
           </nav>
 
           <div className="flex items-center gap-4">
