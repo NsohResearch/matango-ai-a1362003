@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.process-hard-deletes]
 verify_jwt = false
+
+[functions.generate-image]
+verify_jwt = false
