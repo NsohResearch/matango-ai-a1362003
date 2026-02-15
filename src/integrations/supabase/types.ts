@@ -280,33 +280,50 @@ export type Database = {
       }
       analytics_events: {
         Row: {
+          campaign_id: string | null
           created_at: string
           event_type: string
           id: string
           metadata: Json | null
           platform: string | null
+          recorded_at: string | null
           source: string | null
           user_id: string
+          value: number | null
         }
         Insert: {
+          campaign_id?: string | null
           created_at?: string
           event_type: string
           id?: string
           metadata?: Json | null
           platform?: string | null
+          recorded_at?: string | null
           source?: string | null
           user_id: string
+          value?: number | null
         }
         Update: {
+          campaign_id?: string | null
           created_at?: string
           event_type?: string
           id?: string
           metadata?: Json | null
           platform?: string | null
+          recorded_at?: string | null
           source?: string | null
           user_id?: string
+          value?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "unified_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       asset_library: {
         Row: {
@@ -1178,8 +1195,11 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           brand_id: string | null
+          character_weight: number | null
           created_at: string
           id: string
+          keep_outfit: boolean
+          model_registry_id: string | null
           name: string
           org_id: string | null
           persona_type: string | null
@@ -1195,8 +1215,11 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           brand_id?: string | null
+          character_weight?: number | null
           created_at?: string
           id?: string
+          keep_outfit?: boolean
+          model_registry_id?: string | null
           name: string
           org_id?: string | null
           persona_type?: string | null
@@ -1212,8 +1235,11 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           brand_id?: string | null
+          character_weight?: number | null
           created_at?: string
           id?: string
+          keep_outfit?: boolean
+          model_registry_id?: string | null
           name?: string
           org_id?: string | null
           persona_type?: string | null
@@ -1230,6 +1256,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencers_model_registry_id_fkey"
+            columns: ["model_registry_id"]
+            isOneToOne: false
+            referencedRelation: "model_registry"
             referencedColumns: ["id"]
           },
           {
@@ -1414,6 +1447,81 @@ export type Database = {
           },
         ]
       }
+      media_objects: {
+        Row: {
+          brand_id: string | null
+          bucket: string
+          content_tags: Json | null
+          created_at: string
+          duration_ms: number | null
+          height: number | null
+          id: string
+          is_deleted: boolean
+          mime_type: string
+          object_key: string
+          org_id: string | null
+          sha256: string | null
+          size_bytes: number
+          type: string
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          brand_id?: string | null
+          bucket: string
+          content_tags?: Json | null
+          created_at?: string
+          duration_ms?: number | null
+          height?: number | null
+          id?: string
+          is_deleted?: boolean
+          mime_type?: string
+          object_key: string
+          org_id?: string | null
+          sha256?: string | null
+          size_bytes?: number
+          type?: string
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          brand_id?: string | null
+          bucket?: string
+          content_tags?: Json | null
+          created_at?: string
+          duration_ms?: number | null
+          height?: number | null
+          id?: string
+          is_deleted?: boolean
+          mime_type?: string
+          object_key?: string
+          org_id?: string | null
+          sha256?: string | null
+          size_bytes?: number
+          type?: string
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_objects_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_objects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -1440,6 +1548,66 @@ export type Database = {
           {
             foreignKeyName: "memberships_organization_id_fkey"
             columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_registry: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          name: string
+          org_id: string | null
+          provider: string
+          provider_model_id: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          name: string
+          org_id?: string | null
+          provider?: string
+          provider_model_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+          org_id?: string | null
+          provider?: string
+          provider_model_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_registry_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_registry_org_id_fkey"
+            columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
@@ -1659,44 +1827,170 @@ export type Database = {
         }
         Relationships: []
       }
+      render_jobs: {
+        Row: {
+          actual_duration_ms: number | null
+          brand_id: string | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          estimated_duration_ms: number | null
+          id: string
+          logs: Json | null
+          max_retries: number
+          org_id: string | null
+          output_id: string | null
+          params: Json | null
+          progress: number
+          provider_job_id: string | null
+          retry_count: number
+          started_at: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+          video_job_id: string | null
+        }
+        Insert: {
+          actual_duration_ms?: number | null
+          brand_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_duration_ms?: number | null
+          id?: string
+          logs?: Json | null
+          max_retries?: number
+          org_id?: string | null
+          output_id?: string | null
+          params?: Json | null
+          progress?: number
+          provider_job_id?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+          video_job_id?: string | null
+        }
+        Update: {
+          actual_duration_ms?: number | null
+          brand_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_duration_ms?: number | null
+          id?: string
+          logs?: Json | null
+          max_retries?: number
+          org_id?: string | null
+          output_id?: string | null
+          params?: Json | null
+          progress?: number
+          provider_job_id?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          video_job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "render_jobs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "render_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "render_jobs_output_id_fkey"
+            columns: ["output_id"]
+            isOneToOne: false
+            referencedRelation: "video_outputs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "render_jobs_video_job_id_fkey"
+            columns: ["video_job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_posts: {
         Row: {
+          anomaly_flag: Json | null
+          asset_id: string | null
           campaign_id: string | null
           content: string | null
           created_at: string
+          hashtags: string[] | null
           id: string
           image_url: string | null
           influencer_id: string | null
           platform: string
+          platforms: string[] | null
           scheduled_for: string
           status: string
+          timezone: string | null
           user_id: string
+          video_output_id: string | null
         }
         Insert: {
+          anomaly_flag?: Json | null
+          asset_id?: string | null
           campaign_id?: string | null
           content?: string | null
           created_at?: string
+          hashtags?: string[] | null
           id?: string
           image_url?: string | null
           influencer_id?: string | null
           platform: string
+          platforms?: string[] | null
           scheduled_for: string
           status?: string
+          timezone?: string | null
           user_id: string
+          video_output_id?: string | null
         }
         Update: {
+          anomaly_flag?: Json | null
+          asset_id?: string | null
           campaign_id?: string | null
           content?: string | null
           created_at?: string
+          hashtags?: string[] | null
           id?: string
           image_url?: string | null
           influencer_id?: string | null
           platform?: string
+          platforms?: string[] | null
           scheduled_for?: string
           status?: string
+          timezone?: string | null
           user_id?: string
+          video_output_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "asset_library"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "scheduled_posts_campaign_id_fkey"
             columns: ["campaign_id"]
@@ -1709,6 +2003,13 @@ export type Database = {
             columns: ["influencer_id"]
             isOneToOne: false
             referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_posts_video_output_id_fkey"
+            columns: ["video_output_id"]
+            isOneToOne: false
+            referencedRelation: "video_outputs"
             referencedColumns: ["id"]
           },
         ]
@@ -1768,11 +2069,14 @@ export type Database = {
           connection_id: string | null
           content: string | null
           created_at: string
+          error_message: string | null
           id: string
           image_url: string | null
           metrics: Json | null
           platform_post_id: string | null
           published_at: string | null
+          retry_count: number | null
+          scheduled_post_id: string | null
           status: string
           user_id: string
         }
@@ -1780,11 +2084,14 @@ export type Database = {
           connection_id?: string | null
           content?: string | null
           created_at?: string
+          error_message?: string | null
           id?: string
           image_url?: string | null
           metrics?: Json | null
           platform_post_id?: string | null
           published_at?: string | null
+          retry_count?: number | null
+          scheduled_post_id?: string | null
           status?: string
           user_id: string
         }
@@ -1792,11 +2099,14 @@ export type Database = {
           connection_id?: string | null
           content?: string | null
           created_at?: string
+          error_message?: string | null
           id?: string
           image_url?: string | null
           metrics?: Json | null
           platform_post_id?: string | null
           published_at?: string | null
+          retry_count?: number | null
+          scheduled_post_id?: string | null
           status?: string
           user_id?: string
         }
@@ -1806,6 +2116,13 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "social_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_scheduled_post_id_fkey"
+            columns: ["scheduled_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -1839,6 +2156,101 @@ export type Database = {
           persona_description?: string | null
         }
         Relationships: []
+      }
+      training_jobs: {
+        Row: {
+          brand_id: string | null
+          completed_at: string | null
+          created_at: string
+          credit_cost: number
+          error_message: string | null
+          id: string
+          influencer_id: string | null
+          input_media_object_ids: Json
+          logs: Json | null
+          max_retries: number
+          org_id: string | null
+          output_model_registry_id: string | null
+          progress: number
+          provider_job_id: string | null
+          retry_count: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          credit_cost?: number
+          error_message?: string | null
+          id?: string
+          influencer_id?: string | null
+          input_media_object_ids?: Json
+          logs?: Json | null
+          max_retries?: number
+          org_id?: string | null
+          output_model_registry_id?: string | null
+          progress?: number
+          provider_job_id?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          credit_cost?: number
+          error_message?: string | null
+          id?: string
+          influencer_id?: string | null
+          input_media_object_ids?: Json
+          logs?: Json | null
+          max_retries?: number
+          org_id?: string | null
+          output_model_registry_id?: string | null
+          progress?: number
+          provider_job_id?: string | null
+          retry_count?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_jobs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_jobs_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_jobs_output_model_registry_id_fkey"
+            columns: ["output_model_registry_id"]
+            isOneToOne: false
+            referencedRelation: "model_registry"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unified_campaigns: {
         Row: {

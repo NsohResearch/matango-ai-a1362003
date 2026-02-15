@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WorkflowNav from "@/components/WorkflowNav";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock, X, Send, Layers, Trash2, Image, Film, Paperclip } from "lucide-react";
-import { useScheduledPosts, useCreateScheduledPost, useBatchCreateScheduledPosts, useCampaigns } from "@/hooks/useData";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock, X, Send, Layers, Trash2, Image, Film, Paperclip, RotateCcw, ExternalLink, AlertTriangle } from "lucide-react";
+import { useScheduledPosts, useCreateScheduledPost, useBatchCreateScheduledPosts, useCampaigns, useUpdateScheduledPost, useDeleteScheduledPost, useSocialConnections } from "@/hooks/useData";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday, addDays } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { resolveAssetUrl } from "@/lib/storage";
@@ -37,19 +37,25 @@ const emptyRow = (): BatchRow => ({
 const SchedulerPage = () => {
   const { data: posts, isLoading } = useScheduledPosts();
   const { data: campaigns } = useCampaigns();
+  const { data: connections } = useSocialConnections();
   const createPost = useCreateScheduledPost();
   const batchCreate = useBatchCreateScheduledPosts();
+  const updatePost = useUpdateScheduledPost();
+  const deletePost = useDeleteScheduledPost();
   const [searchParams, setSearchParams] = useSearchParams();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "list">("month");
   const [showCreate, setShowCreate] = useState(false);
   const [showBatch, setShowBatch] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [attachedAsset, setAttachedAsset] = useState<{ id: string; url: string; type: string; resolvedUrl?: string } | null>(null);
   const [form, setForm] = useState({
     platform: "instagram",
     content: "",
     scheduled_for: "",
     campaign_id: "",
+    hashtags: "",
+    selectedPlatforms: ["instagram"] as string[],
   });
 
   // Consume asset query params from "Send to Scheduler"
@@ -90,13 +96,14 @@ const SchedulerPage = () => {
     createPost.mutate(
       {
         ...form,
+        platform: form.selectedPlatforms[0] || form.platform,
         campaign_id: form.campaign_id || undefined,
         image_url: attachedAsset?.url || undefined,
       },
       {
         onSuccess: () => {
           setShowCreate(false);
-          setForm({ platform: "instagram", content: "", scheduled_for: "", campaign_id: "" });
+          setForm({ platform: "instagram", content: "", scheduled_for: "", campaign_id: "", hashtags: "", selectedPlatforms: ["instagram"] });
           setAttachedAsset(null);
         },
       }
@@ -261,14 +268,7 @@ const SchedulerPage = () => {
               <button onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
             </div>
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Platform *</label>
-                  <select value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))}
-                    className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                    {PLATFORMS.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
-                  </select>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Date & Time *</label>
                   <input type="datetime-local" value={form.scheduled_for} onChange={(e) => setForm((f) => ({ ...f, scheduled_for: e.target.value }))}
@@ -283,11 +283,51 @@ const SchedulerPage = () => {
                   </select>
                 </div>
               </div>
+
+              {/* Multi-platform selection */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Platforms *</label>
+                <div className="flex flex-wrap gap-2">
+                  {PLATFORMS.map((p) => {
+                    const isSelected = form.selectedPlatforms.includes(p);
+                    const conn = connections?.find((c) => c.platform === p);
+                    return (
+                      <button key={p} type="button"
+                        onClick={() => setForm((f) => ({
+                          ...f,
+                          selectedPlatforms: isSelected
+                            ? f.selectedPlatforms.filter((x) => x !== p)
+                            : [...f.selectedPlatforms, p],
+                        }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize border transition-all flex items-center gap-1.5 ${
+                          isSelected ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                        }`}>
+                        {p}
+                        {conn && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                {connections && connections.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Connected: {connections.map((c) => c.platform).join(", ")}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="text-sm font-medium mb-1 block">Content *</label>
                 <textarea value={form.content} onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                   className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
                   placeholder="Write your post content..." />
+              </div>
+
+              {/* Hashtags */}
+              <div>
+                <label className="text-sm font-medium mb-1 block">Hashtags</label>
+                <input value={form.hashtags} onChange={(e) => setForm((f) => ({ ...f, hashtags: e.target.value }))}
+                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="#brand #content #trending" />
               </div>
 
               {/* Attached media */}
@@ -377,11 +417,20 @@ const SchedulerPage = () => {
         ) : (
           <div className="space-y-3">
             {posts && posts.length > 0 ? posts.map((p) => (
-              <div key={p.id} className="glass-card rounded-xl p-4 flex items-center gap-4">
+              <div key={p.id} className="glass-card rounded-xl p-4 flex items-center gap-4 group cursor-pointer hover:border-primary/30 transition-all"
+                onClick={() => setSelectedPost(selectedPost?.id === p.id ? null : p)}>
+                {/* Media Thumb */}
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
                 <div className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize ${PLATFORM_COLORS[p.platform] || "bg-muted text-muted-foreground"}`}>
                   {p.platform}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm line-clamp-1">{p.content || "No content"}</p>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -391,8 +440,19 @@ const SchedulerPage = () => {
                 <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
                   p.status === "published" ? "bg-primary/20 text-primary" :
                   p.status === "failed" ? "bg-destructive/20 text-destructive" :
+                  p.status === "scheduled" ? "bg-blue-500/20 text-blue-400" :
                   "bg-muted text-muted-foreground"
                 }`}>{p.status}</span>
+                {p.status === "failed" && (
+                  <button onClick={(e) => { e.stopPropagation(); updatePost.mutate({ id: p.id, status: "scheduled" }); }}
+                    className="p-1 rounded text-muted-foreground hover:text-primary" title="Retry">
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                <button onClick={(e) => { e.stopPropagation(); if (confirm("Delete this post?")) deletePost.mutate(p.id); }}
+                  className="p-1 rounded text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" title="Delete">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             )) : (
               <div className="glass-card rounded-xl p-12 text-center">
