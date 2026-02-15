@@ -156,19 +156,18 @@ const VideoStudioPage = () => {
     if (itvImages.length === 0) { toast.error("Upload at least 1 image"); return; }
     setItvUploading(true);
     try {
-      const urls: string[] = [];
+      const paths: string[] = [];
       for (const img of itvImages) {
         const ext = img.file.name.split(".").pop() || "jpg";
         const path = `video-training/${crypto.randomUUID()}.${ext}`;
         const { error } = await supabase.storage.from("training-images").upload(path, img.file, { contentType: img.file.type });
         if (error) { console.error("Upload error:", error); toast.error(`Failed to upload ${img.file.name}: ${error.message}`); continue; }
-        const { data: signedData, error: signError } = await supabase.storage.from("training-images").createSignedUrl(path, 60 * 60 * 24 * 7);
-        if (signError || !signedData?.signedUrl) { console.error("Signed URL error:", signError); toast.error(`Failed to get URL for ${img.file.name}`); continue; }
-        urls.push(signedData.signedUrl);
+        // Store the path, NOT a signed URL
+        paths.push(path);
       }
-      if (urls.length === 0) { toast.error("No images were uploaded successfully"); setItvUploading(false); return; }
-      setItvUploadedUrls(urls);
-      toast.success(`${urls.length} image(s) uploaded`);
+      if (paths.length === 0) { toast.error("No images were uploaded successfully"); setItvUploading(false); return; }
+      setItvUploadedUrls(paths);
+      toast.success(`${paths.length} image(s) uploaded`);
       setItvStep("train");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
