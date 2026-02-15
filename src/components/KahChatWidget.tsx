@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { kahChat } from "@/lib/edge-functions";
+import matangoIcon from "@/assets/matango-icon.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -51,7 +52,7 @@ const KahChatWidget = () => {
           {/* Header */}
           <div className="p-4 border-b border-emerald-800/50 bg-emerald-950/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gold-500/20 ring-1 ring-gold-500/40 flex items-center justify-center text-sm font-bold text-gold-400 font-display">K</div>
+              <img src={matangoIcon} alt="Matango" className="w-8 h-8 rounded-full ring-1 ring-gold-500/40 object-cover" />
               <div>
                 <h4 className="text-sm font-semibold text-cream-50">K'ah</h4>
                 <p className="text-[10px] text-cream-100/40">Your AI Marketing Guide</p>
