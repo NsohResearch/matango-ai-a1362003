@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Users, Plus, Sparkles, Eye, Loader2, Brain, Zap, ChevronRight, Upload, X, ImageIcon, Images, Pencil, Trash2, Save } from "lucide-react";
 import { useInfluencers, useCreateInfluencer, useUpdateInfluencer, useDeleteInfluencer, useBrandBrains } from "@/hooks/useData";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { estimateCredits, formatCredits } from "@/lib/credits";
 import StepTransition from "@/components/system/StepTransition";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveAssetUrl } from "@/lib/storage";
 
 const PERSONA_TYPES = [
   { value: "Founder", label: "Founder", desc: "Visionary leader sharing insights" },
@@ -23,6 +24,23 @@ const STYLE_PRESETS = [
   { value: "professional", label: "Professional" },
   { value: "cyber-noir", label: "Cyber Noir" },
 ];
+
+/** Resolves a storage path or URL to a displayable image */
+const TrainingImageThumb = ({ urlOrPath, bucket, index }: { urlOrPath: string; bucket: string; index: number }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    if (urlOrPath.startsWith("http") || urlOrPath.startsWith("data:")) {
+      setSrc(urlOrPath);
+    } else {
+      resolveAssetUrl(urlOrPath, bucket, false).then((url) => setSrc(url));
+    }
+  }, [urlOrPath, bucket]);
+  return (
+    <div className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
+      {src ? <img src={src} alt={`Training ${index + 1}`} className="w-full h-full object-cover" /> : <div className="w-full h-full animate-pulse bg-muted" />}
+    </div>
+  );
+};
 
 const InfluencerStudioPage = () => {
   const { data: influencers, isLoading } = useInfluencers();
@@ -82,17 +100,16 @@ const InfluencerStudioPage = () => {
   }, [addFiles]);
 
   const uploadImagesToStorage = async (influencerId: string): Promise<string[]> => {
-    const urls: string[] = [];
+    const paths: string[] = [];
     for (const img of referenceImages) {
       const ext = img.file.name.split(".").pop() || "jpg";
       const path = `training/${influencerId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("training-images").upload(path, img.file, { contentType: img.file.type });
       if (error) { console.error("Upload error:", error); continue; }
-      const { data: signedData, error: signError } = await supabase.storage.from("training-images").createSignedUrl(path, 60 * 60 * 24 * 7);
-      if (signError || !signedData?.signedUrl) { console.error("Signed URL error:", signError); continue; }
-      urls.push(signedData.signedUrl);
+      // Store the path, NOT a signed URL
+      paths.push(path);
     }
-    return urls;
+    return paths;
   };
 
   const handleAIAssist = async () => {
@@ -147,14 +164,15 @@ const InfluencerStudioPage = () => {
             // Upload reference images if any
             if (referenceImages.length > 0 && data?.id) {
               try {
-                const urls = await uploadImagesToStorage(data.id);
-                if (urls.length > 0) {
+                const paths = await uploadImagesToStorage(data.id);
+                if (paths.length > 0) {
+                  // Store paths (not signed URLs) in the database
                   await supabase.from("influencers").update({
-                    avatar_url: urls[0],
-                    stats: { training_images: urls, trained_at: new Date().toISOString() },
+                    avatar_url: paths[0], // Store path, resolve on render
+                    stats: { training_image_paths: paths, training_bucket: "training-images", trained_at: new Date().toISOString() },
                   }).eq("id", data.id);
                 }
-                toast.success(`Influencer created with ${urls.length} training image(s)!`);
+                toast.success(`Influencer created with ${paths.length} training image(s)!`);
               } catch (err) {
                 toast.warning("Influencer created but image upload failed");
               }
@@ -352,7 +370,7 @@ const InfluencerStudioPage = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center text-primary font-bold text-lg">
                     {inf.avatar_url ? (
-                      <img src={inf.avatar_url} alt={inf.name} className="w-full h-full object-cover" />
+                      <TrainingImageThumb urlOrPath={inf.avatar_url} bucket="training-images" index={0} />
                     ) : (
                       inf.name.charAt(0)
                     )}
@@ -442,9 +460,15 @@ const InfluencerStudioPage = () => {
                     {/* Training Images Review */}
                     {(() => {
                       const stats = inf.stats as any;
-                      const trainingImages: string[] = stats?.training_images || [];
-                      if (trainingImages.length === 0 && !inf.avatar_url) return null;
-                      const images = trainingImages.length > 0 ? trainingImages : (inf.avatar_url ? [inf.avatar_url] : []);
+                      // Support both new path-based and legacy URL-based storage
+                      const trainingPaths: string[] = stats?.training_image_paths || [];
+                      const legacyImages: string[] = stats?.training_images || [];
+                      const bucket = stats?.training_bucket || "training-images";
+                      const hasImages = trainingPaths.length > 0 || legacyImages.length > 0 || inf.avatar_url;
+                      if (!hasImages) return null;
+
+                      const imageSources = trainingPaths.length > 0 ? trainingPaths : legacyImages;
+                      const allImages = imageSources.length > 0 ? imageSources : (inf.avatar_url ? [inf.avatar_url] : []);
                       const isExpanded = expandedCard === inf.id;
                       return (
                         <div className="mt-3">
@@ -453,15 +477,13 @@ const InfluencerStudioPage = () => {
                             className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                           >
                             <Images className="h-3.5 w-3.5" />
-                            {images.length} Training Image{images.length !== 1 ? "s" : ""}
+                            {allImages.length} Training Image{allImages.length !== 1 ? "s" : ""}
                             <ChevronRight className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                           </button>
                           {isExpanded && (
                             <div className="mt-2 grid grid-cols-3 gap-2">
-                              {images.map((url, i) => (
-                                <div key={i} className="aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                                  <img src={url} alt={`Training ${i + 1}`} className="w-full h-full object-cover" />
-                                </div>
+                              {allImages.map((urlOrPath, i) => (
+                                <TrainingImageThumb key={i} urlOrPath={urlOrPath} bucket={bucket} index={i} />
                               ))}
                             </div>
                           )}

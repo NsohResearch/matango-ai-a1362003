@@ -33,11 +33,23 @@ const AnalyticsHubPage = () => {
     engagement: d.engagement_rate || 0,
   })) || [];
 
+  // Calculate real change percentages from data
+  const calculateChange = (current: number, dataPoints: typeof analytics) => {
+    if (!dataPoints || dataPoints.length < 2) return null;
+    const mid = Math.floor(dataPoints.length / 2);
+    const recentHalf = dataPoints.slice(0, mid);
+    const olderHalf = dataPoints.slice(mid);
+    const recentSum = recentHalf.reduce((s, d) => s + (current === totals.views ? (d.views || 0) : current === totals.likes ? (d.likes || 0) : current === totals.shares ? (d.shares || 0) : 0), 0);
+    const olderSum = olderHalf.reduce((s, d) => s + (current === totals.views ? (d.views || 0) : current === totals.likes ? (d.likes || 0) : current === totals.shares ? (d.shares || 0) : 0), 0);
+    if (olderSum === 0) return null;
+    return ((recentSum - olderSum) / olderSum * 100).toFixed(1);
+  };
+
   const statCards = [
-    { label: "Total Views", value: totals.views.toLocaleString(), icon: Eye, change: "+12.5%" },
-    { label: "Total Likes", value: totals.likes.toLocaleString(), icon: Heart, change: "+8.3%" },
-    { label: "Total Shares", value: totals.shares.toLocaleString(), icon: Share2, change: "+15.2%" },
-    { label: "Followers", value: totals.followers.toLocaleString(), icon: Users, change: "+3.1%" },
+    { label: "Total Views", value: totals.views.toLocaleString(), icon: Eye, change: calculateChange(totals.views, analytics) },
+    { label: "Total Likes", value: totals.likes.toLocaleString(), icon: Heart, change: calculateChange(totals.likes, analytics) },
+    { label: "Total Shares", value: totals.shares.toLocaleString(), icon: Share2, change: calculateChange(totals.shares, analytics) },
+    { label: "Followers", value: totals.followers.toLocaleString(), icon: Users, change: null },
   ];
 
   const handleSeedData = async () => {
@@ -94,9 +106,9 @@ const AnalyticsHubPage = () => {
                 <div key={stat.label} className="glass-card rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <stat.icon className="h-5 w-5 text-muted-foreground" />
-                    {totals.views > 0 && (
-                      <span className="text-xs text-primary font-medium flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3" /> {stat.change}
+                    {stat.change !== null && totals.views > 0 && (
+                      <span className={`text-xs font-medium flex items-center gap-1 ${parseFloat(stat.change) >= 0 ? "text-primary" : "text-destructive"}`}>
+                        <TrendingUp className="h-3 w-3" /> {parseFloat(stat.change) >= 0 ? "+" : ""}{stat.change}%
                       </span>
                     )}
                   </div>

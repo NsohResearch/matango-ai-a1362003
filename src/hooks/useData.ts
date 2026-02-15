@@ -301,35 +301,20 @@ export function useDeleteVideoScript() {
 // ── Video Jobs ────────────────────────────────────────────
 export function useVideoJobs() {
   const { user } = useAuth();
-  const qc = useQueryClient();
   return useQuery({
     queryKey: ["video-jobs", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase.from("video_jobs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       if (error) throw error;
-      const jobs = data || [];
-
-      // Auto-recover stuck jobs: if pending/processing for > 60s, advance to completed
-      const now = Date.now();
-      for (const job of jobs) {
-        if ((job.status === "pending" || job.status === "processing") && job.created_at) {
-          const age = now - new Date(job.created_at).getTime();
-          if (age > 60_000) {
-            // Fire-and-forget recovery update
-            supabase.from("video_jobs").update({ status: "completed", progress: 100 }).eq("id", job.id).then(() => {
-              supabase.from("video_outputs").update({ status: "completed" } as any).eq("video_job_id", job.id);
-            });
-            job.status = "completed";
-            job.progress = 100;
-          }
-        }
-      }
-
-      return jobs;
+      return data || [];
     },
-    // Re-check every 15s so stuck jobs get caught quickly
-    refetchInterval: 15_000,
+    // Poll for active jobs
+    refetchInterval: (query) => {
+      const jobs = query.state.data;
+      const hasActiveJobs = jobs?.some((j: any) => j.status === "queued" || j.status === "processing");
+      return hasActiveJobs ? 5000 : false;
+    },
   });
 }
 
@@ -338,29 +323,27 @@ export function useCreateVideoJob() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (values: { job_type: string; script_id?: string; influencer_id?: string; lip_sync?: boolean; input_refs?: Record<string, unknown> }) => {
-      const { input_refs, ...rest } = values;
-      const { data, error } = await supabase.from("video_jobs").insert({ ...rest, input_refs: input_refs as any, user_id: user!.id, status: "pending" }).select().single();
-      if (error) throw error;
+      // Call the edge function to create and process the job
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-video-job`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ action: "create", ...values }),
+      });
 
-      // Simulate status progression: pending → processing → completed
-      const jobId = data.id;
-      setTimeout(async () => {
-        await supabase.from("video_jobs").update({ status: "processing", progress: 25 }).eq("id", jobId);
-        qc.invalidateQueries({ queryKey: ["video-jobs"] });
-      }, 2000);
-      setTimeout(async () => {
-        await supabase.from("video_jobs").update({ status: "processing", progress: 75 }).eq("id", jobId);
-        qc.invalidateQueries({ queryKey: ["video-jobs"] });
-      }, 5000);
-      setTimeout(async () => {
-        await supabase.from("video_jobs").update({ status: "completed", progress: 100 }).eq("id", jobId);
-        // Also update any linked video outputs
-        await supabase.from("video_outputs").update({ status: "completed" } as any).eq("video_job_id", jobId);
-        qc.invalidateQueries({ queryKey: ["video-jobs"] });
-        qc.invalidateQueries({ queryKey: ["video-outputs"] });
-      }, 10000);
+      if (res.status === 429) throw new Error("Rate limit exceeded. Please wait a moment.");
+      if (res.status === 402) throw new Error("Insufficient credits.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(err.error || `Error: ${res.status}`);
+      }
 
-      return data;
+      const { job } = await res.json();
+      return job;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["video-jobs"] }); toast.success("Video job queued!"); },
     onError: (err: Error) => toast.error(err.message),
@@ -478,6 +461,33 @@ export function useCreateAsset() {
       return data;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["assets"] }); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDeleteAsset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete associated versions first
+      await supabase.from("asset_versions").delete().eq("asset_id", id);
+      const { error } = await supabase.from("asset_library").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["assets"] }); toast.success("Asset deleted"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useUpdateAsset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...values }: { id: string; tags?: string[]; prompt?: string; metadata?: Record<string, unknown> }) => {
+      const { data, error } = await supabase.from("asset_library").update(values as any).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["assets"] }); toast.success("Asset updated"); },
     onError: (err: Error) => toast.error(err.message),
   });
 }

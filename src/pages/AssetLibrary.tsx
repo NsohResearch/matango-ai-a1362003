@@ -1,10 +1,15 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2, CalendarDays, SlidersHorizontal } from "lucide-react";
-import { useAssetLibrary } from "@/hooks/useData";
-import { useState, useMemo } from "react";
+import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2, CalendarDays, SlidersHorizontal, Send } from "lucide-react";
+import { useAssetLibrary, useDeleteAsset } from "@/hooks/useData";
+import { useState, useMemo, useCallback } from "react";
+import { resolveAssetUrl, getDownloadUrl } from "@/lib/storage";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const AssetLibraryPage = () => {
   const { data: assets, isLoading } = useAssetLibrary();
+  const deleteAsset = useDeleteAsset();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filter, setFilter] = useState("all");
@@ -12,6 +17,16 @@ const AssetLibraryPage = () => {
   const [modelFilter, setModelFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [showFilters, setShowFilters] = useState(false);
+  const [resolvedUrls, setResolvedUrls] = useState<Record<string, string>>({});
+
+  // Resolve storage paths to URLs on-demand
+  const resolveUrl = useCallback(async (id: string, url: string | null) => {
+    if (!url || resolvedUrls[id]) return;
+    const resolved = await resolveAssetUrl(url, "content", true);
+    if (resolved) {
+      setResolvedUrls((prev) => ({ ...prev, [id]: resolved }));
+    }
+  }, [resolvedUrls]);
 
   // Extract unique models for filter dropdown
   const models = useMemo(() => {
@@ -42,6 +57,49 @@ const AssetLibraryPage = () => {
         return sortBy === "newest" ? db - da : da - db;
       });
   }, [assets, search, filter, dateRange, modelFilter, sortBy]);
+
+  const handleDownload = async (asset: { id: string; url: string | null; type: string; prompt?: string | null }) => {
+    if (!asset.url) { toast.error("No file available for download"); return; }
+    try {
+      // If it's a full URL, download directly
+      if (asset.url.startsWith("http") || asset.url.startsWith("data:")) {
+        const link = document.createElement("a");
+        link.href = asset.url;
+        link.download = `matango-${asset.type}-${asset.id.slice(0, 8)}`;
+        link.click();
+        return;
+      }
+      // Otherwise resolve from storage
+      const bucket = asset.type === "video" ? "videos" : "content";
+      const downloadUrl = await getDownloadUrl(bucket, asset.url, `matango-${asset.type}-${asset.id.slice(0, 8)}`);
+      if (downloadUrl) {
+        window.open(downloadUrl, "_blank");
+      } else {
+        toast.error("Failed to generate download link");
+      }
+    } catch {
+      toast.error("Download failed");
+    }
+  };
+
+  const handleDelete = (asset: { id: string; prompt?: string | null }) => {
+    if (!confirm(`Delete "${asset.prompt || "this asset"}"? This cannot be undone.`)) return;
+    deleteAsset.mutate(asset.id);
+  };
+
+  const handleSendToScheduler = (asset: { id: string; url: string | null; type: string }) => {
+    navigate(`/scheduler?assetId=${asset.id}&assetUrl=${encodeURIComponent(asset.url || "")}&assetType=${asset.type}`);
+    toast.success("Asset selected — create a scheduled post");
+  };
+
+  // Get display URL for an asset
+  const getDisplayUrl = (asset: { id: string; url: string | null }) => {
+    if (resolvedUrls[asset.id]) return resolvedUrls[asset.id];
+    if (asset.url?.startsWith("http") || asset.url?.startsWith("data:")) return asset.url;
+    // Trigger async resolve
+    if (asset.url) resolveUrl(asset.id, asset.url);
+    return null;
+  };
 
   return (
     <DashboardLayout>
@@ -119,28 +177,38 @@ const AssetLibraryPage = () => {
         ) : filtered.length > 0 ? (
           viewMode === "grid" ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filtered.map((a) => (
-                <div key={a.id} className="glass-card rounded-xl overflow-hidden group">
-                  <div className="aspect-square bg-muted flex items-center justify-center">
-                    {a.url ? (
-                      a.type === "video" ? <Film className="h-8 w-8 text-muted-foreground" /> :
-                      <img src={a.url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Image className="h-8 w-8 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="text-xs text-muted-foreground line-clamp-1">{a.prompt || "No prompt"}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-[10px] text-muted-foreground">v{a.version || 1}</span>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="p-1 rounded text-muted-foreground hover:text-foreground"><Download className="h-3 w-3" /></button>
-                        <button className="p-1 rounded text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+              {filtered.map((a) => {
+                const displayUrl = getDisplayUrl(a);
+                return (
+                  <div key={a.id} className="glass-card rounded-xl overflow-hidden group">
+                    <div className="aspect-square bg-muted flex items-center justify-center">
+                      {displayUrl ? (
+                        a.type === "video" ? <Film className="h-8 w-8 text-muted-foreground" /> :
+                        <img src={displayUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <Image className="h-8 w-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs text-muted-foreground line-clamp-1">{a.prompt || "No prompt"}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-[10px] text-muted-foreground">v{a.version || 1}</span>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleSendToScheduler(a)} className="p-1 rounded text-muted-foreground hover:text-primary" title="Send to Scheduler">
+                            <Send className="h-3 w-3" />
+                          </button>
+                          <button onClick={() => handleDownload(a)} className="p-1 rounded text-muted-foreground hover:text-foreground" title="Download">
+                            <Download className="h-3 w-3" />
+                          </button>
+                          <button onClick={() => handleDelete(a)} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Delete">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="space-y-2">
@@ -152,6 +220,17 @@ const AssetLibraryPage = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{a.prompt || "No prompt"}</p>
                     <p className="text-xs text-muted-foreground">{a.type} • v{a.version || 1} • {a.model || "default"}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleSendToScheduler(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Send to Scheduler">
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => handleDownload(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted" title="Download">
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                    <button onClick={() => handleDelete(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10" title="Delete">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                   <span className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</span>
                 </div>
