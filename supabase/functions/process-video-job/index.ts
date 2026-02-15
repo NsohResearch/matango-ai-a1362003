@@ -110,10 +110,21 @@ Deno.serve(async (req) => {
             ? `${LTX_BASE}/text-to-video`
             : `${LTX_BASE}/image-to-video`;
 
+          // LTX API requires resolution in "WxH" format, not shorthand like "1080p"
+          const resolutionMap: Record<string, string> = {
+            "720p": "1280x720",
+            "1080p": "1920x1080",
+            "1440p": "2560x1440",
+            "4k": "3840x2160",
+            "2160p": "3840x2160",
+          };
+          const rawRes = resolution || "1080p";
+          const resolvedResolution = resolutionMap[rawRes.toLowerCase()] || rawRes;
+
           const ltxPayload: Record<string, unknown> = {
             model: "ltx-2-pro",
             duration: duration || 8,
-            resolution: resolution || "1080p",
+            resolution: resolvedResolution,
           };
 
           if (isTextToVideo) {
