@@ -1,5 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PricingComparisonMatrix from "@/components/marketing/PricingComparisonMatrix";
+import PricingFAQ from "@/components/marketing/PricingFAQ";
 import { Check, X, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +20,7 @@ const plans = [
     price: "$0",
     key: "free",
     desc: "Get started with AI marketing.",
+    tagline: "Best for exploration and testing.",
     features: ["1 Brand Brain", "5 AI generations/day", "Basic templates", "K'ah Chat assistant", "Community support"],
     limits: ["No Video Studio", "No AAO automation", "Matango branding"],
     cta: "Start Free",
@@ -28,6 +31,7 @@ const plans = [
     price: "$199/mo",
     key: "basic",
     desc: "For serious solopreneurs scaling content.",
+    tagline: "Ideal for founders building consistent output.",
     features: ["3 Brand Brains", "100 AI generations/day", "Video Studio", "Campaign Factory", "Scheduler", "All templates", "Priority support", "Remove branding"],
     limits: ["No white label", "No team features"],
     cta: "Go Basic",
@@ -38,6 +42,7 @@ const plans = [
     price: "$399/mo",
     key: "agency",
     desc: "Multi-brand, white-label, unlimited scale.",
+    tagline: "Built for agencies and multi-brand operators.",
     features: ["Unlimited brands", "Unlimited AI generations", "Video Studio Pro", "AAO Orchestration", "White label", "Team collaboration", "API access", "A/B Testing", "Dedicated support"],
     limits: [],
     cta: "Go Agency",
@@ -48,6 +53,7 @@ const plans = [
     price: "Custom",
     key: "enterprise",
     desc: "Enterprise-grade with custom integrations.",
+    tagline: "For enterprise AI-native marketing operations.",
     features: ["Everything in Agency", "Custom AI model training", "SLA guarantee", "Dedicated CSM", "On-premise option", "Custom integrations", "Unlimited team seats"],
     limits: [],
     cta: "Contact Sales",
@@ -63,7 +69,7 @@ const Pricing = () => {
     const priceId = PLAN_PRICE_IDS[planKey];
     if (!priceId) {
       if (planKey === "enterprise") {
-        window.open("mailto:sales@matango.ai?subject=Agency%2B%2B%20Inquiry", "_blank");
+        window.location.href = "/contact?type=agency_plus_plus";
         return;
       }
       if (planKey === "free") {
@@ -100,6 +106,7 @@ const Pricing = () => {
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl font-semibold text-foreground">Simple, Transparent Pricing</h1>
             <p className="mt-3 text-muted-foreground">Deploy your autonomous marketing agency today. Scale tomorrow.</p>
+            <a href="#compare" className="mt-4 inline-block text-sm text-primary hover:text-gold-400 transition-colors">Compare plans ↓</a>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -144,6 +151,7 @@ const Pricing = () => {
                       plan.cta
                     )}
                   </button>
+                  <p className="mt-3 text-xs text-muted-foreground text-center">{plan.tagline}</p>
                   <div className="border-t border-border my-6" />
                   <ul className="space-y-3">
                     {plan.features.map((f) => (
@@ -163,6 +171,9 @@ const Pricing = () => {
               );
             })}
           </div>
+
+          <PricingComparisonMatrix />
+          <PricingFAQ />
         </div>
       </main>
       <Footer />

@@ -830,6 +830,57 @@ export type Database = {
           },
         ]
       }
+      customer_reviews: {
+        Row: {
+          approved: boolean
+          approved_at: string | null
+          approved_by: string | null
+          company: string | null
+          created_at: string
+          id: string
+          ip_hash: string | null
+          name: string
+          rating: number
+          review_text: string
+          role: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approved?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          company?: string | null
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          name: string
+          rating: number
+          review_text: string
+          role?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approved?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          company?: string | null
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string
+          rating?: number
+          review_text?: string
+          role?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       deletion_jobs: {
         Row: {
           completed_at: string | null
@@ -1057,6 +1108,63 @@ export type Database = {
           result_url?: string | null
           status?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      inbound_leads: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string | null
+          lead_type: string
+          message: string
+          name: string
+          source_path: string | null
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          lead_type: string
+          message: string
+          name: string
+          source_path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          lead_type?: string
+          message?: string
+          name?: string
+          source_path?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
@@ -2686,6 +2794,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_submit_review: { Args: { p_user: string }; Returns: boolean }
       get_credits_remaining: { Args: { p_user_id: string }; Returns: number }
       get_user_role: { Args: { p_user_id: string }; Returns: string }
       has_role: {

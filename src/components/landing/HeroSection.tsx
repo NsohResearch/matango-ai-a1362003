@@ -32,8 +32,8 @@ const HeroSection = () => {
         transition={{ duration: 0.5, delay: 0.1 }}
         className="font-display text-5xl md:text-7xl font-semibold text-center max-w-4xl leading-tight text-cream-50"
       >
-        One Loop. One Brand Brain.{" "}
-        <span className="text-gradient-accent italic">Always-On Growth.</span>
+        AI-Amplified Operators for{" "}
+        <span className="text-gradient-accent italic">Always-On Growth</span>
       </motion.h1>
 
       <motion.p
@@ -42,8 +42,7 @@ const HeroSection = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-6 text-lg text-cream-100/60 text-center max-w-2xl font-body"
       >
-        Deploy AI-Amplified Operators that remember your brand, execute campaigns,
-        and learn from every outcome — 24/7, without burnout.
+        Matango.ai replaces fragmented marketing tools and expensive agencies with intelligent AI operators that think, execute, publish, and optimize continuously.
       </motion.p>
 
       <motion.div
@@ -53,14 +52,14 @@ const HeroSection = () => {
         className="mt-10 flex flex-wrap items-center justify-center gap-4"
       >
         <Link
-          to={ctaLink}
+          to={user ? "/dashboard" : "/auth?mode=signup"}
           className="inline-flex items-center gap-2 rounded-pill bg-primary px-8 py-3.5 font-medium text-primary-foreground hover:border hover:border-gold-400 hover:shadow-luxury transition-all"
         >
-          {ctaLabel} <ArrowRight className="h-4 w-4" />
+          Start Free <ArrowRight className="h-4 w-4" />
         </Link>
-        <button className="inline-flex items-center gap-2 rounded-pill border border-cream-100/20 px-8 py-3.5 font-medium text-cream-50 hover:border-gold-400 hover:text-gold-400 transition-colors">
-          <Play className="h-4 w-4" /> Watch Platform Tour
-        </button>
+        <Link to="/pricing" className="inline-flex items-center gap-2 rounded-pill border border-cream-100/20 px-8 py-3.5 font-medium text-cream-50 hover:border-gold-400 hover:text-gold-400 transition-colors">
+          View Pricing
+        </Link>
       </motion.div>
 
       <motion.div
