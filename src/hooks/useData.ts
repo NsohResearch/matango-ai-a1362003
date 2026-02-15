@@ -701,3 +701,164 @@ export function useAutoInsights() {
     },
   });
 }
+
+// ── Media Objects ─────────────────────────────────────────
+export function useMediaObjects() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["media-objects", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("media_objects").select("*").eq("user_id", user!.id).eq("is_deleted", false).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+export function useCreateMediaObject() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (values: { type: string; bucket: string; object_key: string; mime_type: string; size_bytes?: number; width?: number; height?: number; org_id?: string; brand_id?: string }) => {
+      const { data, error } = await supabase.from("media_objects").insert({ ...values, user_id: user!.id }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["media-objects"] }); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Training Jobs ─────────────────────────────────────────
+export function useTrainingJobs(influencerId?: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["training-jobs", user?.id, influencerId],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let query = supabase.from("training_jobs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (influencerId) query = query.eq("influencer_id", influencerId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: (query) => {
+      const jobs = query.state.data;
+      const hasActive = jobs?.some((j: any) => j.status === "queued" || j.status === "processing");
+      return hasActive ? 3000 : false;
+    },
+  });
+}
+
+export function useCreateTrainingJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (values: { influencer_id: string; input_media_object_ids?: string[]; org_id?: string; brand_id?: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-training-job`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ action: "create", ...values }),
+      });
+      if (res.status === 402) throw new Error("Insufficient credits for training.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(err.error || `Error: ${res.status}`);
+      }
+      const { job } = await res.json();
+      return job;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["training-jobs"] });
+      qc.invalidateQueries({ queryKey: ["influencers"] });
+      toast.success("Training job started!");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Render Jobs ───────────────────────────────────────────
+export function useRenderJobs(videoJobId?: string) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["render-jobs", user?.id, videoJobId],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let query = supabase.from("render_jobs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      if (videoJobId) query = query.eq("video_job_id", videoJobId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    refetchInterval: (query) => {
+      const jobs = query.state.data;
+      const hasActive = jobs?.some((j: any) => j.status === "queued" || j.status === "processing");
+      return hasActive ? 3000 : false;
+    },
+  });
+}
+
+// ── Scheduled Post Mutations (enhanced) ───────────────────
+export function useUpdateScheduledPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...values }: { id: string; content?: string; status?: string; hashtags?: string[]; platforms?: string[]; scheduled_for?: string }) => {
+      const { data, error } = await supabase.from("scheduled_posts").update(values).eq("id", id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["scheduled-posts"] }); toast.success("Post updated!"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDeleteScheduledPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("scheduled_posts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["scheduled-posts"] }); toast.success("Post deleted"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+// ── Analytics (enhanced with platform breakdown) ──────────
+export function useAnalyticsByPlatform() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["analytics-platform", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("analytics_events")
+        .select("platform, event_type, metadata")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+
+      // Group by platform
+      const platforms: Record<string, { views: number; likes: number; comments: number; shares: number }> = {};
+      (data || []).forEach((e: any) => {
+        const p = e.platform || "unknown";
+        if (!platforms[p]) platforms[p] = { views: 0, likes: 0, comments: 0, shares: 0 };
+        if (e.event_type === "view" || e.event_type === "views") platforms[p].views++;
+        if (e.event_type === "like" || e.event_type === "likes") platforms[p].likes++;
+        if (e.event_type === "comment" || e.event_type === "comments") platforms[p].comments++;
+        if (e.event_type === "share" || e.event_type === "shares") platforms[p].shares++;
+      });
+
+      return Object.entries(platforms).map(([platform, metrics]) => ({
+        platform,
+        ...metrics,
+        engagement_rate: metrics.views > 0 ? ((metrics.likes + metrics.comments + metrics.shares) / metrics.views * 100) : 0,
+      }));
+    },
+  });
+}

@@ -64,6 +64,17 @@ Deno.serve(async (req) => {
 
       if (jobError) throw new Error(jobError.message);
 
+      // Create render_job for proper tracking
+      const renderType = job_type === "text-to-video" ? "script_to_video" : "image_to_video";
+      await supabase.from("render_jobs").insert({
+        user_id: user.id,
+        video_job_id: job.id,
+        type: renderType,
+        status: "queued",
+        progress: 0,
+        params: input_refs || {},
+      });
+
       // Track usage
       const creditCost = job_type === "text-to-video" ? 20 : 12;
       await supabase.from("usage_events").insert({
@@ -84,33 +95,49 @@ Deno.serve(async (req) => {
             progress: 25,
           }).eq("id", job.id);
 
-          // Simulate AI processing time (5-15 seconds)
+          await supabase.from("render_jobs").update({
+            status: "processing",
+            progress: 25,
+            started_at: new Date().toISOString(),
+          }).eq("video_job_id", job.id);
+
+          // Simulate AI processing time
           await new Promise((resolve) => setTimeout(resolve, 5000));
 
-          await supabase.from("video_jobs").update({
-            progress: 75,
-          }).eq("id", job.id);
+          await supabase.from("video_jobs").update({ progress: 75 }).eq("id", job.id);
+          await supabase.from("render_jobs").update({ progress: 75 }).eq("video_job_id", job.id);
 
           await new Promise((resolve) => setTimeout(resolve, 3000));
 
-          // If we had a real AI provider, we'd get the output URL here
-          // For now, complete the job without an output URL
+          // Complete the job
           await supabase.from("video_jobs").update({
             status: "completed",
             progress: 100,
           }).eq("id", job.id);
 
-          // Also update any linked video outputs
+          await supabase.from("render_jobs").update({
+            status: "completed",
+            progress: 100,
+            completed_at: new Date().toISOString(),
+          }).eq("video_job_id", job.id);
+
+          // Update linked video outputs
           await supabase.from("video_outputs").update({
             status: "completed",
           }).eq("video_job_id", job.id);
 
         } catch (err) {
           console.error("Job processing error:", err);
+          const errorMsg = err instanceof Error ? err.message : "Unknown error";
           await supabase.from("video_jobs").update({
             status: "failed",
-            error: err instanceof Error ? err.message : "Unknown error",
+            error: errorMsg,
           }).eq("id", job.id);
+          await supabase.from("render_jobs").update({
+            status: "failed",
+            error_message: errorMsg,
+            completed_at: new Date().toISOString(),
+          }).eq("video_job_id", job.id);
         }
       })();
 

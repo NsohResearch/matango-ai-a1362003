@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.process-video-job]
 verify_jwt = false
+
+[functions.process-training-job]
+verify_jwt = false
