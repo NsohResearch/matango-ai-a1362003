@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText, ChevronRight, Upload, CheckCircle2, Sparkles, Monitor, Lock, Copy, Eye } from "lucide-react";
-import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useAssetLibrary, useCreateAsset, useVideoOutputs, useCreateVideoOutput } from "@/hooks/useData";
+import { Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText, ChevronRight, Upload, CheckCircle2, Sparkles, Monitor, Lock, Copy, Eye, Trash2, Download } from "lucide-react";
+import { useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob, useDeleteVideoJob, useAssetLibrary, useCreateAsset, useVideoOutputs, useCreateVideoOutput } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ const VideoStudioPage = () => {
   const { data: assets } = useAssetLibrary();
   const createJob = useCreateVideoJob();
   const createAsset = useCreateAsset();
+  const deleteJob = useDeleteVideoJob();
   const { subscription } = useAuth();
   const plan = subscription.plan || "free";
   const allowedQualities = getAllowedQualities(plan);
@@ -790,8 +791,21 @@ const VideoStudioPage = () => {
                       "bg-muted text-muted-foreground"
                     }`}>{job.status}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleDateString()}
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {new Date(job.created_at).toLocaleDateString()}
+                    </span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {job.output_url && (
+                        <a href={job.output_url} download className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted">
+                          <Download className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      <button onClick={() => deleteJob.mutate(job.id)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
