@@ -19,6 +19,7 @@ import About from "./pages/About";
 import Pricing from "./pages/Pricing";
 import Support from "./pages/Support";
 import Investors from "./pages/Investors";
+import Contact from "./pages/Contact";
 import MeetKah from "./pages/MeetKah";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/support" element={<Support />} />
             <Route path="/investors" element={<Investors />} />
+            <Route path="/contact" element={<Contact />} />
 
             {/* Protected — Dashboard */}
             <Route path="/dashboard" element={<P><Dashboard /></P>} />
