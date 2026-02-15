@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type View = "home" | "text-to-video" | "image-to-video" | "my-videos";
 type ItvStep = "upload" | "train" | "generate" | "gallery";
+type ItvSourceTab = "upload" | "generate";
 
 const TOOL_CARDS = [
   {
@@ -80,6 +81,7 @@ const VideoStudioPage = () => {
 
   // Image to Video — multi-step state
   const [itvStep, setItvStep] = useState<ItvStep>("upload");
+  const [itvSourceTab, setItvSourceTab] = useState<ItvSourceTab>("upload");
   const [itvImages, setItvImages] = useState<{ file: File; preview: string }[]>([]);
   const [itvUploading, setItvUploading] = useState(false);
   const [itvUploadedUrls, setItvUploadedUrls] = useState<string[]>([]);
@@ -87,6 +89,9 @@ const VideoStudioPage = () => {
   const [itvTrainProgress, setItvTrainProgress] = useState(0);
   const [itvGenerating, setItvGenerating] = useState(false);
   const [itvJobId, setItvJobId] = useState<string | null>(null);
+  const [itvGenPrompt, setItvGenPrompt] = useState("");
+  const [itvGenLoading, setItvGenLoading] = useState(false);
+  const [itvGenPreview, setItvGenPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [itv, setItv] = useState({
@@ -272,11 +277,55 @@ const VideoStudioPage = () => {
 
   const resetItvFlow = () => {
     setItvStep("upload");
+    setItvSourceTab("upload");
     setItvImages([]);
     setItvUploadedUrls([]);
     setItvTrainProgress(0);
     setItvJobId(null);
+    setItvGenPrompt("");
+    setItvGenPreview(null);
   };
+
+  // AI image generation for Image-to-Video
+  const handleGenerateImage = async () => {
+    if (!itvGenPrompt.trim()) { toast.error("Enter a prompt to generate an image"); return; }
+    setItvGenLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-image", {
+        body: { prompt: itvGenPrompt },
+      });
+      if (error) throw new Error(error.message || "Generation failed");
+      if (data?.error) {
+        if (data.error.includes("Rate limit")) toast.error("Rate limit reached. Try again shortly.");
+        else if (data.error.includes("credits")) toast.error("AI credits exhausted. Please add funds.");
+        else toast.error(data.error);
+        return;
+      }
+      if (data?.image_url) {
+        setItvGenPreview(data.image_url);
+        toast.success("Image generated! Click 'Use This Image' to continue.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate image");
+    } finally {
+      setItvGenLoading(false);
+    }
+  };
+
+  const handleUseGeneratedImage = () => {
+    if (!itvGenPreview) return;
+    setItvUploadedUrls([itvGenPreview]);
+    setItvStep("train");
+    toast.success("Image ready! Proceed to training.");
+  };
+
+  // Sample image prompts for "Try with one of these"
+  const SAMPLE_PROMPTS = [
+    { label: "Sunset butterfly", prompt: "A golden butterfly landing on autumn leaves at sunset, cinematic lighting, photorealistic" },
+    { label: "Anime character", prompt: "A cheerful anime girl sitting on a watermelon slice in a park, vibrant colors, illustration style" },
+    { label: "Cute cat", prompt: "An adorable orange cat detective with a magnifying glass, cartoon style, warm tones" },
+    { label: "Street portrait", prompt: "A woman walking with a golden retriever on a city street, candid photography, warm afternoon light" },
+  ];
 
   const imageVideoJobs = jobs?.filter((j) => j.job_type === "image-to-video") || [];
 
@@ -552,72 +601,167 @@ const VideoStudioPage = () => {
         {view === "image-to-video" && (
           <>
             <SubViewHeader title="Image to Video" icon={Image} />
-            <div className="glass-card rounded-xl p-6 border border-primary/20">
-              <div className="flex items-center justify-between mb-5">
-                <div />
+            <div className="glass-card rounded-xl p-6 lg:p-8 border border-primary/20">
+              {/* Header with Start Over */}
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h2 className="font-display text-xl font-bold">Transform Images into Dynamic Videos</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Upload any image or let AI generate one, then bring it to life through seamless video generation.</p>
+                </div>
                 {itvStep !== "upload" && (
-                  <button onClick={resetItvFlow} className="text-xs text-muted-foreground hover:text-foreground">Start Over</button>
+                  <button onClick={resetItvFlow} className="text-xs text-muted-foreground hover:text-foreground shrink-0">Start Over</button>
                 )}
               </div>
 
-              {/* Step Indicator */}
-              <div className="flex items-center gap-2 mb-6">
-                {ITV_STEPS.map((s, i) => {
-                  const stepIndex = ITV_STEPS.findIndex((x) => x.key === itvStep);
-                  const isActive = s.key === itvStep;
-                  const isDone = i < stepIndex;
-                  return (
-                    <div key={s.key} className="flex items-center gap-2">
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                        isActive ? "bg-primary text-primary-foreground" :
-                        isDone ? "bg-primary/20 text-primary" :
-                        "bg-secondary text-muted-foreground"
-                      }`}>
-                        {isDone ? <CheckCircle2 className="h-3 w-3" /> : <span>{s.num}.</span>}
-                        {s.label}
+              {/* Step Indicator (compact) */}
+              {itvStep !== "upload" && (
+                <div className="flex items-center gap-2 mb-6 mt-4">
+                  {ITV_STEPS.map((s, i) => {
+                    const stepIndex = ITV_STEPS.findIndex((x) => x.key === itvStep);
+                    const isActive = s.key === itvStep;
+                    const isDone = i < stepIndex;
+                    return (
+                      <div key={s.key} className="flex items-center gap-2">
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                          isActive ? "bg-primary text-primary-foreground" :
+                          isDone ? "bg-primary/20 text-primary" :
+                          "bg-secondary text-muted-foreground"
+                        }`}>
+                          {isDone ? <CheckCircle2 className="h-3 w-3" /> : <span>{s.num}.</span>}
+                          {s.label}
+                        </div>
+                        {i < ITV_STEPS.length - 1 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                       </div>
-                      {i < ITV_STEPS.length - 1 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
 
-              {/* Step 1: Upload */}
+              {/* Step 1: Source Selection (Kling-style) */}
               {itvStep === "upload" && (
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Upload className="h-4 w-4 text-primary" />
-                    <h4 className="text-sm font-semibold">Reference Images</h4>
+                <div className="mt-6">
+                  {/* Upload / Generate tabs */}
+                  <div className="flex gap-1 mb-5 p-1 bg-secondary rounded-lg w-fit">
+                    <button onClick={() => setItvSourceTab("upload")}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${itvSourceTab === "upload" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                      Upload Image
+                    </button>
+                    <button onClick={() => setItvSourceTab("generate")}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${itvSourceTab === "generate" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                      <Sparkles className="h-3.5 w-3.5" /> Generate Image
+                    </button>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">Upload 1–3 high-quality images.</p>
-                  {itvImages.length > 0 && (
-                    <div className="flex gap-3 mb-3">
-                      {itvImages.map((img, i) => (
-                        <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-border group/thumb">
-                          <img src={img.preview} alt={`Reference ${i + 1}`} className="w-full h-full object-cover" />
-                          <button onClick={() => removeImage(i)}
-                            className="absolute top-1 right-1 p-0.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover/thumb:opacity-100 transition-opacity">
-                            <X className="h-3 w-3" />
+
+                  {/* Upload Tab */}
+                  {itvSourceTab === "upload" && (
+                    <div>
+                      {itvImages.length > 0 && (
+                        <div className="flex gap-3 mb-4">
+                          {itvImages.map((img, i) => (
+                            <div key={i} className="relative w-28 h-28 rounded-xl overflow-hidden border border-border group/thumb">
+                              <img src={img.preview} alt={`Reference ${i + 1}`} className="w-full h-full object-cover" />
+                              <button onClick={() => removeImage(i)}
+                                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {itvImages.length < MAX_IMAGES && (
+                        <div onClick={() => fileInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}
+                          className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary/50 transition-colors bg-secondary/30">
+                          <Image className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                          <p className="text-sm text-muted-foreground">
+                            Drag your images here or <span className="text-primary font-medium underline underline-offset-2">click to upload</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">PNG, JPG, WebP up to {MAX_SIZE_MB}MB (max {MAX_IMAGES})</p>
+                          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden"
+                            onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Generate Tab */}
+                  {itvSourceTab === "generate" && (
+                    <div>
+                      <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded-xl px-4 py-2 mb-4">
+                        <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <input
+                          value={itvGenPrompt}
+                          onChange={(e) => setItvGenPrompt(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && !itvGenLoading && handleGenerateImage()}
+                          placeholder="Describe the image you want to create..."
+                          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none py-2"
+                        />
+                        <button onClick={handleGenerateImage} disabled={itvGenLoading || !itvGenPrompt.trim()}
+                          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5 shrink-0">
+                          {itvGenLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                          Generate
+                        </button>
+                      </div>
+
+                      {itvGenPreview && (
+                        <div className="mb-4">
+                          <div className="rounded-xl overflow-hidden border border-primary/30 max-w-sm mx-auto">
+                            <img src={itvGenPreview} alt="AI Generated" className="w-full aspect-square object-cover" />
+                          </div>
+                          <button onClick={handleUseGeneratedImage}
+                            className="mt-3 mx-auto block px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4" /> Use This Image
                           </button>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
-                  {itvImages.length < MAX_IMAGES && (
-                    <div onClick={() => fileInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}
-                      className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors">
-                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm font-medium">Click to upload or drag and drop</p>
-                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to {MAX_SIZE_MB}MB each (max {MAX_IMAGES} images)</p>
-                      <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden"
-                        onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+
+                  {/* Divider */}
+                  {itvSourceTab === "upload" && itvImages.length === 0 && !itvGenPreview && (
+                    <div className="flex items-center gap-4 my-6">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-xs text-muted-foreground font-medium">OR</span>
+                      <div className="flex-1 h-px bg-border" />
                     </div>
                   )}
-                  <button onClick={handleUploadAndTrain} disabled={itvUploading || itvImages.length === 0}
-                    className="mt-4 w-full px-5 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-                    {itvUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {itvUploading ? "Uploading..." : `Upload ${itvImages.length} Image${itvImages.length !== 1 ? "s" : ""} & Continue`}
-                  </button>
+
+                  {/* Sample Prompts — "No picture? Try one of these" */}
+                  {itvSourceTab === "upload" && itvImages.length === 0 && (
+                    <div>
+                      <h3 className="font-semibold text-sm mb-3">No picture on hand? Try with one of these</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {SAMPLE_PROMPTS.map((sample, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setItvSourceTab("generate");
+                              setItvGenPrompt(sample.prompt);
+                            }}
+                            className="rounded-xl overflow-hidden border border-border hover:border-primary/40 transition-all group text-left"
+                          >
+                            <div className="aspect-[4/3] bg-gradient-to-br from-accent/20 via-primary/10 to-secondary flex items-center justify-center">
+                              <Sparkles className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                            <div className="p-2">
+                              <p className="text-xs font-medium text-foreground truncate">{sample.label}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Continue Button */}
+                  {itvSourceTab === "upload" && itvImages.length > 0 && (
+                    <div className="flex justify-end mt-5">
+                      <button onClick={handleUploadAndTrain} disabled={itvUploading}
+                        className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
+                        {itvUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronRight className="h-4 w-4" />}
+                        {itvUploading ? "Uploading..." : "Continue"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
