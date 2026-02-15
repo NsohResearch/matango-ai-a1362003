@@ -65,10 +65,10 @@ const Support = () => {
       <section className="relative pt-28 pb-16 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,hsl(var(--gold-500)/0.12),transparent_60%)]" />
         <div className="container mx-auto max-w-5xl px-6 relative z-10">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-cream-50">
             Support Resources
           </h1>
-          <p className="mt-3 text-lg text-muted-foreground max-w-lg">
+          <p className="mt-3 text-lg text-cream-100/70 max-w-lg">
             Looking for something? We're here to help!
           </p>
         </div>

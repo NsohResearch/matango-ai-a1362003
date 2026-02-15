@@ -37,10 +37,10 @@ const Investors = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,hsl(var(--gold-500)/0.10),transparent_60%)]" />
         <div className="container mx-auto max-w-5xl px-6 relative z-10">
           <p className="text-xs uppercase tracking-widest text-gold-400 mb-3">Investor Relations</p>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground leading-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-cream-50 leading-tight">
             Matango<br />Investor Relations
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-xl">
+          <p className="mt-4 text-lg text-cream-100/70 max-w-xl">
             Our mission is to empower creators and brands with AI-powered marketing automation, making growth accessible to everyone.
           </p>
           <Button className="mt-6" size="lg" asChild>
