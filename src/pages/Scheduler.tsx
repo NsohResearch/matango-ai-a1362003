@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WorkflowNav from "@/components/WorkflowNav";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock, X, Send, Layers, Trash2 } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Loader2, Clock, X, Send, Layers, Trash2, Image, Film, Paperclip } from "lucide-react";
 import { useScheduledPosts, useCreateScheduledPost, useBatchCreateScheduledPosts, useCampaigns } from "@/hooks/useData";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday, addDays } from "date-fns";
+import { useSearchParams } from "react-router-dom";
+import { resolveAssetUrl } from "@/lib/storage";
 import { toast } from "sonner";
 
 const PLATFORMS = ["instagram", "tiktok", "linkedin", "twitter", "youtube", "facebook"];
@@ -37,16 +39,36 @@ const SchedulerPage = () => {
   const { data: campaigns } = useCampaigns();
   const createPost = useCreateScheduledPost();
   const batchCreate = useBatchCreateScheduledPosts();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "list">("month");
   const [showCreate, setShowCreate] = useState(false);
   const [showBatch, setShowBatch] = useState(false);
+  const [attachedAsset, setAttachedAsset] = useState<{ id: string; url: string; type: string; resolvedUrl?: string } | null>(null);
   const [form, setForm] = useState({
     platform: "instagram",
     content: "",
     scheduled_for: "",
     campaign_id: "",
   });
+
+  // Consume asset query params from "Send to Scheduler"
+  useEffect(() => {
+    const assetId = searchParams.get("assetId");
+    const assetUrl = searchParams.get("assetUrl");
+    const assetType = searchParams.get("assetType");
+    if (assetId && assetUrl) {
+      setAttachedAsset({ id: assetId, url: decodeURIComponent(assetUrl), type: assetType || "image" });
+      setShowCreate(true);
+      // Resolve the URL for display
+      resolveAssetUrl(decodeURIComponent(assetUrl), assetType === "video" ? "videos" : "content", true)
+        .then((resolved) => {
+          if (resolved) setAttachedAsset((prev) => prev ? { ...prev, resolvedUrl: resolved } : null);
+        });
+      // Clear params from URL
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Batch state
   const [batchRows, setBatchRows] = useState<BatchRow[]>([emptyRow(), emptyRow(), emptyRow()]);
@@ -66,8 +88,18 @@ const SchedulerPage = () => {
     if (!form.content) { toast.error("Add post content"); return; }
     if (!form.scheduled_for) { toast.error("Select a date and time"); return; }
     createPost.mutate(
-      { ...form, campaign_id: form.campaign_id || undefined },
-      { onSuccess: () => { setShowCreate(false); setForm({ platform: "instagram", content: "", scheduled_for: "", campaign_id: "" }); } }
+      {
+        ...form,
+        campaign_id: form.campaign_id || undefined,
+        image_url: attachedAsset?.url || undefined,
+      },
+      {
+        onSuccess: () => {
+          setShowCreate(false);
+          setForm({ platform: "instagram", content: "", scheduled_for: "", campaign_id: "" });
+          setAttachedAsset(null);
+        },
+      }
     );
   };
 
@@ -257,6 +289,33 @@ const SchedulerPage = () => {
                   className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px]"
                   placeholder="Write your post content..." />
               </div>
+
+              {/* Attached media */}
+              {attachedAsset && (
+                <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted flex items-center justify-center shrink-0">
+                      {attachedAsset.resolvedUrl && attachedAsset.type === "image" ? (
+                        <img src={attachedAsset.resolvedUrl} alt="Attached" className="w-full h-full object-cover" />
+                      ) : attachedAsset.type === "video" ? (
+                        <Film className="h-6 w-6 text-muted-foreground" />
+                      ) : (
+                        <Image className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        <Paperclip className="h-3.5 w-3.5 text-primary" />
+                        Media attached
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">{attachedAsset.type} · ID: {attachedAsset.id.slice(0, 8)}…</p>
+                    </div>
+                    <button onClick={() => setAttachedAsset(null)} className="p-1 rounded text-muted-foreground hover:text-destructive">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground">Cancel</button>
                 <button onClick={handleCreate} disabled={createPost.isPending}

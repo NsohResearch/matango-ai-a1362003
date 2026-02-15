@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText,
@@ -21,6 +21,20 @@ import {
 } from "@/lib/video-formats";
 import StepTransition from "@/components/system/StepTransition";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveAssetUrl } from "@/lib/storage";
+
+/** Resolves a storage path to a displayable image */
+const StorageImageThumb = ({ urlOrPath, bucket }: { urlOrPath: string; bucket: string }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    if (urlOrPath.startsWith("http") || urlOrPath.startsWith("data:")) {
+      setSrc(urlOrPath);
+    } else {
+      resolveAssetUrl(urlOrPath, bucket, false).then((url) => url && setSrc(url));
+    }
+  }, [urlOrPath, bucket]);
+  return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full animate-pulse bg-muted" />;
+};
 
 type View = "home" | "text-to-video" | "image-to-video" | "my-videos";
 type ItvStep = "upload" | "train" | "generate" | "gallery";
@@ -168,7 +182,9 @@ const VideoStudioPage = () => {
       if (paths.length === 0) { toast.error("No images were uploaded successfully"); setItvUploading(false); return; }
       setItvUploadedUrls(paths);
       toast.success(`${paths.length} image(s) uploaded`);
-      setItvStep("train");
+      // Skip to generate directly — training is instant for current architecture
+      setItvStep("generate");
+      toast.success("Images processed! Configure your video settings.");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
     } finally {
@@ -177,20 +193,14 @@ const VideoStudioPage = () => {
   };
 
   const handleStartTraining = async () => {
+    // Instant processing — no fake setTimeout simulation
     setItvTraining(true);
-    setItvTrainProgress(0);
-    const interval = setInterval(() => {
-      setItvTrainProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setItvTraining(false);
-          setItvStep("generate");
-          toast.success("Training complete! Ready to generate.");
-          return 100;
-        }
-        return p + 10;
-      });
-    }, 500);
+    setItvTrainProgress(100);
+    setTimeout(() => {
+      setItvTraining(false);
+      setItvStep("generate");
+      toast.success("Images processed! Ready to generate.");
+    }, 800); // Brief UI feedback only
   };
 
   const handleGenerateVideo = () => {
@@ -208,13 +218,24 @@ const VideoStudioPage = () => {
       createAsset.mutate({ type: "image", url, prompt: "Video training reference", tags: ["training", "image-to-video"] });
     }
     const res = getResolution(selectedPreset, itv.quality);
+    // Store storage paths in input_refs, NOT signed URLs
+    const imagePaths = itvUploadedUrls.map((u) => {
+      // If it's already a path (not a URL), keep it
+      if (!u.startsWith("http")) return u;
+      // If it's a data URI from AI generation, keep as-is
+      if (u.startsWith("data:")) return u;
+      // Extract storage path from any full Supabase URL
+      const match = u.match(/\/storage\/v1\/object\/(?:public|sign)\/([^?]+)/);
+      return match ? match[1] : u;
+    });
     createJob.mutate(
       {
         job_type: "image-to-video",
         influencer_id: itv.influencer_id || undefined,
         lip_sync: itv.lip_sync,
         input_refs: {
-          images: itvUploadedUrls,
+          images: imagePaths,
+          storage_bucket: "training-images",
           motion_type: itv.motion_type,
           camera_movement: itv.camera_movement,
           duration: itv.duration,
@@ -790,7 +811,7 @@ const VideoStudioPage = () => {
                   <div className="flex gap-3 mb-4">
                     {itvUploadedUrls.map((url, i) => (
                       <div key={i} className="w-20 h-20 rounded-lg overflow-hidden border border-border">
-                        <img src={url} alt={`Uploaded ${i + 1}`} className="w-full h-full object-cover" />
+                        <StorageImageThumb urlOrPath={url} bucket="training-images" />
                       </div>
                     ))}
                   </div>
@@ -823,7 +844,7 @@ const VideoStudioPage = () => {
                   <div className="flex gap-3 mb-4">
                     {itvUploadedUrls.map((url, i) => (
                       <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border border-primary/30">
-                        <img src={url} alt={`Trained ${i + 1}`} className="w-full h-full object-cover" />
+                        <StorageImageThumb urlOrPath={url} bucket="training-images" />
                       </div>
                     ))}
                     <div className="flex items-center">
