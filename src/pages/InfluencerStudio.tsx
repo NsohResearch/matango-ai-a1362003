@@ -72,20 +72,43 @@ const InfluencerStudioPage = () => {
   const MAX_IMAGES = 3;
   const MAX_SIZE_MB = 10;
 
+  const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+  const MIN_DIMENSION = 256;
+
   const addFiles = useCallback((files: FileList | File[]) => {
     const newFiles = Array.from(files).filter((f) => {
-      if (!f.type.startsWith("image/")) { toast.error(`${f.name} is not an image`); return false; }
+      if (!ALLOWED_TYPES.includes(f.type)) { toast.error(`${f.name}: only PNG, JPG, and WebP are accepted`); return false; }
       if (f.size > MAX_SIZE_MB * 1024 * 1024) { toast.error(`${f.name} exceeds ${MAX_SIZE_MB}MB`); return false; }
+      if (f.size < 1024) { toast.error(`${f.name} is too small (likely corrupt)`); return false; }
       return true;
     });
-    setReferenceImages((prev) => {
-      const remaining = MAX_IMAGES - prev.length;
-      if (remaining <= 0) { toast.error(`Maximum ${MAX_IMAGES} images allowed`); return prev; }
-      const toAdd = newFiles.slice(0, remaining);
-      if (newFiles.length > remaining) toast.warning(`Only ${remaining} more image(s) allowed`);
-      return [...prev, ...toAdd.map((file) => ({ file, preview: URL.createObjectURL(file) }))];
+    // Check for duplicates by name+size
+    const existingKeys = new Set(referenceImages.map((r) => `${r.file.name}_${r.file.size}`));
+    const deduped = newFiles.filter((f) => {
+      if (existingKeys.has(`${f.name}_${f.size}`)) { toast.warning(`${f.name} already added`); return false; }
+      return true;
     });
-  }, []);
+
+    // Validate dimensions via Image load
+    deduped.forEach((file) => {
+      const url = URL.createObjectURL(file);
+      const img = new window.Image();
+      img.onload = () => {
+        if (img.width < MIN_DIMENSION || img.height < MIN_DIMENSION) {
+          toast.error(`${file.name}: must be at least ${MIN_DIMENSION}×${MIN_DIMENSION}px (got ${img.width}×${img.height})`);
+          URL.revokeObjectURL(url);
+          return;
+        }
+        setReferenceImages((prev) => {
+          const remaining = MAX_IMAGES - prev.length;
+          if (remaining <= 0) { toast.error(`Maximum ${MAX_IMAGES} images allowed`); URL.revokeObjectURL(url); return prev; }
+          return [...prev, { file, preview: url }];
+        });
+      };
+      img.onerror = () => { toast.error(`${file.name}: failed to load — file may be corrupt`); URL.revokeObjectURL(url); };
+      img.src = url;
+    });
+  }, [referenceImages]);
 
   const removeImage = (index: number) => {
     setReferenceImages((prev) => {

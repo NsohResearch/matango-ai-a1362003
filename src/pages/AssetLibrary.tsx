@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
-import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2, CalendarDays, SlidersHorizontal, Send } from "lucide-react";
+import { Library, Loader2, Search, Grid, List, Image, Film, Download, Trash2, CalendarDays, SlidersHorizontal, Send, Tag } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useAssetLibrary, useDeleteAsset } from "@/hooks/useData";
 import { useState, useMemo, useCallback } from "react";
 import { resolveAssetUrl, getDownloadUrl } from "@/lib/storage";
@@ -191,8 +192,17 @@ const AssetLibraryPage = () => {
                     </div>
                     <div className="p-3">
                       <p className="text-xs text-muted-foreground line-clamp-1">{a.prompt || "No prompt"}</p>
+                      {/* AI tags */}
+                      {a.tags && a.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {a.tags.slice(0, 3).map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="text-[9px] px-1.5 py-0 h-4">{tag}</Badge>
+                          ))}
+                          {a.tags.length > 3 && <span className="text-[9px] text-muted-foreground">+{a.tags.length - 3}</span>}
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[10px] text-muted-foreground">v{a.version || 1}</span>
+                        <span className="text-[10px] text-muted-foreground">{a.model ? `${a.model} · ` : ""}v{a.version || 1}</span>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button onClick={() => handleSendToScheduler(a)} className="p-1 rounded text-muted-foreground hover:text-primary" title="Send to Scheduler">
                             <Send className="h-3 w-3" />
@@ -219,7 +229,16 @@ const AssetLibraryPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm truncate">{a.prompt || "No prompt"}</p>
-                    <p className="text-xs text-muted-foreground">{a.type} • v{a.version || 1} • {a.model || "default"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">{a.type} • v{a.version || 1} • {a.model || "default"}</p>
+                      {a.tags && a.tags.length > 0 && (
+                        <div className="flex gap-1">
+                          {a.tags.slice(0, 3).map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="text-[9px] px-1.5 py-0 h-4">{tag}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleSendToScheduler(a)} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10" title="Send to Scheduler">

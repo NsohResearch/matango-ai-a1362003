@@ -1,21 +1,36 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WorkflowNav from "@/components/WorkflowNav";
 import { BarChart3, TrendingUp, Users, Eye, Heart, Share2, Loader2, Sparkles, RefreshCw } from "lucide-react";
-import { useAnalyticsData, useAutoInsights } from "@/hooks/useData";
+import { useAnalyticsData, useAutoInsights, useAnalyticsByPlatform } from "@/hooks/useData";
 import { analyticsSeed } from "@/lib/edge-functions";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+
+type TimeRange = "7d" | "30d" | "90d";
 
 const AnalyticsHubPage = () => {
   const { data: analytics, isLoading, refetch } = useAnalyticsData();
   const { data: insights } = useAutoInsights();
+  const { data: platformData } = useAnalyticsByPlatform();
   const [seeding, setSeeding] = useState(false);
   const [computingInsights, setComputingInsights] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
 
-  const totals = analytics?.reduce(
+  // Filter analytics by time range
+  const filteredAnalytics = useMemo(() => {
+    if (!analytics) return [];
+    const days = timeRange === "7d" ? 7 : timeRange === "90d" ? 90 : 30;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return analytics.filter((d) => new Date(d.date) >= cutoff);
+  }, [analytics, timeRange]);
+
+  const totals = filteredAnalytics.reduce(
     (acc, d) => ({
       views: acc.views + (d.views || 0),
       likes: acc.likes + (d.likes || 0),
@@ -26,7 +41,7 @@ const AnalyticsHubPage = () => {
     { views: 0, likes: 0, shares: 0, comments: 0, followers: 0 }
   ) || { views: 0, likes: 0, shares: 0, comments: 0, followers: 0 };
 
-  const chartData = analytics?.slice(0, 14).reverse().map((d) => ({
+  const chartData = filteredAnalytics.slice(0, 14).reverse().map((d) => ({
     date: new Date(d.date).toLocaleDateString("en", { month: "short", day: "numeric" }),
     views: d.views || 0,
     likes: d.likes || 0,
@@ -34,7 +49,7 @@ const AnalyticsHubPage = () => {
   })) || [];
 
   // Calculate real change percentages from data
-  const calculateChange = (current: number, dataPoints: typeof analytics) => {
+  const calculateChange = (current: number, dataPoints: typeof filteredAnalytics) => {
     if (!dataPoints || dataPoints.length < 2) return null;
     const mid = Math.floor(dataPoints.length / 2);
     const recentHalf = dataPoints.slice(0, mid);
@@ -46,9 +61,9 @@ const AnalyticsHubPage = () => {
   };
 
   const statCards = [
-    { label: "Total Views", value: totals.views.toLocaleString(), icon: Eye, change: calculateChange(totals.views, analytics) },
-    { label: "Total Likes", value: totals.likes.toLocaleString(), icon: Heart, change: calculateChange(totals.likes, analytics) },
-    { label: "Total Shares", value: totals.shares.toLocaleString(), icon: Share2, change: calculateChange(totals.shares, analytics) },
+    { label: "Total Views", value: totals.views.toLocaleString(), icon: Eye, change: calculateChange(totals.views, filteredAnalytics) },
+    { label: "Total Likes", value: totals.likes.toLocaleString(), icon: Heart, change: calculateChange(totals.likes, filteredAnalytics) },
+    { label: "Total Shares", value: totals.shares.toLocaleString(), icon: Share2, change: calculateChange(totals.shares, filteredAnalytics) },
     { label: "Followers", value: totals.followers.toLocaleString(), icon: Users, change: null },
   ];
 
@@ -88,7 +103,15 @@ const AnalyticsHubPage = () => {
             </h1>
             <p className="mt-1 text-muted-foreground">Unified performance dashboard with AI-powered insights.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+              <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">Last 7 days</SelectItem>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="outline" size="sm" onClick={handleComputeInsights} disabled={computingInsights || !analytics?.length}>
               {computingInsights ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Sparkles className="h-3 w-3 mr-1" />}
               AI Insights
@@ -133,6 +156,32 @@ const AnalyticsHubPage = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Platform Breakdown */}
+            {platformData && platformData.length > 0 && (
+              <div className="mb-8">
+                <h3 className="font-display font-semibold text-sm mb-3">Platform Breakdown</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {platformData.map((p: any) => {
+                    const maxViews = Math.max(...platformData.map((x: any) => x.views || 1));
+                    return (
+                      <div key={p.platform} className="glass-card rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium capitalize">{p.platform}</span>
+                          <Badge variant="secondary" className="text-[10px]">{p.engagement_rate?.toFixed(1)}% eng.</Badge>
+                        </div>
+                        <Progress value={((p.views || 0) / maxViews) * 100} className="h-1.5 mb-2" />
+                        <div className="flex gap-3 text-[10px] text-muted-foreground">
+                          <span>{p.views} views</span>
+                          <span>{p.likes} likes</span>
+                          <span>{p.shares} shares</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
