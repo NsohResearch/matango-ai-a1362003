@@ -367,6 +367,24 @@ export function useCreateVideoJob() {
   });
 }
 
+export function useDeleteVideoJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      // Delete linked video outputs first
+      await supabase.from("video_outputs").delete().eq("video_job_id", jobId);
+      const { error } = await supabase.from("video_jobs").delete().eq("id", jobId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["video-jobs"] });
+      qc.invalidateQueries({ queryKey: ["video-outputs"] });
+      toast.success("Video job deleted");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
 // ── Analytics ─────────────────────────────────────────────
 export function useAnalyticsData() {
   const { user } = useAuth();
