@@ -8,14 +8,14 @@ import { describe, it, expect } from "vitest";
 
 // From Pricing.tsx
 const PRICING_PAGE_IDS: Record<string, string> = {
-  basic: "price_1RVWxeAVFAUaQJO0iiFSNq1F",
-  agency: "price_1RVWySAVFAUaQJO0VyNz3TJo",
+  basic: "price_1T0cavDcq9WDEzjkilaqUz1X",
+  agency: "price_1T0cawDcq9WDEzjk4inwi8Ae",
 };
 
 // From PlanSelectionDrawer.tsx — THESE WERE INCONSISTENT (now should match)
 const DRAWER_STRIPE_PLANS = {
-  basic: { price_id: "price_1RVWxeAVFAUaQJO0iiFSNq1F", product_id: "prod_TyZk4lrpOZD0eE" },
-  agency: { price_id: "price_1RVWySAVFAUaQJO0VyNz3TJo", product_id: "prod_TyZkDIfLRosrEY" },
+  basic: { price_id: "price_1T0cavDcq9WDEzjkilaqUz1X", product_id: "prod_TyZk4lrpOZD0eE" },
+  agency: { price_id: "price_1T0cawDcq9WDEzjk4inwi8Ae", product_id: "prod_TyZkDIfLRosrEY" },
 };
 
 // From check-subscription edge function

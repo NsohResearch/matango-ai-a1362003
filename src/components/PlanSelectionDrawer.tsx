@@ -21,8 +21,8 @@ interface PlanSelectionDrawerProps {
 }
 
 const STRIPE_PLANS = {
-  basic: { price_id: "price_1RVWxeAVFAUaQJO0iiFSNq1F", product_id: "prod_TyZk4lrpOZD0eE" },
-  agency: { price_id: "price_1RVWySAVFAUaQJO0VyNz3TJo", product_id: "prod_TyZkDIfLRosrEY" },
+  basic: { price_id: "price_1T0cavDcq9WDEzjkilaqUz1X", product_id: "prod_TyZk4lrpOZD0eE" },
+  agency: { price_id: "price_1T0cawDcq9WDEzjk4inwi8Ae", product_id: "prod_TyZkDIfLRosrEY" },
 };
 
 const plans = [

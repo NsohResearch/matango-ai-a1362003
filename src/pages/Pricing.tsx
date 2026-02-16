@@ -10,8 +10,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const PLAN_PRICE_IDS: Record<string, string> = {
-  basic: "price_1RVWxeAVFAUaQJO0iiFSNq1F",
-  agency: "price_1RVWySAVFAUaQJO0VyNz3TJo",
+  basic: "price_1T0cavDcq9WDEzjkilaqUz1X",
+  agency: "price_1T0cawDcq9WDEzjk4inwi8Ae",
 };
 
 const plans = [
