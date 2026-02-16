@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const IDLE_TIMEOUT_MS = 5 * 60 * 60 * 1000; // 5 hours
 const EVENTS = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click"];
 
 export const useIdleTimeout = (enabled: boolean) => {
