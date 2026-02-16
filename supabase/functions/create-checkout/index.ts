@@ -7,6 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const logStep = (step: string, details?: any) => {
+  console.log(`[CREATE-CHECKOUT] ${step}${details ? ` - ${JSON.stringify(details)}` : ""}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -23,8 +27,11 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { priceId } = await req.json();
+    const { priceId, mode } = await req.json();
     if (!priceId) throw new Error("priceId is required");
+
+    const checkoutMode = mode === "payment" ? "payment" : "subscription";
+    logStep("Checkout requested", { priceId, mode: checkoutMode, email: user.email });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -32,14 +39,41 @@ serve(async (req) => {
     let customerId: string | undefined;
     if (customers.data.length > 0) customerId = customers.data[0].id;
 
-    const session = await stripe.checkout.sessions.create({
+    const origin = req.headers.get("origin") || "https://matango-ai.lovable.app";
+
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/dashboard?checkout=cancel`,
-    });
+      mode: checkoutMode,
+      success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/pricing?checkout=cancel`,
+    };
+
+    // For subscription mode, allow switching plans mid-cycle
+    if (checkoutMode === "subscription" && customerId) {
+      // Check for existing active subscription
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
+      if (subs.data.length > 0) {
+        // Use the Stripe customer portal for plan changes (upgrade/downgrade)
+        logStep("Active subscription found, creating portal session for plan change");
+        const portalSession = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: `${origin}/pricing`,
+        });
+        return new Response(JSON.stringify({ url: portalSession.url }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // For one-time credit purchases, add metadata
+    if (checkoutMode === "payment") {
+      sessionParams.metadata = { user_id: user.id, type: "credit_topup" };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    logStep("Session created", { sessionId: session.id, mode: checkoutMode });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
