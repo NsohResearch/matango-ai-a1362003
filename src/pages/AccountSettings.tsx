@@ -1,6 +1,6 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Settings, User, CreditCard, Bell, Shield, Trash2, Loader2, Download } from "lucide-react";
+import { Settings, User, CreditCard, Bell, Shield, Trash2, Loader2, Download, Palette } from "lucide-react";
 import { useProfile } from "@/hooks/useData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +9,12 @@ import { gdprProcess } from "@/lib/edge-functions";
 import PlanSelectionDrawer from "@/components/PlanSelectionDrawer";
 import { Button } from "@/components/ui/button";
 import DangerZonePanel from "@/components/DangerZonePanel";
+import { useTheme } from "@/hooks/useTheme";
 
 const AccountSettingsPage = () => {
   const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
+  const { theme, setTheme, osPreference } = useTheme();
   const [tab, setTab] = useState("profile");
   const [name, setName] = useState("");
   const [planDrawerOpen, setPlanDrawerOpen] = useState(false);
@@ -75,6 +77,7 @@ const AccountSettingsPage = () => {
 
   const tabs = [
     { id: "profile", label: "Profile", icon: User },
+    { id: "appearance", label: "Appearance", icon: Palette },
     { id: "billing", label: "Billing", icon: CreditCard },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Security", icon: Shield },
@@ -123,6 +126,39 @@ const AccountSettingsPage = () => {
                       </div>
                     </div>
                     <button onClick={handleUpdateProfile} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">Save Changes</button>
+                  </div>
+                )}
+
+                {tab === "appearance" && (
+                  <div>
+                    <h3 className="font-display font-semibold mb-4 text-foreground">Appearance</h3>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Your OS preference: <span className="font-medium text-foreground capitalize">{osPreference}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-6">
+                      Light is the default premium experience. Dark mode is available for preference.
+                    </p>
+                    <div className="flex gap-3">
+                      {([
+                        { value: "light" as const, label: "Light (Cream)", recommended: true },
+                        { value: "dark" as const, label: "Dark", recommended: false },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setTheme(opt.value)}
+                          className={`flex-1 rounded-xl border-2 p-4 text-center transition-all ${
+                            theme === opt.value
+                              ? "border-primary bg-primary/10 text-primary font-medium"
+                              : "border-border bg-secondary/50 text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <div className="text-sm font-medium">{opt.label}</div>
+                          {opt.recommended && (
+                            <div className="text-[10px] uppercase tracking-wide text-primary/70 mt-1">Recommended</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
