@@ -62,7 +62,7 @@ export default function AAOActivityWidget({ compact = false, maxItems = 10 }: AA
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-display">
-            <Activity className="h-4 w-4 text-primary" /> K'ah Activity
+            <Activity className="h-4 w-4 text-primary" /> Ka'h Activity
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
@@ -76,14 +76,14 @@ export default function AAOActivityWidget({ compact = false, maxItems = 10 }: AA
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-display">
-          <Activity className="h-4 w-4 text-primary" /> K'ah Activity
+          <Activity className="h-4 w-4 text-primary" /> Ka'h Activity
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!events || events.length === 0 ? (
           <div className="text-center py-6">
             <Bot className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No activity yet. K'ah is ready to work.</p>
+            <p className="text-sm text-muted-foreground">No activity yet. Ka'h is ready to work.</p>
           </div>
         ) : (
           <ScrollArea className={compact ? "h-[200px]" : "h-[300px]"}>

@@ -6,7 +6,7 @@ const rows: { label: string; free: Cell; basic: Cell; agency: Cell; enterprise: 
   { label: "Brand Brains / Brands", free: "1", basic: "3", agency: "Unlimited", enterprise: "Unlimited" },
   { label: "AI Generations per Day", free: "5", basic: "100", agency: "Unlimited", enterprise: "Unlimited" },
   { label: "Templates", free: "Starter", basic: "All", agency: "All", enterprise: "All" },
-  { label: "K'ah Chat", free: true, basic: true, agency: true, enterprise: true },
+  { label: "Ka'h Chat", free: true, basic: true, agency: true, enterprise: true },
   { label: "Video Studio", free: false, basic: true, agency: true, enterprise: true },
   { label: "Video Studio Pro", free: false, basic: false, agency: true, enterprise: true },
   { label: "Campaign Factory", free: false, basic: true, agency: true, enterprise: true },

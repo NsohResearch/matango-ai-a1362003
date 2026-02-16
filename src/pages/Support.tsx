@@ -8,11 +8,11 @@ import matangoIcon from "@/assets/matango-icon.png";
 const resources = [
   {
     icon: MessageCircle,
-    title: "Ask K'ah — AI Assistant",
-    desc: "Get instant answers from K'ah, our AI-powered support assistant. Available 24/7 to help with platform questions.",
+    title: "Ask Ka'h — AI Assistant",
+    desc: "Get instant answers from Ka'h, our AI-powered support assistant. Available 24/7 to help with platform questions.",
     color: "from-gold-400 to-gold-600",
     link: "/meet-kah",
-    linkLabel: "Chat with K'ah",
+    linkLabel: "Chat with Ka'h",
     highlight: true,
   },
   {
@@ -80,7 +80,7 @@ const Support = () => {
             Support Resources
           </h1>
           <p className="mt-3 text-lg text-cream-100/70 max-w-lg">
-            Looking for something? We're here to help — and so is K'ah!
+            Looking for something? We're here to help — and so is Ka'h!
           </p>
         </div>
       </section>
@@ -94,7 +94,7 @@ const Support = () => {
                 <div className={`group bg-card border ${r.highlight ? 'border-gold-500/40 ring-1 ring-gold-500/20' : 'border-border'} rounded-xl overflow-hidden hover:border-gold-500/30 hover:shadow-luxury-sm transition-all h-full flex flex-col`}>
                   <div className={`h-32 bg-gradient-to-br ${r.color} flex items-center justify-center`}>
                     {r.highlight ? (
-                      <img src={matangoIcon} alt="K'ah" className="h-16 w-16 rounded-full ring-2 ring-white/30 object-cover" />
+                      <img src={matangoIcon} alt="Ka'h" className="h-16 w-16 rounded-full ring-2 ring-white/30 object-cover" />
                     ) : (
                       <r.icon className="h-12 w-12 text-white/90" strokeWidth={1.5} />
                     )}

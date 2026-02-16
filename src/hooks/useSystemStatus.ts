@@ -32,13 +32,13 @@ export function useSystemStatus() {
       /* 6 AAO & Automation  */ (brands?.length ?? 0) > 0 && (campaigns?.length ?? 0) > 0,
       /* 7 Publish & Schedule*/ (posts?.length ?? 0) > 0,
       /* 8 Scale & Customize */ false,
-      /* 9 K'ah              */ false,
+      /* 9 Ka'h              */ false,
     ];
 
     for (let i = 0; i < SYSTEM_STEPS.length; i++) {
       // Step 0 is always unlocked
       const previousComplete = i === 0 ? true : completions[i - 1];
-      // Special case: step 9 (K'ah) is accessible once step 0 is complete
+      // Special case: step 9 (Ka'h) is accessible once step 0 is complete
       const isKah = i === 9;
       const isUnlocked = i === 0 || previousComplete || (isKah && completions[0]);
 

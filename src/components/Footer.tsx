@@ -18,7 +18,7 @@ const Footer = () => {
             <span className="text-gold-500/30">·</span>
             <Link to="/pricing" className="hover:text-gold-400 transition-colors">Pricing</Link>
             <span className="text-gold-500/30">·</span>
-            <Link to="/meet-kah" className="hover:text-gold-400 transition-colors">Meet K'ah</Link>
+            <Link to="/meet-kah" className="hover:text-gold-400 transition-colors">Meet Ka'h</Link>
             <span className="text-gold-500/30">·</span>
             <Link to="/support" className="hover:text-gold-400 transition-colors">Support</Link>
             <span className="text-gold-500/30">·</span>

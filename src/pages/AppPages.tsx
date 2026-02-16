@@ -48,7 +48,7 @@ export const GenerationWorkspace = () => (
   <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Creator" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Gallery", to: "/asset-library" }]} />
 );
 export const Chat = () => (
-  <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Creator" alternatives={[{ label: "Try K'ah Chat", to: "/meet-kah" }]} />
+  <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Creator" alternatives={[{ label: "Try Ka'h Chat", to: "/meet-kah" }]} />
 );
 export const Discover = () => (
   <ComingSoonPage title="Discover" description="Explore AI influencer profiles, trending templates, and community creations." icon={Eye} tier="Free" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />

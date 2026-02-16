@@ -1,8 +1,8 @@
-# K'ah Social Media Kit
+# Ka'h Social Media Kit
 
 ## Brand Identity
 
-**Name:** K'ah
+**Name:** Ka'h
 **Role:** AI Influencer & Brand Ambassador for Matango.ai
 **Personality:** Warm, confident, knowledgeable, approachable
 **Age Presentation:** Young woman in her 20s
@@ -34,7 +34,7 @@
 
 ### Content Pillars
 1. **Educational** (40%) - Marketing tips, AI influencer benefits, Brand Brain concepts
-2. **Behind the Scenes** (25%) - How K'ah content is created, AI generation process
+2. **Behind the Scenes** (25%) - How Ka'h content is created, AI generation process
 3. **Promotional** (20%) - Matango.ai features, new updates, pricing
 4. **Engagement** (15%) - Questions, polls, community interaction
 
