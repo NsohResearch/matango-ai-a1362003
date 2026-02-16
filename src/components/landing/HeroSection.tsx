@@ -81,7 +81,7 @@ const HeroSection = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-8 text-sm italic text-cream-100/40 font-display text-lg"
+        className="mt-8 italic font-display text-lg text-cream-100/70"
       >
         "Marketing isn't about tools. It's about operators."
       </motion.p>
