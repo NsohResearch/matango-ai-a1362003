@@ -89,6 +89,12 @@ export default function PlanSelectionDrawer({ open, onOpenChange, origin = "onbo
   };
 
   const currentPlan = subscription.plan || "free";
+  const planOrder = ["free", "basic", "agency", "enterprise"];
+  const currentIndex = planOrder.indexOf(currentPlan);
+
+  const visiblePlans = origin === "onboarding"
+    ? plans
+    : plans.filter((p) => planOrder.indexOf(p.id) >= currentIndex);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -111,7 +117,7 @@ export default function PlanSelectionDrawer({ open, onOpenChange, origin = "onbo
         </div>
 
         <div className="space-y-4">
-          {plans.map((plan) => {
+          {visiblePlans.map((plan) => {
             const Icon = plan.icon;
             const price = plan.price === -1 ? null : billingCycle === "yearly" ? Math.round(plan.price * 0.8) : plan.price;
             const isCurrent = plan.id === currentPlan;
