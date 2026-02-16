@@ -34,11 +34,11 @@ export const AdminLayout = ({ children, title, description }: { children: React.
   return (
     <DashboardLayout>
       <div className="flex h-full">
-        <div className="w-52 border-r border-border p-3 space-y-1 shrink-0 flex flex-col">
+      <div className="w-52 border-r border-border bg-card p-3 space-y-1 shrink-0 flex flex-col">
           {/* Back to Dashboard */}
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mb-2"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors mb-2"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
           </Link>
@@ -55,7 +55,7 @@ export const AdminLayout = ({ children, title, description }: { children: React.
                     ? "text-muted-foreground/40 cursor-not-allowed"
                     : location.pathname === item.to
                     ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
                 <item.icon className="h-3.5 w-3.5" />
@@ -66,7 +66,7 @@ export const AdminLayout = ({ children, title, description }: { children: React.
           })}
           {isSuperAdmin && (
             <div className="mt-auto pt-3 border-t border-border">
-              <Badge variant="outline" className="text-[10px] text-gold-400 border-gold-400/30">Super Admin</Badge>
+              <Badge variant="outline" className="text-[10px] text-primary border-primary/30">Super Admin</Badge>
             </div>
           )}
         </div>

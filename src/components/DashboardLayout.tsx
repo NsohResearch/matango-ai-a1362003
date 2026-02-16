@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, UserCircle, Sparkles, Bell, Settings, ShieldCheck
+  LayoutDashboard, UserCircle, Sparkles, Bell, Settings, ShieldCheck, Sun, Moon
 } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
 import SystemProgress from "@/components/system/SystemProgress";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
 import { useUserRoles } from "@/hooks/useData";
+import { useTheme } from "@/hooks/useTheme";
 
 const utilItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -16,18 +17,19 @@ const utilItems = [
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { data: roles } = useUserRoles();
+  const { theme, toggleTheme } = useTheme();
   const isSystemPage = SYSTEM_STEPS.some((s) => location.pathname.startsWith(s.route));
   const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
 
   return (
-    <div className="flex h-screen" data-theme="dark">
+    <div className="flex h-screen">
       {/* Sidebar */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar overflow-y-auto">
         <div className="p-4 border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2">
             <img src={matangoIcon} alt="matango.ai" className="h-7 w-7 rounded-lg" />
             <span className="font-display text-sm font-semibold text-sidebar-foreground">
-              matango<span className="text-gold-400">.ai</span>
+              matango<span className="text-accent">.ai</span>
             </span>
           </Link>
         </div>
@@ -35,7 +37,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <nav className="flex-1 p-3 space-y-5">
           {/* The System — sequential steps */}
           <div>
-            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
               The System
             </span>
             <ul className="mt-1.5 space-y-0.5">
@@ -47,11 +49,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                       to={step.route}
                       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                         isActive
-                          ? "bg-sidebar-accent text-gold-400 font-medium"
-                          : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                          ? "bg-sidebar-accent text-sidebar-primary font-medium"
+                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                       }`}
                     >
-                      <span className="w-5 h-5 flex items-center justify-center rounded-full bg-sidebar-accent text-[10px] font-bold text-sidebar-foreground shrink-0">
+                      <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold shrink-0 ${
+                        isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground/70"
+                      }`}>
                         {step.id}
                       </span>
                       <step.icon className="h-4 w-4 shrink-0" />
@@ -65,7 +69,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
           {/* Utility */}
           <div>
-            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+            <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
               Manage
             </span>
             <ul className="mt-1.5 space-y-0.5">
@@ -77,8 +81,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                       to={item.to}
                       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                         isActive
-                          ? "bg-sidebar-accent text-gold-400 font-medium"
-                          : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                          ? "bg-sidebar-accent text-sidebar-primary font-medium"
+                          : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                       }`}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -93,7 +97,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {/* Admin Console — admin only */}
           {isAdminOrAbove && (
             <div>
-              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-cream-100/30">
+              <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                 Platform
               </span>
               <ul className="mt-1.5 space-y-0.5">
@@ -102,8 +106,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     to="/admin"
                     className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
                       location.pathname.startsWith("/admin")
-                        ? "bg-sidebar-accent text-gold-400 font-medium"
-                        : "text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent"
+                        ? "bg-sidebar-accent text-sidebar-primary font-medium"
+                        : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                     }`}
                   >
                     <ShieldCheck className="h-4 w-4 shrink-0" />
@@ -116,16 +120,24 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-0.5">
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          </button>
           <Link
             to="/meet-kah"
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
           >
             <Sparkles className="h-4 w-4" />
             Meet Ka'h
           </Link>
           <Link
             to="/account-settings"
-            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"
+            className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
           >
             <UserCircle className="h-4 w-4" />
             Account

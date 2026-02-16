@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/lib/i18n/context";
+import { ThemeProvider } from "@/hooks/useTheme";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -66,6 +67,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <I18nProvider>
+      <ThemeProvider>
       <AuthProvider>
         <BrandingBootstrap />
         <Toaster />
@@ -166,6 +168,7 @@ const App = () => (
           <IdleTimeoutWatcher />
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
       </I18nProvider>
     </TooltipProvider>
   </QueryClientProvider>
