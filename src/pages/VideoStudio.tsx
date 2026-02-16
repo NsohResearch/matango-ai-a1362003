@@ -441,10 +441,10 @@ const VideoStudioPage = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-accent/10" />
               <div className="relative px-8 py-12 lg:py-16 text-center">
                 <h1 className="font-display text-3xl lg:text-4xl font-bold mb-3">
-                  Describe your ideas and generate
+                  Describe your ideas and generate stunning videos.
                 </h1>
                 <p className="text-muted-foreground text-sm lg:text-base mb-8 max-w-xl mx-auto">
-                  Transform your words into visual masterpieces. Leverage AI technology to craft breathtaking videos.
+                  Transform your words into visual masterpieces. Leverage Matango's Advanced AI technology to craft breathtaking videos.
                 </p>
 
                 {/* Prompt Bar */}
@@ -471,7 +471,7 @@ const VideoStudioPage = () => {
 
             {/* Tool Cards */}
             <div className="mb-8">
-              <h2 className="font-display text-lg font-semibold mb-4">Video generation tools</h2>
+              <h2 className="font-display text-lg font-semibold mb-4">Video generation options</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {TOOL_CARDS.map((tool) => (
                   <button
