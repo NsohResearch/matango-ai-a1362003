@@ -35,9 +35,9 @@ const Dashboard = () => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="bg-card border border-border rounded-xl p-6 hover:border-gold-500/30 hover:shadow-luxury-sm transition-all group"
+                  className="bg-card border border-border rounded-xl p-6 hover:border-accent/30 hover:shadow-luxury-sm transition-all group"
                 >
-                  <link.icon className="h-8 w-8 text-gold-500 mb-3 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
+                  <link.icon className="h-8 w-8 text-accent mb-3 group-hover:scale-105 transition-transform" strokeWidth={1.5} />
                   <h3 className="font-display font-semibold text-card-foreground">{link.label}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{link.desc}</p>
                 </Link>
