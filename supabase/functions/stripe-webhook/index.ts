@@ -45,9 +45,17 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         logStep("Checkout completed", { customerId: session.customer, email: session.customer_email });
 
-        // Find user by email and update plan
+        // Determine plan from the subscription's product
         const email = session.customer_details?.email || session.customer_email;
-        if (email) {
+        if (email && session.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          const productId = subscription.items.data[0]?.price.product as string;
+          const PRODUCT_MAP: Record<string, string> = {
+            "prod_TyZk4lrpOZD0eE": "basic",
+            "prod_TyZkDIfLRosrEY": "agency",
+          };
+          const plan = PRODUCT_MAP[productId] || "basic";
+
           const { data: profile } = await supabaseAdmin
             .from("profiles")
             .select("user_id")
@@ -56,9 +64,9 @@ serve(async (req) => {
           if (profile) {
             await supabaseAdmin
               .from("profiles")
-              .update({ plan: "basic" })
+              .update({ plan })
               .eq("user_id", profile.user_id);
-            logStep("Profile updated to basic", { userId: profile.user_id });
+            logStep("Profile updated", { userId: profile.user_id, plan, productId });
           }
         }
         break;
@@ -70,12 +78,17 @@ serve(async (req) => {
 
         const customer = await stripe.customers.retrieve(sub.customer as string) as Stripe.Customer;
         if (customer.email) {
-          const plan = sub.status === "active" ? "basic" : "free";
+          const PRODUCT_MAP: Record<string, string> = {
+            "prod_TyZk4lrpOZD0eE": "basic",
+            "prod_TyZkDIfLRosrEY": "agency",
+          };
+          const productId = sub.items.data[0]?.price.product as string;
+          const plan = sub.status === "active" ? (PRODUCT_MAP[productId] || "basic") : "free";
           await supabaseAdmin
             .from("profiles")
             .update({ plan })
             .eq("email", customer.email);
-          logStep("Profile plan synced", { email: customer.email, plan });
+          logStep("Profile plan synced", { email: customer.email, plan, productId });
         }
         break;
       }
