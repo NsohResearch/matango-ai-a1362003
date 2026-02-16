@@ -8,7 +8,9 @@ import { Badge } from "@/components/ui/badge";
 // super_admin: full access to everything
 // admin: org-level management (tenants, moderation, leads, audit log, compliance, gdpr)
 // No access for team_member, read_only, user
-const SUPER_ADMIN_ONLY_ROUTES = ["/admin/feature-flags", "/admin/billing", "/admin/system-health", "/admin/integrations"];
+import { Video } from "lucide-react";
+
+const SUPER_ADMIN_ONLY_ROUTES = ["/admin/feature-flags", "/admin/billing", "/admin/system-health", "/admin/integrations", "/admin/video-providers"];
 
 const adminNav = [
   { to: "/admin", icon: BarChart3, label: "Overview", superOnly: false },
@@ -17,6 +19,7 @@ const adminNav = [
   { to: "/admin/feature-flags", icon: Flag, label: "Feature Flags", superOnly: true },
   { to: "/admin/audit-log", icon: ScrollText, label: "Audit Log", superOnly: false },
   { to: "/admin/integrations", icon: Plug, label: "Integrations", superOnly: true },
+  { to: "/admin/video-providers", icon: Video, label: "Video Providers", superOnly: true },
   { to: "/admin/system-health", icon: Cpu, label: "System Health", superOnly: true },
   { to: "/admin/moderation", icon: AlertTriangle, label: "Moderation", superOnly: false },
   { to: "/admin/compliance", icon: ShieldCheck, label: "Compliance", superOnly: false },
