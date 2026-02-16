@@ -2,19 +2,24 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useState } from "react";
 import {
   Plug, Server, Key, Route, BarChart3, Settings2,
-  Shield, ChevronRight, CheckCircle2, XCircle, Clock
+  Shield, CheckCircle2, XCircle, Clock
 } from "lucide-react";
 import {
-  useVideoProviders, useProviderModels, useRoutingRules
+  useVideoProviders, useAllProviderModels, useAllRoutingRules,
+  useToggleProvider, useToggleModel, useToggleRoutingRule
 } from "@/hooks/useVideoProviders";
+import { Switch } from "@/components/ui/switch";
 
 type Tab = "providers" | "models" | "routing" | "quotas" | "keys";
 
 const AdminVideoProviders = () => {
   const [tab, setTab] = useState<Tab>("providers");
   const { data: providers, isLoading: loadingProviders } = useVideoProviders();
-  const { data: models } = useProviderModels();
-  const { data: rules } = useRoutingRules();
+  const { data: models } = useAllProviderModels();
+  const { data: rules } = useAllRoutingRules();
+  const toggleProvider = useToggleProvider();
+  const toggleModel = useToggleModel();
+  const toggleRule = useToggleRoutingRule();
 
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: "providers", label: "Video Providers", icon: Plug },
@@ -94,7 +99,11 @@ const AdminVideoProviders = () => {
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <Switch
+                      checked={p.status === "active"}
+                      disabled={p.status === "coming_soon" || toggleProvider.isPending}
+                      onCheckedChange={() => toggleProvider.mutate({ id: p.id, status: p.status })}
+                    />
                   </div>
                 ))
               )}
@@ -118,7 +127,7 @@ const AdminVideoProviders = () => {
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Tier</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Modalities</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Max</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Enabled</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -134,11 +143,11 @@ const AdminVideoProviders = () => {
                       <td className="px-6 py-3 text-xs text-muted-foreground">{m.modalities?.join(", ")}</td>
                       <td className="px-6 py-3 text-xs text-muted-foreground">{m.max_seconds}s · {m.max_resolution}</td>
                       <td className="px-6 py-3">
-                        {m.is_enabled ? (
-                          <CheckCircle2 className="h-4 w-4 text-primary" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        <Switch
+                          checked={m.is_enabled}
+                          disabled={toggleModel.isPending}
+                          onCheckedChange={() => toggleModel.mutate({ id: m.id, is_enabled: m.is_enabled })}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -163,7 +172,7 @@ const AdminVideoProviders = () => {
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Quality Tier</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Primary Provider</th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Priority</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground">Active</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -176,11 +185,11 @@ const AdminVideoProviders = () => {
                       <td className="px-6 py-3 text-muted-foreground">{r.video_providers?.name || "—"}</td>
                       <td className="px-6 py-3 text-muted-foreground">{r.priority}</td>
                       <td className="px-6 py-3">
-                        {r.is_active ? (
-                          <CheckCircle2 className="h-4 w-4 text-primary" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        <Switch
+                          checked={r.is_active}
+                          disabled={toggleRule.isPending}
+                          onCheckedChange={() => toggleRule.mutate({ id: r.id, is_active: r.is_active })}
+                        />
                       </td>
                     </tr>
                   ))}
