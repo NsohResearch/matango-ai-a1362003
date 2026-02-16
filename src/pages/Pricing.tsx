@@ -273,7 +273,7 @@ const Pricing = () => {
                     {loadingCredit === pack.priceId ? (
                       <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                     ) : (
-                      "Buy Credits"
+                      "Top-up Credits"
                     )}
                   </button>
                 </div>
