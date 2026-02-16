@@ -48,13 +48,25 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found customer", { customerId });
 
-    // Check active or past_due subscriptions (past_due = still on plan, payment issue)
+    // Check active, past_due, or trialing subscriptions
     const subscriptions = await stripe.subscriptions.list({ customer: customerId, limit: 10 });
     const activeSub = subscriptions.data.find(s => s.status === "active" || s.status === "past_due" || s.status === "trialing");
     
     if (!activeSub) {
-      logStep("No active/past_due subscription");
-      return new Response(JSON.stringify({ subscribed: false, plan: "free" }), {
+      logStep("No active subscription in Stripe, checking profile override");
+      // Fall back to profile plan (supports manual overrides)
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("plan")
+        .eq("user_id", user.id)
+        .single();
+      const profilePlan = profile?.plan || "free";
+      const isOverridden = profilePlan !== "free";
+      logStep("Profile plan fallback", { profilePlan, isOverridden });
+      return new Response(JSON.stringify({ 
+        subscribed: isOverridden, 
+        plan: profilePlan 
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
