@@ -21,6 +21,13 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [greetingIdx, setGreetingIdx] = useState(0);
 
+  // Redirect already-authenticated users to dashboard
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate("/dashboard", { replace: true });
+    });
+  }, [navigate]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setGreetingIdx((i) => (i + 1) % WELCOME_GREETINGS.length);
@@ -30,7 +37,7 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: window.location.origin + "/dashboard",
     });
     if (error) {
       toast.error("Google sign-in failed. Please try again.");

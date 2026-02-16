@@ -10,6 +10,8 @@ import AdminRoute from "@/components/AdminRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import KahChatWidget from "@/components/KahChatWidget";
 import { useBrandingBootstrap } from "@/hooks/useBrandingBootstrap";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import { useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import NotFound from "./pages/NotFound";
@@ -50,6 +52,12 @@ const A = ({ children }: { children: React.ReactNode }) => (
 
 const BrandingBootstrap = () => {
   useBrandingBootstrap();
+  return null;
+};
+
+const IdleTimeoutWatcher = () => {
+  const { user } = useAuth();
+  useIdleTimeout(!!user);
   return null;
 };
 
@@ -155,6 +163,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <KahChatWidget />
+          <IdleTimeoutWatcher />
         </BrowserRouter>
       </AuthProvider>
       </I18nProvider>
