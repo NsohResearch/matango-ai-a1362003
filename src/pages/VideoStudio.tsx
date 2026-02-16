@@ -4,7 +4,7 @@ import {
   Video, Play, Loader2, Film, Clock, Wand2, X, Zap, Image, FileText,
   ChevronRight, Upload, CheckCircle2, Sparkles, Monitor, Lock, Copy,
   Eye, Trash2, Download, ArrowLeft, Send, Clapperboard, Scissors,
-  LayoutGrid, Plus
+  LayoutGrid, Plus, Mic, RotateCcw, Settings2, ChevronDown
 } from "lucide-react";
 import {
   useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob,
@@ -36,7 +36,8 @@ const StorageImageThumb = ({ urlOrPath, bucket }: { urlOrPath: string; bucket: s
   return src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full animate-pulse bg-muted" />;
 };
 
-type View = "home" | "text-to-video" | "image-to-video" | "my-videos";
+type View = "home" | "text-to-video" | "image-to-video" | "audio-to-video" | "retake" | "my-videos";
+type GenerationTier = "fast" | "balanced" | "cinematic";
 type ItvStep = "upload" | "train" | "generate" | "gallery";
 type ItvSourceTab = "upload" | "generate";
 
@@ -56,12 +57,32 @@ const TOOL_CARDS = [
     gradient: "from-accent/30 to-accent/5",
   },
   {
+    id: "audio-to-video" as View,
+    icon: Mic,
+    label: "Audio to Video",
+    desc: "Drive video generation from voice or music",
+    gradient: "from-primary/20 to-accent/10",
+  },
+  {
+    id: "retake" as View,
+    icon: RotateCcw,
+    label: "Retake / Edit Video",
+    desc: "Re-edit segments of existing videos",
+    gradient: "from-secondary to-muted",
+  },
+  {
     id: "my-videos" as View,
     icon: Film,
     label: "My Videos",
     desc: "Browse and manage your generated videos",
     gradient: "from-muted to-secondary",
   },
+];
+
+const GENERATION_TIERS: { id: GenerationTier; label: string; desc: string }[] = [
+  { id: "fast", label: "Fast", desc: "Quick preview, lower fidelity" },
+  { id: "balanced", label: "Balanced", desc: "Good quality, reasonable speed" },
+  { id: "cinematic", label: "Cinematic", desc: "Highest quality, slower render" },
 ];
 
 const VideoStudioPage = () => {
@@ -81,6 +102,10 @@ const VideoStudioPage = () => {
 
   const [view, setView] = useState<View>(scriptId ? "text-to-video" : "home");
   const [quickPrompt, setQuickPrompt] = useState("");
+  const [showTierPicker, setShowTierPicker] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<GenerationTier>("balanced");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState("auto");
 
   // Script to Video form
   const [stv, setStv] = useState({
@@ -291,7 +316,12 @@ const VideoStudioPage = () => {
 
   const handleQuickGenerate = () => {
     if (!quickPrompt.trim()) return;
-    toast.info("Quick generation coming soon — use Text to Video for full controls.");
+    setShowTierPicker(true);
+  };
+
+  const handleTierConfirm = () => {
+    setShowTierPicker(false);
+    toast.info(`Routing to Text to Video (${selectedTier} tier)`);
     setView("text-to-video");
   };
 
@@ -465,6 +495,41 @@ const VideoStudioPage = () => {
                       <Plus className="h-4 w-4" /> Generate
                     </button>
                   </div>
+
+                  {/* Tier Picker Inline */}
+                  {showTierPicker && (
+                    <div className="mt-4 max-w-2xl mx-auto">
+                      <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+                        <p className="text-sm font-medium mb-3">Choose generation tier</p>
+                        <div className="grid grid-cols-3 gap-2 mb-3">
+                          {GENERATION_TIERS.map((tier) => (
+                            <button
+                              key={tier.id}
+                              onClick={() => setSelectedTier(tier.id)}
+                              className={`p-3 rounded-lg border text-left transition-all ${
+                                selectedTier === tier.id
+                                  ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                                  : "border-border hover:border-primary/40"
+                              }`}
+                            >
+                              <div className="text-sm font-semibold">{tier.label}</div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">{tier.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => setShowTierPicker(false)}
+                            className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground">
+                            Cancel
+                          </button>
+                          <button onClick={handleTierConfirm}
+                            className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90">
+                            Generate →
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -472,7 +537,7 @@ const VideoStudioPage = () => {
             {/* Tool Cards */}
             <div className="mb-8">
               <h2 className="font-display text-lg font-semibold mb-4">Video generation options</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {TOOL_CARDS.map((tool) => (
                   <button
                     key={tool.id}
@@ -618,6 +683,27 @@ const VideoStudioPage = () => {
                 onPresetChange={(v) => setStv((f) => ({ ...f, format_preset: v }))}
                 onQualityChange={(v) => setStv((f) => ({ ...f, quality: v }))}
               />
+
+              {/* Advanced Options */}
+              <div className="rounded-xl border border-border mt-4">
+                <button onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                  <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+                </button>
+                {showAdvanced && (
+                  <div className="px-4 pb-4 space-y-3">
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
+                      <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="auto">Auto (Recommended)</option>
+                      </select>
+                      <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="flex items-center gap-3 mt-4">
                 <button onClick={handleScriptToVideo} disabled={createJob.isPending || !stv.script_id}
@@ -892,6 +978,28 @@ const VideoStudioPage = () => {
                   <FormatQualityPanel preset={itv.format_preset} quality={itv.quality}
                     onPresetChange={(v) => setItv((f) => ({ ...f, format_preset: v }))}
                     onQualityChange={(v) => setItv((f) => ({ ...f, quality: v as VideoQuality }))} />
+
+                  {/* Advanced Options */}
+                  <div className="rounded-xl border border-border mt-4">
+                    <button onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+                    </button>
+                    {showAdvanced && (
+                      <div className="px-4 pb-4 space-y-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
+                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="auto">Auto (Recommended)</option>
+                          </select>
+                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-3">
                       <button onClick={handleGenerateVideo} disabled={itvGenerating}
@@ -1014,6 +1122,114 @@ const VideoStudioPage = () => {
                   )}
                 </div>
               )}
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════════ AUDIO TO VIDEO ═══════════════════════ */}
+        {view === "audio-to-video" && (
+          <>
+            <SubViewHeader title="Audio to Video" icon={Mic} />
+            <div className="glass-card rounded-xl p-6 lg:p-8 border border-primary/20">
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Mic className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-display text-xl font-bold mb-2">Audio-Driven Video Generation</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+                  Upload a voiceover, music track, or audio clip to drive AI video generation synced to the audio's rhythm and speech.
+                </p>
+                <div className="max-w-md mx-auto space-y-4">
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors bg-secondary/30">
+                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Drag audio here or <span className="text-primary font-medium underline underline-offset-2">click to upload</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A up to 50MB</p>
+                  </div>
+
+                  {/* Advanced Options */}
+                  <div className="rounded-xl border border-border">
+                    <button onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+                    </button>
+                    {showAdvanced && (
+                      <div className="px-4 pb-4 space-y-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
+                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="auto">Auto (Recommended)</option>
+                          </select>
+                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-muted/50 rounded-lg px-4 py-3 text-xs text-muted-foreground">
+                    Audio to Video is coming soon. This mode will support voiceover-driven lip-sync, music visualization, and audio-reactive motion.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════════ RETAKE / EDIT ═══════════════════════ */}
+        {view === "retake" && (
+          <>
+            <SubViewHeader title="Retake / Edit Video" icon={RotateCcw} />
+            <div className="glass-card rounded-xl p-6 lg:p-8 border border-primary/20">
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Scissors className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-display text-xl font-bold mb-2">Re-Edit & Retake Segments</h3>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+                  Upload an existing video or select from My Videos, choose a segment, describe your edit, and regenerate just that portion.
+                </p>
+                <div className="max-w-lg mx-auto space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors bg-secondary/30">
+                      <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground font-medium">Upload Video</p>
+                    </div>
+                    <button onClick={() => setView("my-videos")}
+                      className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors bg-secondary/30">
+                      <Film className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground font-medium">Select from My Videos</p>
+                    </button>
+                  </div>
+
+                  {/* Advanced Options */}
+                  <div className="rounded-xl border border-border">
+                    <button onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
+                    </button>
+                    {showAdvanced && (
+                      <div className="px-4 pb-4 space-y-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
+                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="auto">Auto (Recommended)</option>
+                          </select>
+                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-muted/50 rounded-lg px-4 py-3 text-xs text-muted-foreground">
+                    Retake mode is coming soon. You'll be able to select time segments, prompt edits, and regenerate portions with full version history in Recent Creations.
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         )}
