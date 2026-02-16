@@ -18,6 +18,62 @@ export function useVideoProviders() {
   });
 }
 
+export function useToggleProvider() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const newStatus = status === "active" ? "inactive" : "active";
+      const { error } = await supabase
+        .from("video_providers" as any)
+        .update({ status: newStatus } as any)
+        .eq("id", id);
+      if (error) throw error;
+      return newStatus;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["video-providers"] });
+      toast.success("Provider status updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}
+
+export function useToggleModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_enabled }: { id: string; is_enabled: boolean }) => {
+      const { error } = await supabase
+        .from("provider_models" as any)
+        .update({ is_enabled: !is_enabled } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["provider-models"] });
+      toast.success("Model status updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}
+
+export function useToggleRoutingRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from("provider_routing_rules" as any)
+        .update({ is_active: !is_active } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["routing-rules"] });
+      toast.success("Routing rule updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}
+
 // ── Provider Models ──────────────────────────────────────
 export function useProviderModels(providerId?: string) {
   return useQuery({
@@ -30,6 +86,34 @@ export function useProviderModels(providerId?: string) {
         .order("display_name");
       if (providerId) query = query.eq("provider_id", providerId);
       const { data, error } = await query;
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+}
+
+export function useAllProviderModels() {
+  return useQuery({
+    queryKey: ["provider-models", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("provider_models" as any)
+        .select("*, video_providers(*)")
+        .order("display_name");
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+}
+
+export function useAllRoutingRules() {
+  return useQuery({
+    queryKey: ["routing-rules", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("provider_routing_rules" as any)
+        .select("*, video_providers(*)")
+        .order("priority", { ascending: false });
       if (error) throw error;
       return (data || []) as any[];
     },
