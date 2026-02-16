@@ -12,7 +12,7 @@ import DangerZonePanel from "@/components/DangerZonePanel";
 import { useTheme } from "@/hooks/useTheme";
 
 const AccountSettingsPage = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, subscription } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { theme, setTheme, osPreference } = useTheme();
   const [tab, setTab] = useState("profile");
@@ -21,6 +21,20 @@ const AccountSettingsPage = () => {
   const [exporting, setExporting] = useState(false);
   const [deletionRequested, setDeletionRequested] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to open subscription portal");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
 
   const handleChangePassword = async () => {
     if (!user?.email) return;
@@ -182,6 +196,15 @@ const AccountSettingsPage = () => {
                         </Button>
                       </div>
                     </div>
+                    {subscription.subscribed && (
+                      <div className="mb-4">
+                        <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={openingPortal}>
+                          {openingPortal ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                          Manage Subscription
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-1">Change plan, update payment method, or cancel</p>
+                      </div>
+                    )}
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <p>• Free: 50 credits/month (5/day limit)</p>
                       <p>• Basic ($199/mo): 500 credits/month</p>
