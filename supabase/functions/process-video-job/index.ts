@@ -76,19 +76,25 @@ const LTX_ADAPTER: ProviderAdapter = {
 // ── OpenAI Sora Adapter ──
 const SORA_ADAPTER: ProviderAdapter = {
   async submit(params, apiKey) {
-    const payload: Record<string, unknown> = {
-      model: (params.model_key as string) || "sora",
-      prompt: params.prompt || (params.input_refs as any)?.prompt || "A cinematic video",
-      duration: params.duration || 5,
-      resolution: params.resolution || "1080p",
+    const model = (params.model_key as string) || "sora-2";
+    const prompt = params.prompt || (params.input_refs as any)?.prompt || "A cinematic video";
+    const seconds = params.duration || 8;
+
+    // Map resolution to pixel size
+    const sizeMap: Record<string, string> = {
+      "720p": "1280x720", "1080p": "1920x1080",
     };
+    const rawRes = (params.resolution as string) || "1080p";
+    const size = sizeMap[rawRes.toLowerCase()] || "1280x720";
+
+    const payload: Record<string, unknown> = { model, prompt, seconds, size };
 
     if (params.job_type === "image-to-video" && params.resolved_image_url) {
       payload.image_url = params.resolved_image_url;
     }
 
     console.log("Sora submit:", JSON.stringify(payload));
-    const res = await fetch("https://api.openai.com/v1/video/generations", {
+    const res = await fetch("https://api.openai.com/v1/videos", {
       method: "POST",
       headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -106,15 +112,16 @@ const SORA_ADAPTER: ProviderAdapter = {
   },
 
   async poll(taskId, apiKey) {
-    const res = await fetch(`https://api.openai.com/v1/video/generations/${taskId}`, {
+    const res = await fetch(`https://api.openai.com/v1/videos/${taskId}`, {
       headers: { "Authorization": `Bearer ${apiKey}` },
     });
     if (!res.ok) return { status: "processing", progress: 0 };
     const data = await res.json();
+    const status = data.status;
     return {
-      status: data.status === "succeeded" || data.status === "completed" ? "completed" : data.status === "failed" ? "failed" : "processing",
-      progress: data.progress || (data.status === "completed" ? 100 : 50),
-      videoUrl: data.output?.url || data.video_url,
+      status: status === "succeeded" || status === "completed" ? "completed" : status === "failed" ? "failed" : "processing",
+      progress: data.progress || (status === "completed" || status === "succeeded" ? 100 : 50),
+      videoUrl: data.output?.url || data.video_url || data.result_url,
       error: data.error?.message || data.error,
     };
   },
