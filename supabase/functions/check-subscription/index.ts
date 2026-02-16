@@ -48,19 +48,21 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found customer", { customerId });
 
-    const subscriptions = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
+    // Check active or past_due subscriptions (past_due = still on plan, payment issue)
+    const subscriptions = await stripe.subscriptions.list({ customer: customerId, limit: 10 });
+    const activeSub = subscriptions.data.find(s => s.status === "active" || s.status === "past_due" || s.status === "trialing");
     
-    if (subscriptions.data.length === 0) {
-      logStep("No active subscription");
+    if (!activeSub) {
+      logStep("No active/past_due subscription");
       return new Response(JSON.stringify({ subscribed: false, plan: "free" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const sub = subscriptions.data[0];
+    const sub = activeSub;
     const productId = sub.items.data[0].price.product as string;
     const subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
-    logStep("Active subscription", { productId, subscriptionEnd });
+    logStep("Found subscription", { productId, subscriptionEnd, status: sub.status });
 
     // Map product IDs to plan names
     const PRODUCT_MAP: Record<string, string> = {
