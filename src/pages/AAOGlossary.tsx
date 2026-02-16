@@ -9,7 +9,7 @@ const AAO_TYPES = [
     id: "content", name: "Content AAO", icon: Sparkles, color: "bg-purple-500",
     description: "Generates and optimizes marketing content across all channels",
     capabilities: ["Blog posts and articles", "Social media posts", "Email sequences", "Ad copy variations", "Landing page content", "Video scripts"],
-    example: "K'ah generates 50 LinkedIn post variations from your Brand Brain, A/B tests them, and learns which hooks resonate with your ICP.",
+    example: "Ka'h generates 50 LinkedIn post variations from your Brand Brain, A/B tests them, and learns which hooks resonate with your ICP.",
   },
   {
     id: "engagement", name: "Engagement AAO", icon: MessageSquare, color: "bg-blue-500",
@@ -41,7 +41,7 @@ const GLOSSARY = [
   { term: "AAO", definition: "AI-Amplified Operator — an autonomous agent that executes marketing tasks using your Brand Brain as its directive engine." },
   { term: "Brand Brain", definition: "The central knowledge base containing brand voice, ICP personas, differentiators, claims/proof, and forbidden phrases." },
   { term: "One Loop", definition: "Matango's unified workflow: Build → Create → Publish → Analyze → Optimize, powered by a single Brand Brain." },
-  { term: "K'ah", definition: "Matango's first AI influencer and system operator, embodying the AAO concept in action." },
+  { term: "Ka'h", definition: "Matango's first AI influencer and system operator, embodying the AAO concept in action." },
   { term: "ICP", definition: "Ideal Customer Profile — the detailed persona definitions stored in Brand Brain that guide all content targeting." },
   { term: "Growth Loop", definition: "The continuous cycle of content creation, publishing, analysis, and optimization that drives compounding growth." },
   { term: "Operatorware", definition: "Software that deploys AI operators rather than just tools — the category Matango defines." },

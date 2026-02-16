@@ -20,7 +20,7 @@ export const SYSTEM_STEPS: SystemStep[] = [
   { id: 6, title: "AAO & Automation", short: "AAO", route: "/aao-studio", icon: Zap },
   { id: 7, title: "Publish & Schedule", short: "Publish", route: "/schedule", icon: Calendar },
   { id: 8, title: "Scale & Customize", short: "Scale", route: "/white-label", icon: Settings },
-  { id: 9, title: "Meet K'ah", short: "K'ah", route: "/meet-kah", icon: Sparkles },
+  { id: 9, title: "Meet Ka'h", short: "Ka'h", route: "/meet-kah", icon: Sparkles },
 ];
 
 /** Determine which step ID corresponds to a given pathname */

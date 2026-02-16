@@ -121,7 +121,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-cream-100/50 hover:text-cream-50 hover:bg-sidebar-accent transition-colors"
           >
             <Sparkles className="h-4 w-4" />
-            Meet K'ah
+            Meet Ka'h
           </Link>
           <Link
             to="/account-settings"

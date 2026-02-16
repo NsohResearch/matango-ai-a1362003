@@ -1,4 +1,4 @@
-# K'ah TikTok Content - Week 1
+# Ka'h TikTok Content - Week 1
 
 ## Day 1 (Monday) - Hook Video
 

@@ -1,11 +1,11 @@
-# K'ah Instagram Content - Week 1
+# Ka'h Instagram Content - Week 1
 
 ## Day 1 (Monday) - Introduction Post
 
-**Image:** Use K'ah hero image
+**Image:** Use Ka'h hero image
 
 **Caption:**
-Hey, I'm K'ah 👋
+Hey, I'm Ka'h 👋
 
 I'm not your typical influencer. I was created entirely using AI—the same tools you can use at Matango.ai.
 

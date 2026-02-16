@@ -21,7 +21,7 @@ const plans = [
     key: "free",
     desc: "Get started with AI marketing.",
     tagline: "Best for exploration and testing.",
-    features: ["1 Brand Brain", "5 AI generations/day", "Starter templates", "K'ah Chat assistant", "Community support"],
+    features: ["1 Brand Brain", "5 AI generations/day", "Starter templates", "Ka'h Chat assistant", "Community support"],
     limits: ["No Video Studio", "No AAO automation", "Matango branding"],
     cta: "Start Free",
     highlighted: false,

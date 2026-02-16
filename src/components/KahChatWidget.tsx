@@ -11,7 +11,7 @@ interface Message {
 const KahChatWidget = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hello! I'm K'ah, your AI marketing guide. Ask me anything about Matango.ai or AI-powered marketing." },
+    { role: "assistant", content: "Hello! I'm Ka'h, your AI marketing guide. Ask me anything about Matango.ai or AI-powered marketing." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,7 +54,7 @@ const KahChatWidget = () => {
             <div className="flex items-center gap-2">
               <img src={matangoIcon} alt="Matango" className="w-8 h-8 rounded-full ring-1 ring-gold-500/40 object-cover" />
               <div>
-                <h4 className="text-sm font-semibold text-cream-50">K'ah</h4>
+                <h4 className="text-sm font-semibold text-cream-50">Ka'h</h4>
                 <p className="text-[10px] text-cream-100/40">Your AI Marketing Guide</p>
               </div>
             </div>
@@ -85,7 +85,7 @@ const KahChatWidget = () => {
             <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex gap-2">
               <input value={input} onChange={(e) => setInput(e.target.value)}
                 className="flex-1 rounded-lg border border-emerald-700/50 bg-emerald-800/30 px-3 py-2 text-sm text-cream-50 placeholder:text-cream-100/30 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
-                placeholder="Ask K'ah anything..." />
+                placeholder="Ask Ka'h anything..." />
               <button type="submit" disabled={loading || !input.trim()}
                 className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
                 <Send className="h-4 w-4" />

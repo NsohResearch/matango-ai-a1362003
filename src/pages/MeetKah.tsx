@@ -33,10 +33,10 @@ const MeetKah = () => (
               Your First AI-Amplified Operator
             </div>
             <h1 className="font-display text-5xl md:text-6xl font-semibold text-cream-50 leading-tight">
-              Meet <span className="text-gradient-accent italic">K'ah</span>
+              Meet <span className="text-gradient-accent italic">Ka'h</span>
             </h1>
             <p className="mt-4 text-lg text-cream-100/60 font-body max-w-md">
-              Your brand already has roots. K'ah helps them spread — generating campaigns, publishing content, and optimizing strategy while you sleep.
+              Your brand already has roots. Ka'h helps them spread — generating campaigns, publishing content, and optimizing strategy while you sleep.
             </p>
             <blockquote className="mt-6 border-l-2 border-gold-500/40 pl-4 text-cream-100/50 italic font-display text-lg">
               "Marketing isn't about tools. It's about operators."
@@ -46,7 +46,7 @@ const MeetKah = () => (
                 to="/auth?mode=signup"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-primary-foreground hover:shadow-luxury transition-all"
               >
-                Deploy K'ah Now <ArrowRight className="h-4 w-4" />
+                Deploy Ka'h Now <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </motion.div>
@@ -61,7 +61,7 @@ const MeetKah = () => (
               <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-gold-500/20 to-emerald-500/20 blur-xl" />
               <img
                 src={kahHero}
-                alt="K'ah — AI-Amplified Operator"
+                alt="Ka'h — AI-Amplified Operator"
                 className="relative rounded-3xl w-full max-w-md shadow-2xl ring-1 ring-white/10"
               />
             </div>
@@ -72,7 +72,7 @@ const MeetKah = () => (
       {/* Capabilities */}
       <section className="py-20 px-6 bg-background">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="font-display text-3xl font-semibold text-center mb-12">What K'ah Does</h2>
+          <h2 className="font-display text-3xl font-semibold text-center mb-12">What Ka'h Does</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             {capabilities.map((c, i) => (
               <motion.div
