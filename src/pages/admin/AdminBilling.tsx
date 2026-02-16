@@ -13,6 +13,7 @@ const statusColors: Record<string, string> = {
   past_due: "bg-destructive/20 text-destructive",
   canceled: "bg-muted text-muted-foreground",
   free: "bg-secondary text-muted-foreground",
+  basic: "bg-primary/20 text-primary",
 };
 
 export default function AdminBilling() {
@@ -41,16 +42,16 @@ export default function AdminBilling() {
     return acc;
   }, {} as Record<string, number>);
 
-  const basicCount = planCounts["basic"] || 0;
+  const creatorCount = planCounts["basic"] || 0;
   const agencyCount = planCounts["agency"] || 0;
-  const mrr = basicCount * 199 + agencyCount * 399;
+  const mrr = creatorCount * 199 + agencyCount * 399;
 
   return (
     <AdminLayout title="Billing" description="Manage subscriptions and revenue.">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">MRR</p><p className="text-2xl font-bold font-display">${mrr.toLocaleString()}</p></CardContent></Card>
         <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">ARR</p><p className="text-2xl font-bold font-display">${(mrr * 12).toLocaleString()}</p></CardContent></Card>
-        <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Paid Users</p><p className="text-2xl font-bold font-display">{basicCount + agencyCount}</p></CardContent></Card>
+        <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Paid Users</p><p className="text-2xl font-bold font-display">{creatorCount + agencyCount}</p></CardContent></Card>
         <Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Total Users</p><p className="text-2xl font-bold font-display">{profiles.length}</p></CardContent></Card>
       </div>
 
@@ -88,7 +89,7 @@ export default function AdminBilling() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className={statusColors[p.plan || "free"]}>{p.plan || "free"}</Badge>
+                    <Badge className={statusColors[p.plan || "free"]}>{p.plan === "basic" ? "Creator" : p.plan || "free"}</Badge>
                     <span className="text-xs text-muted-foreground">{p.credits} credits</span>
                   </div>
                 </div>

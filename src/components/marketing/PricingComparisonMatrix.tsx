@@ -5,7 +5,7 @@ type Cell = boolean | string;
 const rows: { label: string; free: Cell; basic: Cell; agency: Cell; enterprise: Cell }[] = [
   { label: "Brand Brains / Brands", free: "1", basic: "3", agency: "Unlimited", enterprise: "Unlimited" },
   { label: "AI Generations per Day", free: "5", basic: "100", agency: "Unlimited", enterprise: "Unlimited" },
-  { label: "Templates", free: "Basic", basic: "All", agency: "All", enterprise: "All" },
+  { label: "Templates", free: "Starter", basic: "All", agency: "All", enterprise: "All" },
   { label: "K'ah Chat", free: true, basic: true, agency: true, enterprise: true },
   { label: "Video Studio", free: false, basic: true, agency: true, enterprise: true },
   { label: "Video Studio Pro", free: false, basic: false, agency: true, enterprise: true },
@@ -39,7 +39,7 @@ const PricingComparisonMatrix = () => (
           <tr className="border-b border-border bg-muted/30">
             <th className="text-left px-4 py-3 font-medium text-muted-foreground sticky left-0 bg-muted/30 z-10 min-w-[180px]">Feature</th>
             <th className="px-4 py-3 font-medium text-center">Free</th>
-            <th className="px-4 py-3 font-medium text-center text-primary">Basic</th>
+            <th className="px-4 py-3 font-medium text-center text-primary">Creator</th>
             <th className="px-4 py-3 font-medium text-center">Agency</th>
             <th className="px-4 py-3 font-medium text-center">Agency++</th>
           </tr>

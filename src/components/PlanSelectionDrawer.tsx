@@ -28,11 +28,11 @@ const STRIPE_PLANS = {
 const plans = [
   {
     id: "free", name: "Free", price: 0, desc: "Get started with AI marketing",
-    icon: Zap, features: ["1 Brand Brain", "5 AI generations/day", "Basic templates", "Community support"],
+    icon: Zap, features: ["1 Brand Brain", "5 AI generations/day", "Starter templates", "Community support"],
     limits: ["No video studio", "No bulk create", "Matango branding"],
   },
   {
-    id: "basic", name: "Basic", price: 199, desc: "For serious solopreneurs",
+    id: "basic", name: "Creator", price: 199, desc: "For creators building AI-driven content brands",
     icon: Star, popular: true,
     features: ["3 Brand Brains", "100 AI generations/day", "Video Studio", "All templates", "Priority support", "Remove branding"],
     limits: ["No white label", "No team features"],

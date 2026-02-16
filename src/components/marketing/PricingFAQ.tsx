@@ -4,7 +4,7 @@ const faqs = [
   { q: "What counts as an AI generation?", a: "Any structured AI output including copy, scripts, or creative assets." },
   { q: "What is a Brand Brain?", a: "A persistent brand memory containing ICP, voice, and campaign intelligence." },
   { q: "What are AAOs?", a: "AI-Amplified Operators — role-based agents executing defined marketing workflows." },
-  { q: "Does Basic include Video Studio?", a: "Yes. Video Studio is included. Video Studio Pro is Agency and above." },
+  { q: "Does Creator include Video Studio?", a: "Yes. Video Studio is included. Video Studio Pro is Agency and above." },
   { q: "What does white label include?", a: "Removal of Matango branding and custom brand presentation." },
   { q: "Can I upgrade or downgrade anytime?", a: "Yes. Plan changes take effect at the next billing cycle." },
   { q: "Is there an API?", a: "API access is included in Agency and Agency++." },
