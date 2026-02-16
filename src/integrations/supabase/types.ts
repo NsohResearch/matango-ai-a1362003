@@ -2012,8 +2012,10 @@ export type Database = {
       }
       provider_models: {
         Row: {
+          cost_multiplier: number | null
           created_at: string
           display_name: string
+          fallback_priority: number | null
           id: string
           is_enabled: boolean
           max_resolution: string | null
@@ -2025,8 +2027,10 @@ export type Database = {
           quality_tier: string
         }
         Insert: {
+          cost_multiplier?: number | null
           created_at?: string
           display_name: string
+          fallback_priority?: number | null
           id?: string
           is_enabled?: boolean
           max_resolution?: string | null
@@ -2038,8 +2042,10 @@ export type Database = {
           quality_tier?: string
         }
         Update: {
+          cost_multiplier?: number | null
           created_at?: string
           display_name?: string
+          fallback_priority?: number | null
           id?: string
           is_enabled?: boolean
           max_resolution?: string | null
@@ -2928,11 +2934,17 @@ export type Database = {
       }
       video_providers: {
         Row: {
+          allowed_plans: string[] | null
+          business_status_reason: string | null
+          cost_multiplier: number | null
           created_at: string
+          global_status: string
           id: string
           logo_url: string | null
           name: string
           provider_type: string
+          region_constraints: string[] | null
+          sla_tier: string | null
           slug: string
           status: string
           supports_a2v: boolean
@@ -2942,11 +2954,17 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          allowed_plans?: string[] | null
+          business_status_reason?: string | null
+          cost_multiplier?: number | null
           created_at?: string
+          global_status?: string
           id?: string
           logo_url?: string | null
           name: string
           provider_type?: string
+          region_constraints?: string[] | null
+          sla_tier?: string | null
           slug: string
           status?: string
           supports_a2v?: boolean
@@ -2956,11 +2974,17 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          allowed_plans?: string[] | null
+          business_status_reason?: string | null
+          cost_multiplier?: number | null
           created_at?: string
+          global_status?: string
           id?: string
           logo_url?: string | null
           name?: string
           provider_type?: string
+          region_constraints?: string[] | null
+          sla_tier?: string | null
           slug?: string
           status?: string
           supports_a2v?: boolean
