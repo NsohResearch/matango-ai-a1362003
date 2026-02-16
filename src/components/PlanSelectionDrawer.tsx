@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Check, X, Zap, Crown, Building2, Star, ArrowRight, Loader2 } from "lucide-react";
+import { getTierCTA, getUpgradeCTA } from "@/config/pricingTiers";
 
 interface PlanSelectionDrawerProps {
   open: boolean;
@@ -101,10 +102,10 @@ export default function PlanSelectionDrawer({ open, onOpenChange, origin = "onbo
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="font-display text-2xl">
-            {origin === "onboarding" ? "Choose Your Plan" : "Upgrade Your Plan"}
+            {origin === "onboarding" ? "Choose Your Plan" : "Launch Your Next Level"}
           </SheetTitle>
           <SheetDescription>
-            {origin === "onboarding" ? "Start free, upgrade anytime." : "Unlock more capabilities for your growth loop."}
+            {origin === "onboarding" ? "Start free, launch anytime." : "Scale your growth loop with the next tier."}
           </SheetDescription>
         </SheetHeader>
 
@@ -161,7 +162,7 @@ export default function PlanSelectionDrawer({ open, onOpenChange, origin = "onbo
                     onClick={() => handleSelectPlan(plan.id)}
                   >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                    {isCurrent ? "Current Plan" : plan.id === "free" ? "Start Free" : plan.id === "enterprise" ? "Contact Sales" : "Subscribe"}
+                    {getTierCTA(plan.id, currentPlan)}
                     {!isCurrent && !isLoading && <ArrowRight className="h-4 w-4 ml-1" />}
                   </Button>
                 </CardContent>
