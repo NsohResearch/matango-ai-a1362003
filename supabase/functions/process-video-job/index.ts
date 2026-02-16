@@ -78,7 +78,11 @@ const SORA_ADAPTER: ProviderAdapter = {
   async submit(params, apiKey) {
     const model = (params.model_key as string) || "sora-2";
     const prompt = params.prompt || (params.input_refs as any)?.prompt || "A cinematic video";
-    const seconds = params.duration || 8;
+    // Sora API requires seconds as a string: "4", "8", or "12"
+    const rawDuration = Number(params.duration) || 8;
+    const validDurations = [4, 8, 12];
+    const closestDuration = validDurations.reduce((prev, curr) => Math.abs(curr - rawDuration) < Math.abs(prev - rawDuration) ? curr : prev);
+    const seconds = String(closestDuration);
 
     // Map resolution to pixel size
     const sizeMap: Record<string, string> = {
