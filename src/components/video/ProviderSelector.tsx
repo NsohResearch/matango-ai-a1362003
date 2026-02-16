@@ -1,4 +1,5 @@
-import { Settings2, ChevronDown, Shield, Zap } from "lucide-react";
+import { Settings2, ChevronDown, Shield, Zap, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useVideoProviders, useProviderModels } from "@/hooks/useVideoProviders";
 
@@ -106,6 +107,20 @@ const ProviderSelector = ({
                 </option>
               ))}
             </select>
+            {selectedProvider === "auto" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground mt-1 cursor-help">
+                      <Info className="h-3 w-3" /> Powered by OpenAI Sora
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    Auto mode uses OpenAI Sora as the default video generation engine.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
               <Zap className="h-3 w-3" /> Provider auto-selected based on tier, modality & availability.
             </p>
