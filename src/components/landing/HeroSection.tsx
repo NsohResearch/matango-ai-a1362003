@@ -77,21 +77,21 @@ const HeroSection = () => {
         <p className="mt-3 text-sm text-gold-400 font-display text-center">Hi, I am Ka'h</p>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.7 }}
-        className="mt-8 gold-divider w-48"
-      />
-
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-6 text-sm italic text-cream-100/40 font-display text-lg"
+        className="mt-8 text-sm italic text-cream-100/40 font-display text-lg"
       >
         "Marketing isn't about tools. It's about operators."
       </motion.p>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="mt-4 gold-divider w-48"
+      />
     </section>
   );
 };
