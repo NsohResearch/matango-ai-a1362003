@@ -1782,6 +1782,51 @@ export type Database = {
         }
         Relationships: []
       }
+      org_provider_keys: {
+        Row: {
+          created_at: string
+          encrypted_secret_ref: string
+          id: string
+          is_active: boolean
+          last_rotated_at: string | null
+          org_id: string
+          provider_id: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_secret_ref: string
+          id?: string
+          is_active?: boolean
+          last_rotated_at?: string | null
+          org_id: string
+          provider_id: string
+        }
+        Update: {
+          created_at?: string
+          encrypted_secret_ref?: string
+          id?: string
+          is_active?: boolean
+          last_rotated_at?: string | null
+          org_id?: string
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_provider_keys_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_provider_keys_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "video_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           account_status: string
@@ -1964,6 +2009,97 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      provider_models: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          is_enabled: boolean
+          max_resolution: string | null
+          max_seconds: number | null
+          modalities: string[]
+          model_key: string
+          native_audio: boolean
+          provider_id: string
+          quality_tier: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          id?: string
+          is_enabled?: boolean
+          max_resolution?: string | null
+          max_seconds?: number | null
+          modalities?: string[]
+          model_key: string
+          native_audio?: boolean
+          provider_id: string
+          quality_tier?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_enabled?: boolean
+          max_resolution?: string | null
+          max_seconds?: number | null
+          modalities?: string[]
+          model_key?: string
+          native_audio?: boolean
+          provider_id?: string
+          quality_tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_models_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "video_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_routing_rules: {
+        Row: {
+          created_at: string
+          fallback_provider_ids: string[] | null
+          id: string
+          is_active: boolean
+          modality: string
+          primary_provider_id: string | null
+          priority: number
+          quality_tier: string
+        }
+        Insert: {
+          created_at?: string
+          fallback_provider_ids?: string[] | null
+          id?: string
+          is_active?: boolean
+          modality: string
+          primary_provider_id?: string | null
+          priority?: number
+          quality_tier: string
+        }
+        Update: {
+          created_at?: string
+          fallback_provider_ids?: string[] | null
+          id?: string
+          is_active?: boolean
+          modality?: string
+          primary_provider_id?: string | null
+          priority?: number
+          quality_tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_routing_rules_primary_provider_id_fkey"
+            columns: ["primary_provider_id"]
+            isOneToOne: false
+            referencedRelation: "video_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       render_jobs: {
         Row: {
@@ -2507,19 +2643,111 @@ export type Database = {
         }
         Relationships: []
       }
+      video_assets: {
+        Row: {
+          asset_type: string
+          created_at: string
+          id: string
+          job_id: string | null
+          metadata_json: Json | null
+          org_id: string | null
+          storage_path: string | null
+          thumb_path: string | null
+          user_id: string
+        }
+        Insert: {
+          asset_type?: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          metadata_json?: Json | null
+          org_id?: string | null
+          storage_path?: string | null
+          thumb_path?: string | null
+          user_id: string
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          metadata_json?: Json | null
+          org_id?: string | null
+          storage_path?: string | null
+          thumb_path?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_assets_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_assets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          metadata_json: Json | null
+          org_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          metadata_json?: Json | null
+          org_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          metadata_json?: Json | null
+          org_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_jobs: {
         Row: {
           created_at: string
+          credits_charged: number | null
+          credits_estimated: number | null
           error: string | null
           id: string
           influencer_id: string | null
           input_refs: Json | null
           job_type: string | null
           lip_sync: boolean | null
+          model_id: string | null
           org_id: string | null
           output_url: string | null
           progress: number | null
           provider: string | null
+          provider_id: string | null
+          quality_tier: string | null
+          retake_parent_id: string | null
           script_id: string | null
           status: string
           updated_at: string
@@ -2527,16 +2755,22 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credits_charged?: number | null
+          credits_estimated?: number | null
           error?: string | null
           id?: string
           influencer_id?: string | null
           input_refs?: Json | null
           job_type?: string | null
           lip_sync?: boolean | null
+          model_id?: string | null
           org_id?: string | null
           output_url?: string | null
           progress?: number | null
           provider?: string | null
+          provider_id?: string | null
+          quality_tier?: string | null
+          retake_parent_id?: string | null
           script_id?: string | null
           status?: string
           updated_at?: string
@@ -2544,16 +2778,22 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credits_charged?: number | null
+          credits_estimated?: number | null
           error?: string | null
           id?: string
           influencer_id?: string | null
           input_refs?: Json | null
           job_type?: string | null
           lip_sync?: boolean | null
+          model_id?: string | null
           org_id?: string | null
           output_url?: string | null
           progress?: number | null
           provider?: string | null
+          provider_id?: string | null
+          quality_tier?: string | null
+          retake_parent_id?: string | null
           script_id?: string | null
           status?: string
           updated_at?: string
@@ -2568,10 +2808,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "video_jobs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "provider_models"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "video_jobs_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_jobs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "video_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_jobs_retake_parent_id_fkey"
+            columns: ["retake_parent_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
             referencedColumns: ["id"]
           },
           {
@@ -2665,6 +2926,98 @@ export type Database = {
           },
         ]
       }
+      video_providers: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          provider_type: string
+          slug: string
+          status: string
+          supports_a2v: boolean
+          supports_i2v: boolean
+          supports_retake: boolean
+          supports_t2v: boolean
+          website_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          provider_type?: string
+          slug: string
+          status?: string
+          supports_a2v?: boolean
+          supports_i2v?: boolean
+          supports_retake?: boolean
+          supports_t2v?: boolean
+          website_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          provider_type?: string
+          slug?: string
+          status?: string
+          supports_a2v?: boolean
+          supports_i2v?: boolean
+          supports_retake?: boolean
+          supports_t2v?: boolean
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      video_quotas: {
+        Row: {
+          concurrent_jobs_limit: number
+          daily_seconds_limit: number
+          daily_seconds_used: number
+          id: string
+          last_daily_reset: string | null
+          last_monthly_reset: string | null
+          monthly_seconds_limit: number
+          monthly_seconds_used: number
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          concurrent_jobs_limit?: number
+          daily_seconds_limit?: number
+          daily_seconds_used?: number
+          id?: string
+          last_daily_reset?: string | null
+          last_monthly_reset?: string | null
+          monthly_seconds_limit?: number
+          monthly_seconds_used?: number
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          concurrent_jobs_limit?: number
+          daily_seconds_limit?: number
+          daily_seconds_used?: number
+          id?: string
+          last_daily_reset?: string | null
+          last_monthly_reset?: string | null
+          monthly_seconds_limit?: number
+          monthly_seconds_used?: number
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_quotas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_scenes: {
         Row: {
           aspect_ratio: string | null
@@ -2741,6 +3094,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      video_versions: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          label: string | null
+          parent_asset_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          label?: string | null
+          parent_asset_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          label?: string | null
+          parent_asset_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_versions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_versions_parent_asset_id_fkey"
+            columns: ["parent_asset_id"]
+            isOneToOne: false
+            referencedRelation: "video_assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       white_label_settings: {
         Row: {
