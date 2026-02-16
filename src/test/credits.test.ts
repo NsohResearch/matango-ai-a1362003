@@ -27,7 +27,7 @@ describe("Credit Cost Model", () => {
 
   it("estimateCredits applies quality multiplier", () => {
     const base = CREDIT_COSTS["influencer-assist"];
-    expect(estimateCredits("influencer-assist", undefined, "preview_low")).toBe(Math.round(base * 0.25));
+    expect(estimateCredits("influencer-assist", undefined, "preview_low")).toBe(Math.round(base * 0.5));
     expect(estimateCredits("influencer-assist", undefined, "hd_1080p")).toBe(Math.round(base * 1.5));
     expect(estimateCredits("influencer-assist", undefined, "pro_4k")).toBe(Math.round(base * 2.5));
   });

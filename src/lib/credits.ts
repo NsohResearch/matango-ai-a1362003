@@ -8,7 +8,7 @@ export const CREDIT_COSTS = {
   "image-to-video-final": 40,
   "script-to-video-preview": 20,
   "script-to-video-final": 70,
-  "lip-sync": 15,
+  "lip-sync": 25,
   "captions-render": 5,
   "suggestion": 1,
 } as const;
@@ -17,7 +17,7 @@ export type CreditOperation = keyof typeof CREDIT_COSTS;
 
 export function estimateCredits(op: CreditOperation, durationSeconds?: number, quality?: string): number {
   const base = CREDIT_COSTS[op];
-  const qualityMultiplier = quality === "preview_low" ? 0.25
+  const qualityMultiplier = quality === "preview_low" ? 0.5
     : quality === "hd_1080p" ? 1.5
     : quality === "pro_4k" ? 2.5
     : 1.0;
