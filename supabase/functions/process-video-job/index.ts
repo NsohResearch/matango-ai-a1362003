@@ -29,10 +29,10 @@ const LTX_ADAPTER: ProviderAdapter = {
     };
 
     if (params.job_type === "text-to-video") {
-      payload.prompt = params.prompt || params.input_refs?.prompt || "A professional product showcase video";
+      payload.prompt = params.prompt || (params.input_refs as any)?.prompt || "A professional product showcase video";
     } else {
       payload.image_uri = params.resolved_image_url;
-      payload.prompt = params.prompt || params.input_refs?.prompt || "Animate this image with natural motion";
+      payload.prompt = params.prompt || (params.input_refs as any)?.prompt || "Animate this image with natural motion";
     }
 
     console.log(`LTX submit: ${endpoint}`, JSON.stringify(payload));
@@ -55,7 +55,6 @@ const LTX_ADAPTER: ProviderAdapter = {
       return { taskId };
     }
 
-    // Synchronous response — return blob as base64 marker
     return { taskId: "__SYNC__:" + await res.text() };
   },
 
@@ -74,10 +73,119 @@ const LTX_ADAPTER: ProviderAdapter = {
   },
 };
 
+// ── OpenAI Sora Adapter ──
+const SORA_ADAPTER: ProviderAdapter = {
+  async submit(params, apiKey) {
+    const payload: Record<string, unknown> = {
+      model: (params.model_key as string) || "sora",
+      prompt: params.prompt || (params.input_refs as any)?.prompt || "A cinematic video",
+      duration: params.duration || 5,
+      resolution: params.resolution || "1080p",
+    };
+
+    if (params.job_type === "image-to-video" && params.resolved_image_url) {
+      payload.image_url = params.resolved_image_url;
+    }
+
+    console.log("Sora submit:", JSON.stringify(payload));
+    const res = await fetch("https://api.openai.com/v1/video/generations", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`Sora API error: ${res.status} — ${errBody}`);
+    }
+
+    const result = await res.json();
+    const taskId = result.id || result.task_id;
+    if (!taskId) throw new Error("Sora returned no task ID");
+    return { taskId };
+  },
+
+  async poll(taskId, apiKey) {
+    const res = await fetch(`https://api.openai.com/v1/video/generations/${taskId}`, {
+      headers: { "Authorization": `Bearer ${apiKey}` },
+    });
+    if (!res.ok) return { status: "processing", progress: 0 };
+    const data = await res.json();
+    return {
+      status: data.status === "succeeded" || data.status === "completed" ? "completed" : data.status === "failed" ? "failed" : "processing",
+      progress: data.progress || (data.status === "completed" ? 100 : 50),
+      videoUrl: data.output?.url || data.video_url,
+      error: data.error?.message || data.error,
+    };
+  },
+};
+
+// ── Google Veo Adapter ──
+const VEO_ADAPTER: ProviderAdapter = {
+  async submit(params, apiKey) {
+    const payload: Record<string, unknown> = {
+      model: (params.model_key as string) || "veo-2",
+      prompt: params.prompt || (params.input_refs as any)?.prompt || "A professional video",
+      videoConfig: {
+        aspectRatio: params.aspect_ratio || "16:9",
+        durationSeconds: params.duration || 8,
+      },
+    };
+
+    if (params.job_type === "image-to-video" && params.resolved_image_url) {
+      payload.image = { imageUri: params.resolved_image_url };
+    }
+
+    console.log("Veo submit:", JSON.stringify(payload));
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/veo-2:predictVideo?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`Veo API error: ${res.status} — ${errBody}`);
+    }
+
+    const result = await res.json();
+    const taskId = result.name || result.operationId || result.id;
+    if (!taskId) throw new Error("Veo returned no operation ID");
+    return { taskId };
+  },
+
+  async poll(taskId, apiKey) {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${taskId}?key=${apiKey}`);
+    if (!res.ok) return { status: "processing", progress: 0 };
+    const data = await res.json();
+    const done = data.done === true;
+    return {
+      status: done ? (data.error ? "failed" : "completed") : "processing",
+      progress: done ? 100 : data.metadata?.percentComplete || 50,
+      videoUrl: data.response?.generatedVideos?.[0]?.video?.uri,
+      error: data.error?.message,
+    };
+  },
+};
+
 // Adapter registry
 const PROVIDER_ADAPTERS: Record<string, ProviderAdapter> = {
   ltx: LTX_ADAPTER,
+  sora: SORA_ADAPTER,
+  openai: SORA_ADAPTER,
+  "openai sora": SORA_ADAPTER,
+  veo: VEO_ADAPTER,
+  "google veo": VEO_ADAPTER,
 };
+
+// Resolve API key for a given provider name
+function resolveDefaultApiKey(providerName: string): string | undefined {
+  const name = providerName.toLowerCase();
+  if (name === "ltx") return Deno.env.get("LTX_API_KEY");
+  if (name === "sora" || name === "openai" || name === "openai sora") return Deno.env.get("OPENAI_API_KEY");
+  if (name === "veo" || name === "google veo") return Deno.env.get("GOOGLE_VEO_API_KEY");
+  return undefined;
+}
 
 /**
  * Production edge function for video generation with provider routing.
@@ -96,7 +204,6 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ltxApiKey = Deno.env.get("LTX_API_KEY");
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const token = authHeader.replace("Bearer ", "");
@@ -110,13 +217,17 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { action, job_id } = body;
 
-    // ── Audit helper ──
+    // ── Audit helper (safe — no .catch) ──
     const audit = async (actionName: string, metadata: Record<string, unknown> = {}) => {
-      await supabase.from("video_audit_log").insert({
-        user_id: user.id,
-        action: actionName,
-        metadata: metadata,
-      }).catch(() => {});
+      try {
+        await supabase.from("video_audit_log").insert({
+          user_id: user.id,
+          action: actionName,
+          metadata: metadata,
+        });
+      } catch (e) {
+        console.warn("Audit log failed:", e);
+      }
     };
 
     if (action === "create") {
@@ -134,10 +245,9 @@ Deno.serve(async (req) => {
       let resolvedProviderId = provider_id || null;
       let resolvedProviderName = "ltx"; // default fallback
       let resolvedModelKey = "ltx-2-pro";
-      let resolvedApiKey = ltxApiKey;
+      let resolvedApiKey: string | undefined = resolveDefaultApiKey("ltx");
 
       if (!resolvedProviderId || resolvedProviderId === "auto") {
-        // Look up routing rule for modality + quality tier
         const modality = job_type === "text-to-video" ? "t2v" : job_type === "image-to-video" ? "i2v" : job_type === "audio-to-video" ? "a2v" : "t2v";
         const tier = quality_tier || "balanced";
 
@@ -154,11 +264,11 @@ Deno.serve(async (req) => {
         if (rule?.primary_provider_id) {
           resolvedProviderId = rule.primary_provider_id;
           resolvedProviderName = rule.video_providers?.name?.toLowerCase() || "ltx";
+          resolvedApiKey = resolveDefaultApiKey(resolvedProviderName);
         }
 
         await audit("provider_routed", { modality, tier, provider_id: resolvedProviderId, provider_name: resolvedProviderName });
       } else {
-        // Specific provider selected — check for BYO key
         const { data: provider } = await supabase
           .from("video_providers")
           .select("*")
@@ -167,10 +277,9 @@ Deno.serve(async (req) => {
 
         if (provider) {
           resolvedProviderName = provider.name?.toLowerCase() || "ltx";
+          resolvedApiKey = resolveDefaultApiKey(resolvedProviderName);
 
           if (provider.provider_type === "byo_api") {
-            // Look up org-level BYO key
-            const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
             const { data: membership } = await supabase.from("memberships").select("organization_id").eq("user_id", user.id).maybeSingle();
             const orgId = membership?.organization_id;
 
@@ -184,7 +293,7 @@ Deno.serve(async (req) => {
                 .maybeSingle();
 
               if (orgKey?.encrypted_secret_ref) {
-                resolvedApiKey = orgKey.encrypted_secret_ref; // In production, decrypt from vault
+                resolvedApiKey = orgKey.encrypted_secret_ref;
               } else {
                 return new Response(JSON.stringify({ error: `No API key configured for ${provider.name}. Ask your admin to connect it.` }), {
                   status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -208,7 +317,7 @@ Deno.serve(async (req) => {
       }
 
       if (!resolvedApiKey) {
-        return new Response(JSON.stringify({ error: "Video provider not configured. API key is missing." }), {
+        return new Response(JSON.stringify({ error: `Video provider "${resolvedProviderName}" not configured. API key is missing.` }), {
           status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -308,7 +417,6 @@ Deno.serve(async (req) => {
           }, resolvedApiKey!);
 
           if (taskId.startsWith("__SYNC__:")) {
-            // Synchronous blob response
             const videoBlob = new Blob([taskId.slice(9)], { type: "video/mp4" });
             await supabase.from("video_jobs").update({ progress: 75 }).eq("id", job.id);
             const objectKey = `${user.id}/${job.id}/output.mp4`;
@@ -316,7 +424,6 @@ Deno.serve(async (req) => {
             if (uploadError) throw new Error(`Failed to store video: ${uploadError.message}`);
             await supabase.from("video_outputs").insert({ video_job_id: job.id, user_id: user.id, status: "completed", url: objectKey });
           } else {
-            // Async polling
             await supabase.from("render_jobs").update({ provider_job_id: taskId, progress: 25 }).eq("video_job_id", job.id);
             await supabase.from("video_jobs").update({ progress: 25 }).eq("id", job.id);
 
