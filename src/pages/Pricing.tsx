@@ -3,63 +3,35 @@ import Footer from "@/components/Footer";
 import PricingComparisonMatrix from "@/components/marketing/PricingComparisonMatrix";
 import PricingFAQ from "@/components/marketing/PricingFAQ";
 import { Check, X, Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PRICING_TIERS, getTierCTA } from "@/config/pricingTiers";
 
 const PLAN_PRICE_IDS: Record<string, string> = {
   basic: "price_1T0cavDcq9WDEzjkilaqUz1X",
   agency: "price_1T0cawDcq9WDEzjk4inwi8Ae",
 };
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    key: "free",
-    desc: "Get started with AI marketing.",
-    tagline: "Best for exploration and testing.",
+const planFeatures: Record<string, { features: string[]; limits: string[] }> = {
+  free: {
     features: ["1 Brand Brain", "5 AI generations/day", "Starter templates", "Ka'h Chat assistant", "Community support"],
     limits: ["No Video Studio", "No AAO automation", "Matango branding"],
-    cta: "Start Free",
-    highlighted: false,
   },
-  {
-    name: "Creator",
-    price: "$199/mo",
-    key: "basic",
-    desc: "For creators building consistent, high-impact AI-driven content brands.",
-    tagline: "Ideal for founders building consistent output.",
+  basic: {
     features: ["3 Brand Brains", "100 AI generations/day", "Video Studio", "Campaign Factory", "Scheduler", "All templates", "Priority support", "Remove branding"],
     limits: ["No white label", "No team features"],
-    cta: "Go Creator",
-    highlighted: true,
   },
-  {
-    name: "Agency",
-    price: "$399/mo",
-    key: "agency",
-    desc: "Multi-brand, white-label, unlimited scale.",
-    tagline: "Built for agencies and multi-brand operators.",
+  agency: {
     features: ["Unlimited brands", "Unlimited AI generations", "Video Studio Pro", "AAO Orchestration", "White label", "Team collaboration", "API access", "A/B Testing", "Dedicated support"],
     limits: [],
-    cta: "Go Agency",
-    highlighted: false,
   },
-  {
-    name: "Agency++",
-    price: "Custom",
-    key: "enterprise",
-    desc: "Enterprise-grade with custom integrations.",
-    tagline: "For enterprise AI-native marketing operations.",
+  enterprise: {
     features: ["Everything in Agency", "Custom AI model training", "SLA guarantee", "Dedicated CSM", "On-premise option", "Custom integrations", "Unlimited team seats"],
     limits: [],
-    cta: "Contact Sales",
-    highlighted: false,
   },
-];
+};
 
 const Pricing = () => {
   const { user, subscription } = useAuth();
@@ -73,7 +45,7 @@ const Pricing = () => {
         return;
       }
       if (planKey === "free") {
-        window.location.href = "/auth?mode=signup";
+        window.location.href = user ? "/dashboard" : "/auth?mode=signup";
         return;
       }
       return;
@@ -98,6 +70,8 @@ const Pricing = () => {
     }
   };
 
+  const currentPlan = subscription.plan || "free";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -110,13 +84,17 @@ const Pricing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {plans.map((plan) => {
-              const isCurrentPlan = subscription.plan === plan.key;
+            {PRICING_TIERS.map((tier) => {
+              const isCurrentPlan = currentPlan === tier.id;
+              const feat = planFeatures[tier.id];
+              const ctaLabel = getTierCTA(tier.id, currentPlan);
+              const isHighlighted = tier.id === "basic";
+
               return (
                 <div
-                  key={plan.name}
-                  className={`rounded-2xl p-8 relative ${
-                    plan.highlighted
+                  key={tier.id}
+                  className={`rounded-2xl p-8 relative transition-all hover:shadow-md ${
+                    isHighlighted
                       ? "bg-primary/10 border-2 border-primary shadow-lg ring-1 ring-primary/20"
                       : isCurrentPlan
                       ? "bg-primary/5 border-2 border-primary/50 shadow-md"
@@ -128,39 +106,39 @@ const Pricing = () => {
                       Your Plan
                     </span>
                   )}
-                  {plan.highlighted && !isCurrentPlan && (
+                  {isHighlighted && !isCurrentPlan && (
                     <span className="inline-block mb-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">Most Popular</span>
                   )}
-                  <h3 className="font-display text-xl font-semibold">{plan.name}</h3>
-                  <div className="mt-2 font-display text-3xl font-bold">{plan.price}</div>
-                  <p className="mt-2 text-sm text-muted-foreground">{plan.desc}</p>
+                  <h3 className="font-display text-xl font-semibold">{tier.displayName}</h3>
+                  <div className="mt-2 font-display text-3xl font-bold">
+                    {tier.price !== null ? `$${tier.price}/mo` : "Custom"}
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{tier.microcopy}</p>
                   <button
-                    onClick={() => handleCheckout(plan.key)}
-                    disabled={isCurrentPlan || loadingPlan === plan.key}
-                    className={`mt-6 block w-full rounded-lg py-2.5 text-center text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                      plan.highlighted
+                    onClick={() => handleCheckout(tier.id)}
+                    disabled={isCurrentPlan || loadingPlan === tier.id}
+                    aria-label={isCurrentPlan ? `${tier.displayName} is your current plan` : `${tier.ctaLabel} plan`}
+                    className={`mt-6 block w-full rounded-lg py-2.5 text-center text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-lg ${
+                      isHighlighted
                         ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "bg-secondary text-foreground hover:bg-secondary/80"
                     }`}
                   >
-                    {loadingPlan === plan.key ? (
+                    {loadingPlan === tier.id ? (
                       <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                    ) : isCurrentPlan ? (
-                      "Current Plan"
                     ) : (
-                      plan.cta
+                      ctaLabel
                     )}
                   </button>
-                  <p className="mt-3 text-xs text-muted-foreground text-center">{plan.tagline}</p>
                   <div className="border-t border-border my-6" />
                   <ul className="space-y-3">
-                    {plan.features.map((f) => (
+                    {feat.features.map((f) => (
                       <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Check className="h-4 w-4 shrink-0 text-primary" />
                         {f}
                       </li>
                     ))}
-                    {plan.limits.map((l) => (
+                    {feat.limits.map((l) => (
                       <li key={l} className="flex items-center gap-2 text-sm text-muted-foreground/50">
                         <X className="h-4 w-4 shrink-0" />
                         {l}

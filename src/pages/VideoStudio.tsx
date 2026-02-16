@@ -210,7 +210,7 @@ const VideoStudioPage = () => {
       return;
     }
     if (!allowedQualities.includes(itv.quality)) {
-      toast.error("Upgrade your plan for this quality level.");
+      toast.error("Launch a higher plan to access this quality level.");
       return;
     }
     setItvGenerating(true);
@@ -276,7 +276,7 @@ const VideoStudioPage = () => {
 
   const handleScriptToVideo = () => {
     if (!stv.script_id) { toast.error("Select a script first"); return; }
-    if (!allowedQualities.includes(stv.quality)) { toast.error("Upgrade your plan for this quality level."); return; }
+    if (!allowedQualities.includes(stv.quality)) { toast.error("Launch a higher plan to access this quality level."); return; }
     createJob.mutate(
       {
         job_type: "text-to-video",
@@ -399,7 +399,7 @@ const VideoStudioPage = () => {
                   <span className="text-sm font-semibold text-foreground">{q.label}</span>
                   {!allowed && <Lock className="h-3 w-3 text-muted-foreground" />}
                 </div>
-                {!allowed && <span className="text-[10px] text-muted-foreground">Upgrade required</span>}
+                {!allowed && <span className="text-[10px] text-muted-foreground">Higher plan required</span>}
               </button>
             );
           })}

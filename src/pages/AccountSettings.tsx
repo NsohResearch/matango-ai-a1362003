@@ -135,7 +135,15 @@ const AccountSettingsPage = () => {
                           <div className="font-medium capitalize text-foreground">{profile?.plan || "Free"} Plan</div>
                           <div className="text-sm text-muted-foreground">{profile?.credits || 0} credits remaining this month</div>
                         </div>
-                        <Button onClick={() => setPlanDrawerOpen(true)}>Upgrade</Button>
+                        <Button onClick={() => setPlanDrawerOpen(true)}>
+                          {(() => { 
+                            const plan = profile?.plan || "free";
+                            if (plan === "free") return "Launch Creator";
+                            if (plan === "basic") return "Launch Agency";
+                            if (plan === "agency") return "Contact Sales";
+                            return "Manage Plan";
+                          })()}
+                        </Button>
                       </div>
                     </div>
                     <div className="space-y-2 text-sm text-muted-foreground">
