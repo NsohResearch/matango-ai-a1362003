@@ -49,7 +49,21 @@ serve(async (req) => {
     logStep("Found customer", { customerId });
 
     // Check active, past_due, or trialing subscriptions
-    const subscriptions = await stripe.subscriptions.list({ customer: customerId, limit: 10 });
+    let subscriptions;
+    try {
+      subscriptions = await stripe.subscriptions.list({ customer: customerId, limit: 10 });
+    } catch (stripeErr) {
+      logStep("Stripe subscription list error, falling back to profile", { error: String(stripeErr) });
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("plan")
+        .eq("user_id", user.id)
+        .single();
+      const profilePlan = profile?.plan || "free";
+      return new Response(JSON.stringify({ subscribed: profilePlan !== "free", plan: profilePlan }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const activeSub = subscriptions.data.find(s => s.status === "active" || s.status === "past_due" || s.status === "trialing");
     
     if (!activeSub) {
@@ -73,7 +87,12 @@ serve(async (req) => {
 
     const sub = activeSub;
     const productId = sub.items.data[0].price.product as string;
-    const subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
+    let subscriptionEnd: string | null = null;
+    try {
+      subscriptionEnd = new Date(sub.current_period_end * 1000).toISOString();
+    } catch {
+      logStep("Could not parse subscription end date", { raw: sub.current_period_end });
+    }
     logStep("Found subscription", { productId, subscriptionEnd, status: sub.status });
 
     // Map product IDs to plan names
