@@ -795,6 +795,36 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_ledger: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          delta: number
+          id: string
+          note: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          delta: number
+          id?: string
+          note?: string | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          delta?: number
+          id?: string
+          note?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_email_templates: {
         Row: {
           created_at: string
