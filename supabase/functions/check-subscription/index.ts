@@ -100,11 +100,23 @@ serve(async (req) => {
       "prod_TyZk4lrpOZD0eE": "basic",
       "prod_TyZkDIfLRosrEY": "agency",
     };
-    const plan = PRODUCT_MAP[productId] || "basic";
+    const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, agency: 2, enterprise: 3 };
+    const stripePlan = PRODUCT_MAP[productId] || "basic";
 
-    // Sync plan to profiles table
-    await supabaseClient.from("profiles").update({ plan }).eq("user_id", user.id);
-    logStep("Synced plan to profile", { plan });
+    // Respect manual profile override if it's a higher tier
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", user.id)
+      .single();
+    const profilePlan = profile?.plan || "free";
+    const plan = (PLAN_RANK[profilePlan] || 0) > (PLAN_RANK[stripePlan] || 0) ? profilePlan : stripePlan;
+
+    // Sync resolved plan to profiles table
+    if (plan !== profilePlan) {
+      await supabaseClient.from("profiles").update({ plan }).eq("user_id", user.id);
+    }
+    logStep("Resolved plan", { stripePlan, profilePlan, final: plan });
 
     return new Response(JSON.stringify({
       subscribed: true,
