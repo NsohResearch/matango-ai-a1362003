@@ -13,6 +13,7 @@ import StoryboardBuilder from "@/components/video/StoryboardBuilder";
 import CinematicUpsellModal from "@/components/video/CinematicUpsellModal";
 import RetakeWorkspace from "@/components/video/RetakeWorkspace";
 import { useProfile } from "@/hooks/useData";
+import { useResolveProvider } from "@/hooks/useVideoProviders";
 import {
   useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob,
   useDeleteVideoJob, useAssetLibrary, useCreateAsset, useVideoOutputs,
@@ -114,6 +115,13 @@ const VideoStudioPage = () => {
   const [selectedTier, setSelectedTier] = useState<GenerationTier>("balanced");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState("auto");
+  const [creativeControls, setCreativeControls] = useState<CreativeControls>(CREATIVE_CONTROL_DEFAULTS);
+  const [aiDirectorEnabled, setAiDirectorEnabled] = useState(false);
+  const [aiDirectorScenes, setAiDirectorScenes] = useState<{ prompt: string; duration: number; camera: string }[]>([]);
+  const [storyboardOpen, setStoryboardOpen] = useState(false);
+  const [storyboardScenes, setStoryboardScenes] = useState<{ id: string; prompt: string; transition: string; duration: number }[]>([]);
+  const [showCinematicUpsell, setShowCinematicUpsell] = useState(false);
+  const resolveProvider = useResolveProvider();
 
   // Script to Video form
   const [stv, setStv] = useState({
@@ -692,26 +700,44 @@ const VideoStudioPage = () => {
                 onQualityChange={(v) => setStv((f) => ({ ...f, quality: v }))}
               />
 
-              {/* Advanced Options */}
-              <div className="rounded-xl border border-border mt-4">
-                <button onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
-                  <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
-                </button>
-                {showAdvanced && (
-                  <div className="px-4 pb-4 space-y-3">
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
-                      <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
-                        className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        <option value="auto">Auto (Recommended)</option>
-                      </select>
-                      <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* AI Director Mode (Agency) */}
+              <AIDirectorToggle
+                enabled={aiDirectorEnabled}
+                onToggle={setAiDirectorEnabled}
+                plan={plan}
+                scenes={aiDirectorScenes}
+              />
+
+              {/* Storyboard Builder (Agency) */}
+              <StoryboardBuilder
+                open={storyboardOpen}
+                onToggle={setStoryboardOpen}
+                scenes={storyboardScenes}
+                onScenesChange={setStoryboardScenes}
+                plan={plan}
+              />
+
+              {/* Creative Controls */}
+              <CreativeControlPanel
+                controls={creativeControls}
+                onChange={setCreativeControls}
+              />
+
+              {/* Provider Selection */}
+              <ProviderSelector
+                modality="t2v"
+                selectedProvider={selectedProvider}
+                onProviderChange={setSelectedProvider}
+                selectedTier={selectedTier}
+                onTierChange={(tier) => {
+                  if (tier === "cinematic" && plan !== "agency" && plan !== "enterprise") {
+                    setShowCinematicUpsell(true);
+                    return;
+                  }
+                  setSelectedTier(tier as GenerationTier);
+                }}
+                plan={plan}
+              />
 
               <div className="flex items-center gap-3 mt-4">
                 <button onClick={handleScriptToVideo} disabled={createJob.isPending || !stv.script_id}
@@ -987,26 +1013,24 @@ const VideoStudioPage = () => {
                     onPresetChange={(v) => setItv((f) => ({ ...f, format_preset: v }))}
                     onQualityChange={(v) => setItv((f) => ({ ...f, quality: v as VideoQuality }))} />
 
-                  {/* Advanced Options */}
-                  <div className="rounded-xl border border-border mt-4">
-                    <button onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
-                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
-                    </button>
-                    {showAdvanced && (
-                      <div className="px-4 pb-4 space-y-3">
-                        <div>
-                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
-                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
-                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                            <option value="auto">Auto (Recommended)</option>
-                          </select>
-                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Creative Controls */}
+                  <CreativeControlPanel controls={creativeControls} onChange={setCreativeControls} />
+
+                  {/* Provider Selection */}
+                  <ProviderSelector
+                    modality="i2v"
+                    selectedProvider={selectedProvider}
+                    onProviderChange={setSelectedProvider}
+                    selectedTier={selectedTier}
+                    onTierChange={(tier) => {
+                      if (tier === "cinematic" && plan !== "agency" && plan !== "enterprise") {
+                        setShowCinematicUpsell(true);
+                        return;
+                      }
+                      setSelectedTier(tier as GenerationTier);
+                    }}
+                    plan={plan}
+                  />
 
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-3">
@@ -1156,26 +1180,24 @@ const VideoStudioPage = () => {
                     <p className="text-xs text-muted-foreground mt-1">MP3, WAV, M4A up to 50MB</p>
                   </div>
 
-                  {/* Advanced Options */}
-                  <div className="rounded-xl border border-border">
-                    <button onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
-                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
-                    </button>
-                    {showAdvanced && (
-                      <div className="px-4 pb-4 space-y-3">
-                        <div>
-                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
-                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
-                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                            <option value="auto">Auto (Recommended)</option>
-                          </select>
-                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Creative Controls */}
+                  <CreativeControlPanel controls={creativeControls} onChange={setCreativeControls} />
+
+                  {/* Provider Selection */}
+                  <ProviderSelector
+                    modality="a2v"
+                    selectedProvider={selectedProvider}
+                    onProviderChange={setSelectedProvider}
+                    selectedTier={selectedTier}
+                    onTierChange={(tier) => {
+                      if (tier === "cinematic" && plan !== "agency" && plan !== "enterprise") {
+                        setShowCinematicUpsell(true);
+                        return;
+                      }
+                      setSelectedTier(tier as GenerationTier);
+                    }}
+                    plan={plan}
+                  />
 
                   <div className="bg-muted/50 rounded-lg px-4 py-3 text-xs text-muted-foreground">
                     Audio to Video is coming soon. This mode will support voiceover-driven lip-sync, music visualization, and audio-reactive motion.
@@ -1188,58 +1210,7 @@ const VideoStudioPage = () => {
 
         {/* ═══════════════════════ RETAKE / EDIT ═══════════════════════ */}
         {view === "retake" && (
-          <>
-            <SubViewHeader title="Retake / Edit Video" icon={RotateCcw} />
-            <div className="glass-card rounded-xl p-6 lg:p-8 border border-primary/20">
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Scissors className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="font-display text-xl font-bold mb-2">Re-Edit & Retake Segments</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                  Upload an existing video or select from My Videos, choose a segment, describe your edit, and regenerate just that portion.
-                </p>
-                <div className="max-w-lg mx-auto space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors bg-secondary/30">
-                      <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground font-medium">Upload Video</p>
-                    </div>
-                    <button onClick={() => setView("my-videos")}
-                      className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition-colors bg-secondary/30">
-                      <Film className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground font-medium">Select from My Videos</p>
-                    </button>
-                  </div>
-
-                  {/* Advanced Options */}
-                  <div className="rounded-xl border border-border">
-                    <button onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">
-                      <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options</span>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
-                    </button>
-                    {showAdvanced && (
-                      <div className="px-4 pb-4 space-y-3">
-                        <div>
-                          <label className="text-xs font-medium text-muted-foreground mb-1 block">Provider</label>
-                          <select value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
-                            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                            <option value="auto">Auto (Recommended)</option>
-                          </select>
-                          <p className="text-[10px] text-muted-foreground mt-1">Provider is auto-selected based on your tier and input.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-muted/50 rounded-lg px-4 py-3 text-xs text-muted-foreground">
-                    Retake mode is coming soon. You'll be able to select time segments, prompt edits, and regenerate portions with full version history in Recent Creations.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+          <RetakeWorkspace onBack={() => setView("home")} plan={plan} />
         )}
 
         {/* ═══════════════════════ MY VIDEOS ═══════════════════════ */}
@@ -1315,6 +1286,13 @@ const VideoStudioPage = () => {
         )}
 
         <StepTransition stepId={3} />
+
+        {/* Cinematic Upsell Modal */}
+        <CinematicUpsellModal
+          open={showCinematicUpsell}
+          onClose={() => setShowCinematicUpsell(false)}
+          onContinueBalanced={() => setSelectedTier("balanced")}
+        />
       </div>
     </DashboardLayout>
   );
