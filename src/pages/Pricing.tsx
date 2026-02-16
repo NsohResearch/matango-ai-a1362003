@@ -4,6 +4,7 @@ import PricingComparisonMatrix from "@/components/marketing/PricingComparisonMat
 import PricingFAQ from "@/components/marketing/PricingFAQ";
 import { Check, X, Loader2, Coins, ArrowUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -40,11 +41,12 @@ const planFeatures: Record<string, { features: string[]; limits: string[] }> = {
 };
 
 const Pricing = () => {
-  const { user, subscription } = useAuth();
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null);
 
-  const currentPlan = subscription.plan || "free";
+  const currentPlan = profile?.plan || "free";
   const currentPlanIdx = PLAN_ORDER.indexOf(currentPlan as any);
 
   const handleCheckout = async (planKey: string) => {
