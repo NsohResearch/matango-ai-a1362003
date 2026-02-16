@@ -27,34 +27,34 @@ export const VideoStudioPro = () => (
   <ComingSoonPage title="Video Studio Pro" description="Advanced video creation with professional editing tools, lip-sync, and multi-scene composition." icon={Video} tier="Agency" alternatives={[{ label: "Use Video Studio", to: "/video-studio" }]} />
 );
 export const Campaigns = () => (
-  <ComingSoonPage title="Campaign Manager" description="View and manage all your active campaigns with unified metrics." icon={Megaphone} tier="Basic" alternatives={[{ label: "Create in Campaign Factory", to: "/campaign-factory" }]} />
+  <ComingSoonPage title="Campaign Manager" description="View and manage all your active campaigns with unified metrics." icon={Megaphone} tier="Creator" alternatives={[{ label: "Create in Campaign Factory", to: "/campaign-factory" }]} />
 );
 export const CampaignDetail = () => (
-  <ComingSoonPage title="Campaign Detail" description="Detailed campaign performance view with asset-level analytics." icon={Megaphone} tier="Basic" alternatives={[{ label: "View Analytics Hub", to: "/analytics-hub" }]} />
+  <ComingSoonPage title="Campaign Detail" description="Detailed campaign performance view with asset-level analytics." icon={Megaphone} tier="Creator" alternatives={[{ label: "View Analytics Hub", to: "/analytics-hub" }]} />
 );
 export const Analytics = () => (
-  <ComingSoonPage title="Analytics" description="Track campaign performance and audience insights across channels." icon={TrendingUp} tier="Basic" alternatives={[{ label: "Go to Analytics Hub", to: "/analytics-hub" }]} />
+  <ComingSoonPage title="Analytics" description="Track campaign performance and audience insights across channels." icon={TrendingUp} tier="Creator" alternatives={[{ label: "Go to Analytics Hub", to: "/analytics-hub" }]} />
 );
 export const TemplateMarketplace = () => (
   <ComingSoonPage title="Template Marketplace" description="Browse and install community-created templates for campaigns, scripts, and content." icon={Layers} tier="Agency" alternatives={[{ label: "Browse Templates", to: "/templates" }]} />
 );
 export const CreateInfluencer = () => (
-  <ComingSoonPage title="Create Influencer" description="Create a new AI influencer persona with custom traits and visual identity." icon={Users} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+  <ComingSoonPage title="Create Influencer" description="Create a new AI influencer persona with custom traits and visual identity." icon={Users} tier="Creator" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
 export const CreateInfluencerPro = () => (
   <ComingSoonPage title="Create Influencer Pro" description="Advanced influencer creation with fine-tuned character controls and training data upload." icon={Wand2} tier="Agency" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
 export const GenerationWorkspace = () => (
-  <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Gallery", to: "/asset-library" }]} />
+  <ComingSoonPage title="Generation Workspace" description="Your dedicated influencer image generation workspace with batch processing." icon={Sparkles} tier="Creator" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }, { label: "Asset Gallery", to: "/asset-library" }]} />
 );
 export const Chat = () => (
-  <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Basic" alternatives={[{ label: "Try K'ah Chat", to: "/meet-kah" }]} />
+  <ComingSoonPage title="Chat" description="Conversational interface for your AI influencer with brand-aware responses." icon={Sparkles} tier="Creator" alternatives={[{ label: "Try K'ah Chat", to: "/meet-kah" }]} />
 );
 export const Discover = () => (
   <ComingSoonPage title="Discover" description="Explore AI influencer profiles, trending templates, and community creations." icon={Eye} tier="Free" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
 export const InfluencerDetail = () => (
-  <ComingSoonPage title="Influencer Detail" description="View and manage individual influencer profile, content gallery, and performance." icon={Users} tier="Basic" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
+  <ComingSoonPage title="Influencer Detail" description="View and manage individual influencer profile, content gallery, and performance." icon={Users} tier="Creator" alternatives={[{ label: "Go to Influencer Studio", to: "/influencer-studio" }]} />
 );
 // Real page implementations (migrated from original repo)
 export { default as AAOGlossary } from "@/pages/AAOGlossary";
