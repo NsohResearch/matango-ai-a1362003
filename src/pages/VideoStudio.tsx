@@ -6,6 +6,13 @@ import {
   Eye, Trash2, Download, ArrowLeft, Send, Clapperboard, Scissors,
   LayoutGrid, Plus, Mic, RotateCcw, Settings2, ChevronDown
 } from "lucide-react";
+import ProviderSelector from "@/components/video/ProviderSelector";
+import CreativeControlPanel, { CREATIVE_CONTROL_DEFAULTS, type CreativeControls } from "@/components/video/CreativeControlPanel";
+import AIDirectorToggle from "@/components/video/AIDirectorToggle";
+import StoryboardBuilder from "@/components/video/StoryboardBuilder";
+import CinematicUpsellModal from "@/components/video/CinematicUpsellModal";
+import RetakeWorkspace from "@/components/video/RetakeWorkspace";
+import { useProfile } from "@/hooks/useData";
 import {
   useVideoJobs, useVideoScripts, useInfluencers, useCreateVideoJob,
   useDeleteVideoJob, useAssetLibrary, useCreateAsset, useVideoOutputs,
@@ -94,7 +101,8 @@ const VideoStudioPage = () => {
   const createAsset = useCreateAsset();
   const deleteJob = useDeleteVideoJob();
   const { subscription } = useAuth();
-  const plan = subscription.plan || "free";
+  const { data: profile } = useProfile();
+  const plan = profile?.plan || subscription.plan || "free";
   const allowedQualities = getAllowedQualities(plan);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

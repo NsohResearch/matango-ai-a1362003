@@ -40,6 +40,7 @@ import {
   AdminSystemHealth, AdminModeration, AdminCompliance,
   AdminGdprRequests, AdminLeads,
 } from "./pages/AppPages";
+import AdminVideoProviders from "./pages/admin/AdminVideoProviders";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,7 @@ const App = () => (
             <Route path="/admin/compliance" element={<A><AdminCompliance /></A>} />
             <Route path="/admin/gdpr" element={<A><AdminGdprRequests /></A>} />
             <Route path="/admin/leads" element={<A><AdminLeads /></A>} />
+            <Route path="/admin/video-providers" element={<A><AdminVideoProviders /></A>} />
 
             {/* Auth callback */}
             <Route path="/auth/callback" element={<Auth />} />
