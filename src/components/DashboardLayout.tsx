@@ -1,12 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, UserCircle, Sparkles, Bell, Settings, ShieldCheck, Sun, Moon
+  LayoutDashboard, UserCircle, Sparkles, Bell, Settings, ShieldCheck
 } from "lucide-react";
 import matangoIcon from "@/assets/matango-icon.png";
 import SystemProgress from "@/components/system/SystemProgress";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
 import { useUserRoles } from "@/hooks/useData";
-import { useTheme } from "@/hooks/useTheme";
 
 const utilItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -17,7 +16,6 @@ const utilItems = [
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { data: roles } = useUserRoles();
-  const { theme, toggleTheme } = useTheme();
   const isSystemPage = SYSTEM_STEPS.some((s) => location.pathname.startsWith(s.route));
   const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
 
@@ -120,14 +118,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-0.5">
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </button>
           <Link
             to="/meet-kah"
             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
