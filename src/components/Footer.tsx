@@ -23,6 +23,8 @@ const Footer = () => {
             <Link to="/support" className="hover:text-gold-400 transition-colors">Support</Link>
             <span className="text-gold-500/30">·</span>
             <Link to="/investors" className="hover:text-gold-400 transition-colors">Investors</Link>
+            <span className="text-gold-500/30">·</span>
+            <Link to="/privacy" className="hover:text-gold-400 transition-colors">Privacy & Terms</Link>
           </nav>
           <p className="text-xs text-cream-100/40">© 2026 Matango.ai. All rights reserved.</p>
         </div>
