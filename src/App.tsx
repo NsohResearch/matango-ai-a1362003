@@ -13,6 +13,7 @@ import KahChatWidget from "@/components/KahChatWidget";
 import { useBrandingBootstrap } from "@/hooks/useBrandingBootstrap";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 import { useAuth } from "@/hooks/useAuth";
+import IdleWarningDialog from "@/components/IdleWarningDialog";
 import Index from "./pages/Index";
 import OnboardingProfile from "./pages/OnboardingProfile";
 import NotFound from "./pages/NotFound";
@@ -59,8 +60,8 @@ const BrandingBootstrap = () => {
 
 const IdleTimeoutWatcher = () => {
   const { user } = useAuth();
-  useIdleTimeout(!!user);
-  return null;
+  const { showWarning, handleContinue, handleLogout } = useIdleTimeout(!!user);
+  return <IdleWarningDialog open={showWarning} onContinue={handleContinue} onLogout={handleLogout} />;
 };
 
 const App = () => (
