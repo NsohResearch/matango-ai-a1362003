@@ -39,7 +39,8 @@ serve(async (req) => {
     let customerId: string | undefined;
     if (customers.data.length > 0) customerId = customers.data[0].id;
 
-    const origin = req.headers.get("origin") || "https://matango-ai.lovable.app";
+    // Always use the production domain for Stripe redirect URLs
+    const origin = "https://matango.ai";
 
     const sessionParams: any = {
       customer: customerId,
