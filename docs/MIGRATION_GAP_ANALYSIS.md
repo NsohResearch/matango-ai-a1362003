@@ -15,6 +15,10 @@
 - 35+ database tables with RLS
 - Edge functions (ai-generate, kah-chat)
 - K'ah chat widget
+- Mobile hamburger menu (Sheet-based, full sidebar mirror + public navbar)
+- RBAC-based menu hiding (super_admin, admin, user, read_only)
+- Playwright E2E test config + key flow specs (landing, auth, pricing, dashboard)
+- Stripe billing integration (checkout, subscriptions, customer portal)
 
 #### ⏳ Coming Soon (Properly Gated)
 - AAO Studio (Agency tier)
@@ -26,8 +30,4 @@
 - Campaign/Influencer detail views (Basic tier)
 
 #### 🔮 Future
-- Mobile hamburger menu
-- Playwright E2E tests
-- Email template HTML styling
-- RBAC-based menu hiding
-- Stripe billing integration
+- Email template HTML styling (requires sender domain setup first)

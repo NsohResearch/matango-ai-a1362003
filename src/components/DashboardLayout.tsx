@@ -6,6 +6,8 @@ import matangoIcon from "@/assets/matango-icon.png";
 import SystemProgress from "@/components/system/SystemProgress";
 import { SYSTEM_STEPS } from "@/lib/system-steps";
 import { useUserRoles } from "@/hooks/useData";
+import { canAccess, SYSTEM_STEP_VISIBILITY, MANAGE_VISIBILITY, ADMIN_VISIBILITY } from "@/lib/rbac";
+import MobileNav from "@/components/MobileNav";
 
 const utilItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -17,11 +19,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { data: roles } = useUserRoles();
   const isSystemPage = SYSTEM_STEPS.some((s) => location.pathname.startsWith(s.route));
-  const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
+      {/* Mobile nav */}
+      <MobileNav />
+
+      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar overflow-y-auto">
         <div className="p-4 border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2">
@@ -33,13 +37,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         <nav className="flex-1 p-3 space-y-5">
-          {/* The System — sequential steps */}
+          {/* The System — sequential steps, RBAC-filtered */}
           <div>
             <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
               The System
             </span>
             <ul className="mt-1.5 space-y-0.5">
-              {SYSTEM_STEPS.map((step) => {
+              {SYSTEM_STEPS.filter((step) =>
+                canAccess(roles, SYSTEM_STEP_VISIBILITY[step.id] || { minRole: "user" })
+              ).map((step) => {
                 const isActive = location.pathname.startsWith(step.route);
                 return (
                   <li key={step.id}>
@@ -65,13 +71,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </ul>
           </div>
 
-          {/* Utility */}
+          {/* Utility — RBAC-filtered */}
           <div>
             <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
               Manage
             </span>
             <ul className="mt-1.5 space-y-0.5">
-              {utilItems.map((item) => {
+              {utilItems.filter((item) =>
+                canAccess(roles, MANAGE_VISIBILITY[item.to] || { minRole: "user" })
+              ).map((item) => {
                 const isActive = location.pathname === item.to;
                 return (
                   <li key={item.to}>
@@ -92,8 +100,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </ul>
           </div>
 
-          {/* Admin Console — admin only */}
-          {isAdminOrAbove && (
+          {/* Admin Console — RBAC gated */}
+          {canAccess(roles, ADMIN_VISIBILITY) && (
             <div>
               <span className="px-3 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                 Platform
@@ -136,7 +144,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background pt-14 lg:pt-0">
         {isSystemPage && <SystemProgress />}
         {children}
       </main>
