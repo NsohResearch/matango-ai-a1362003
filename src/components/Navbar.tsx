@@ -10,15 +10,19 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Brain, BarChart3, Bell, Settings, LogOut } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, Brain, BarChart3, Bell, Settings, LogOut, Menu } from "lucide-react";
+import { canAccess, ADMIN_VISIBILITY } from "@/lib/rbac";
 
 const Navbar = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
-  const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { data: roles } = useUserRoles();
-  const isAdminOrAbove = roles?.includes("admin") || roles?.includes("super_admin");
+  const isAdminOrAbove = canAccess(roles, ADMIN_VISIBILITY);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLoginClick = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
@@ -60,7 +64,45 @@ const Navbar = () => {
             <Link to="/investors" className="text-sm text-cream-100/70 hover:text-gold-400 transition-colors">Investors</Link>
           </nav>
 
-          <div className="flex items-center gap-4">
+          {/* Mobile hamburger for public nav */}
+          <div className="md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-cream-100/70">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64 bg-emerald-900 border-emerald-800/50 p-0">
+                <nav className="flex flex-col gap-1 p-6 pt-10">
+                  <Link to="/about" onClick={() => setMobileOpen(false)} className="text-sm text-cream-100/70 hover:text-gold-400 py-2">About</Link>
+                  <Link to="/pricing" onClick={() => setMobileOpen(false)} className="text-sm text-cream-100/70 hover:text-gold-400 py-2">Pricing</Link>
+                  <Link to="/support" onClick={() => setMobileOpen(false)} className="text-sm text-cream-100/70 hover:text-gold-400 py-2">Support</Link>
+                  <Link to="/investors" onClick={() => setMobileOpen(false)} className="text-sm text-cream-100/70 hover:text-gold-400 py-2">Investors</Link>
+                  <div className="border-t border-emerald-800/50 my-3" />
+                  {user ? (
+                    <>
+                      <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="text-sm text-cream-50 hover:text-gold-400 py-2">Dashboard</Link>
+                      <Link to="/brand-brain" onClick={() => setMobileOpen(false)} className="text-sm text-cream-50 hover:text-gold-400 py-2">Brand Brain</Link>
+                      <Link to="/account-settings" onClick={() => setMobileOpen(false)} className="text-sm text-cream-50 hover:text-gold-400 py-2">Settings</Link>
+                      {isAdminOrAbove && (
+                        <Link to="/admin" onClick={() => setMobileOpen(false)} className="text-sm text-gold-400 hover:text-gold-300 py-2">Admin Console</Link>
+                      )}
+                      <div className="border-t border-emerald-800/50 my-3" />
+                      <button onClick={() => { signOut(); setMobileOpen(false); }} className="text-sm text-red-400 hover:text-red-300 py-2 text-left">Logout</button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={(e) => { handleLoginClick(e, "/auth"); setMobileOpen(false); }} className="text-sm text-cream-100/70 hover:text-gold-400 py-2 text-left">Login</button>
+                      <button onClick={(e) => { handleLoginClick(e, "/auth?mode=signup"); setMobileOpen(false); }} className="rounded-pill bg-primary px-5 py-2 text-sm font-medium text-primary-foreground mt-2">Deploy Your AAO</button>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Desktop account dropdown */}
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
