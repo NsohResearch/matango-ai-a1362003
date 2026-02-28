@@ -1,5 +1,7 @@
 // Shared CORS and security headers for edge functions
 const ALLOWED_ORIGINS = [
+  "https://matango.ai",
+  "https://www.matango.ai",
   "https://matango-ai.lovable.app",
   "https://id-preview--20a37c30-ab89-4bf5-95c9-8a92e8412fae.lovable.app",
   "http://localhost:5173",
