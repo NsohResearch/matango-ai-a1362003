@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const LTX_BASE = "https://api.ltx.video/v1";
+const LTX_BASE = "https://api.freepik.com/v1/ai";
 
 // Provider adapter interface — each provider implements submit/poll/fetch
 interface ProviderAdapter {
@@ -15,30 +15,40 @@ interface ProviderAdapter {
 
 const LTX_ADAPTER: ProviderAdapter = {
   async submit(params, apiKey) {
-    const endpoint = params.job_type === "text-to-video" ? `${LTX_BASE}/text-to-video` : `${LTX_BASE}/image-to-video`;
+    const endpoint = params.job_type === "text-to-video"
+      ? `${LTX_BASE}/text-to-video/ltx-2-pro`
+      : `${LTX_BASE}/image-to-video/ltx-2-pro`;
+
+    // LTX Pro supports: 1080p, 1440p, 2160p only
     const resolutionMap: Record<string, string> = {
-      "720p": "1280x720", "1080p": "1920x1080", "1440p": "2560x1440", "4k": "3840x2160", "2160p": "3840x2160",
+      "720p": "1080p", "1080p": "1080p", "1440p": "1440p", "4k": "2160p", "2160p": "2160p",
     };
     const rawRes = (params.resolution as string) || "1080p";
-    const resolvedResolution = resolutionMap[rawRes.toLowerCase()] || rawRes;
+    const resolvedResolution = resolutionMap[rawRes.toLowerCase()] || "1080p";
+
+    // LTX Pro durations: 6, 8, or 10 seconds
+    const rawDuration = Number(params.duration) || 6;
+    const validDurations = [6, 8, 10];
+    const closestDuration = validDurations.reduce((prev, curr) => Math.abs(curr - rawDuration) < Math.abs(prev - rawDuration) ? curr : prev);
 
     const payload: Record<string, unknown> = {
-      model: (params.model_key as string) || "ltx-2-pro",
-      duration: params.duration || 8,
+      prompt: params.prompt || (params.input_refs as any)?.prompt || "A professional video with smooth motion",
       resolution: resolvedResolution,
+      duration: closestDuration,
+      fps: 25,
     };
 
-    if (params.job_type === "text-to-video") {
-      payload.prompt = params.prompt || (params.input_refs as any)?.prompt || "A professional product showcase video";
-    } else {
-      payload.image_uri = params.resolved_image_url;
-      payload.prompt = params.prompt || (params.input_refs as any)?.prompt || "Animate this image with natural motion";
+    if (params.job_type !== "text-to-video") {
+      payload.image_url = params.resolved_image_url;
     }
 
     console.log(`LTX submit: ${endpoint}`, JSON.stringify(payload));
     const res = await fetch(endpoint, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        "x-freepik-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
     });
 
@@ -47,55 +57,66 @@ const LTX_ADAPTER: ProviderAdapter = {
       throw new Error(`LTX API error: ${res.status} — ${errBody}`);
     }
 
-    const contentType = res.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const result = await res.json();
-      const taskId = result.task_id || result.id;
-      if (!taskId) throw new Error("LTX returned JSON but no task_id");
-      return { taskId };
-    }
-
-    return { taskId: "__SYNC__:" + await res.text() };
+    const result = await res.json();
+    const taskId = result.data?.task_id || result.task_id;
+    if (!taskId) throw new Error("LTX returned no task_id");
+    return { taskId };
   },
 
   async poll(taskId, apiKey) {
-    const res = await fetch(`${LTX_BASE}/status/${taskId}`, {
-      headers: { "Authorization": `Bearer ${apiKey}` },
+    // Check task status
+    const res = await fetch(`${LTX_BASE}/image-to-video/ltx-2-pro/${taskId}`, {
+      headers: { "x-freepik-api-key": apiKey },
     });
-    if (!res.ok) return { status: "processing", progress: 0 };
+    if (!res.ok) {
+      // Try text-to-video status endpoint
+      const res2 = await fetch(`${LTX_BASE}/text-to-video/ltx-2-pro/${taskId}`, {
+        headers: { "x-freepik-api-key": apiKey },
+      });
+      if (!res2.ok) return { status: "processing", progress: 0 };
+      const data2 = await res2.json();
+      const status2 = data2.data?.status;
+      return {
+        status: status2 === "COMPLETED" || status2 === "completed" ? "completed" : status2 === "FAILED" || status2 === "failed" ? "failed" : "processing",
+        progress: status2 === "COMPLETED" ? 100 : 50,
+        videoUrl: data2.data?.generated?.[0],
+        error: data2.data?.error,
+      };
+    }
     const data = await res.json();
+    const status = data.data?.status;
     return {
-      status: data.status === "completed" || data.status === "success" ? "completed" : data.status === "failed" || data.status === "error" ? "failed" : "processing",
-      progress: data.progress || 0,
-      videoUrl: data.video_url || data.output_url,
-      error: data.error || data.message,
+      status: status === "COMPLETED" || status === "completed" ? "completed" : status === "FAILED" || status === "failed" ? "failed" : "processing",
+      progress: status === "COMPLETED" ? 100 : 50,
+      videoUrl: data.data?.generated?.[0],
+      error: data.data?.error,
     };
   },
 };
 
-// ── OpenAI Sora Adapter ──
+// ── OpenAI Sora Adapter (text-to-video only — Sora has no native i2v) ──
 const SORA_ADAPTER: ProviderAdapter = {
   async submit(params, apiKey) {
+    // Sora only supports text-to-video. For i2v, callers should route to LTX/Veo.
+    if (params.job_type === "image-to-video") {
+      throw new Error("SORA_NO_I2V"); // Sentinel — caller will fallback
+    }
+
     const model = (params.model_key as string) || "sora-2";
     const prompt = params.prompt || (params.input_refs as any)?.prompt || "A cinematic video";
-    // Sora API requires seconds as a string: "4", "8", or "12"
     const rawDuration = Number(params.duration) || 8;
     const validDurations = [4, 8, 12];
     const closestDuration = validDurations.reduce((prev, curr) => Math.abs(curr - rawDuration) < Math.abs(prev - rawDuration) ? curr : prev);
     const seconds = String(closestDuration);
 
-    // Map resolution to pixel size
+    // Sora accepted sizes: 720x1280, 1280x720, 1024x1792, 1792x1024
     const sizeMap: Record<string, string> = {
-      "720p": "1280x720", "1080p": "1920x1080",
+      "720p": "1280x720", "1080p": "1280x720",
     };
-    const rawRes = (params.resolution as string) || "1080p";
+    const rawRes = (params.resolution as string) || "720p";
     const size = sizeMap[rawRes.toLowerCase()] || "1280x720";
 
-    const payload: Record<string, unknown> = { model, prompt, seconds, size };
-
-    if (params.job_type === "image-to-video" && params.resolved_image_url) {
-      payload.image_url = params.resolved_image_url;
-    }
+    const payload = { model, prompt, seconds, size };
 
     console.log("Sora submit:", JSON.stringify(payload));
     const res = await fetch("https://api.openai.com/v1/videos", {
@@ -110,7 +131,7 @@ const SORA_ADAPTER: ProviderAdapter = {
     }
 
     const result = await res.json();
-    const taskId = result.id || result.task_id;
+    const taskId = result.id;
     if (!taskId) throw new Error("Sora returned no task ID");
     return { taskId };
   },
@@ -123,34 +144,39 @@ const SORA_ADAPTER: ProviderAdapter = {
     const data = await res.json();
     const status = data.status;
     return {
-      status: status === "succeeded" || status === "completed" ? "completed" : status === "failed" ? "failed" : "processing",
-      progress: data.progress || (status === "completed" || status === "succeeded" ? 100 : 50),
-      videoUrl: data.output?.url || data.video_url || data.result_url,
-      error: data.error?.message || data.error,
+      status: status === "completed" ? "completed" : status === "failed" ? "failed" : "processing",
+      progress: data.progress ?? (status === "completed" ? 100 : 50),
+      // Sora completed videos are downloaded via GET /videos/{id}/content
+      videoUrl: status === "completed" ? `https://api.openai.com/v1/videos/${taskId}/content` : undefined,
+      error: data.error?.message,
     };
   },
 };
 
-// ── Google Veo Adapter ──
+// ── Google Veo Adapter (via Gemini API) ──
+const VEO_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const VEO_ADAPTER: ProviderAdapter = {
   async submit(params, apiKey) {
-    const payload: Record<string, unknown> = {
-      model: (params.model_key as string) || "veo-2",
+    const model = "veo-2.0-generate-001";
+    const instance: Record<string, unknown> = {
       prompt: params.prompt || (params.input_refs as any)?.prompt || "A professional video",
-      videoConfig: {
-        aspectRatio: params.aspect_ratio || "16:9",
-        durationSeconds: params.duration || 8,
-      },
     };
 
     if (params.job_type === "image-to-video" && params.resolved_image_url) {
-      payload.image = { imageUri: params.resolved_image_url };
+      instance.image = { imageUri: params.resolved_image_url, mimeType: "image/jpeg" };
     }
 
+    const payload = {
+      instances: [instance],
+      parameters: {
+        aspectRatio: params.aspect_ratio || "16:9",
+      },
+    };
+
     console.log("Veo submit:", JSON.stringify(payload));
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/veo-2:predictVideo?key=${apiKey}`, {
+    const res = await fetch(`${VEO_BASE}/models/${model}:predictLongRunning`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
@@ -160,20 +186,23 @@ const VEO_ADAPTER: ProviderAdapter = {
     }
 
     const result = await res.json();
-    const taskId = result.name || result.operationId || result.id;
-    if (!taskId) throw new Error("Veo returned no operation ID");
+    const taskId = result.name;
+    if (!taskId) throw new Error("Veo returned no operation name");
     return { taskId };
   },
 
   async poll(taskId, apiKey) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${taskId}?key=${apiKey}`);
+    const res = await fetch(`${VEO_BASE}/${taskId}`, {
+      headers: { "x-goog-api-key": apiKey },
+    });
     if (!res.ok) return { status: "processing", progress: 0 };
     const data = await res.json();
     const done = data.done === true;
+    const videoUri = data.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
     return {
       status: done ? (data.error ? "failed" : "completed") : "processing",
-      progress: done ? 100 : data.metadata?.percentComplete || 50,
-      videoUrl: data.response?.generatedVideos?.[0]?.video?.uri,
+      progress: done ? 100 : 50,
+      videoUrl: videoUri ? `${videoUri}&key=${apiKey}` : undefined,
       error: data.error?.message,
     };
   },
@@ -419,13 +448,54 @@ Deno.serve(async (req) => {
             }
           }
 
-          // Get adapter
-          const adapter = PROVIDER_ADAPTERS[resolvedProviderName] || LTX_ADAPTER;
+          // Get adapter — with fallback for providers that don't support the modality
+          let adapter = PROVIDER_ADAPTERS[resolvedProviderName] || LTX_ADAPTER;
+          let activeApiKey = resolvedApiKey!;
+          let activeProviderName = resolvedProviderName;
 
-          const { taskId } = await adapter.submit({
-            job_type, prompt, duration, resolution, model_key: resolvedModelKey,
-            input_refs, resolved_image_url: resolvedImageUrl,
-          }, resolvedApiKey!);
+          let taskId: string;
+          try {
+            const result = await adapter.submit({
+              job_type, prompt, duration, resolution, model_key: resolvedModelKey,
+              input_refs, resolved_image_url: resolvedImageUrl,
+            }, activeApiKey);
+            taskId = result.taskId;
+          } catch (submitErr: any) {
+            // Fallback chain for i2v: Sora → LTX → Veo
+            if (submitErr.message === "SORA_NO_I2V" || submitErr.message.includes("API error")) {
+              console.log(`Provider ${activeProviderName} failed for i2v (${submitErr.message}), trying fallback chain...`);
+              
+              const fallbackChain: { name: string; adapter: ProviderAdapter; keyEnv: string; model: string }[] = [
+                { name: "ltx", adapter: LTX_ADAPTER, keyEnv: "LTX_API_KEY", model: "ltx-2-pro" },
+                { name: "veo", adapter: VEO_ADAPTER, keyEnv: "GOOGLE_VEO_API_KEY", model: "veo-2" },
+              ].filter(f => f.name !== activeProviderName); // skip the one that already failed
+
+              let fallbackSucceeded = false;
+              for (const fb of fallbackChain) {
+                const fbKey = Deno.env.get(fb.keyEnv);
+                if (!fbKey) continue;
+                try {
+                  console.log(`Trying fallback: ${fb.name}...`);
+                  adapter = fb.adapter; activeApiKey = fbKey; activeProviderName = fb.name;
+                  const result = await adapter.submit({
+                    job_type, prompt, duration, resolution, model_key: fb.model,
+                    input_refs, resolved_image_url: resolvedImageUrl,
+                  }, activeApiKey);
+                  taskId = result.taskId;
+                  await audit("provider_fallback", { from: resolvedProviderName, to: fb.name, reason: submitErr.message });
+                  fallbackSucceeded = true;
+                  break;
+                } catch (fbErr: any) {
+                  console.warn(`Fallback ${fb.name} also failed: ${fbErr.message}`);
+                }
+              }
+              if (!fallbackSucceeded) {
+                throw new Error(`All video providers failed. Last error: ${submitErr.message}`);
+              }
+            } else {
+              throw submitErr;
+            }
+          }
 
           if (taskId.startsWith("__SYNC__:")) {
             const videoBlob = new Blob([taskId.slice(9)], { type: "video/mp4" });
@@ -446,13 +516,18 @@ Deno.serve(async (req) => {
               await new Promise((r) => setTimeout(r, 5000));
               pollAttempts++;
 
-              const result = await adapter.poll(taskId, resolvedApiKey!);
+              const result = await adapter.poll(taskId, activeApiKey);
               const mappedProgress = Math.min(90, 25 + Math.round(result.progress * 0.65));
               await supabase.from("video_jobs").update({ progress: mappedProgress }).eq("id", job.id);
               await supabase.from("render_jobs").update({ progress: mappedProgress }).eq("video_job_id", job.id);
 
               if (result.status === "completed" && result.videoUrl) {
-                const videoResponse = await fetch(result.videoUrl);
+                // Sora requires auth header for content download; others use direct URL
+                const downloadHeaders: Record<string, string> = {};
+                if (activeProviderName === "sora" || activeProviderName === "openai" || activeProviderName === "openai sora") {
+                  downloadHeaders["Authorization"] = `Bearer ${activeApiKey}`;
+                }
+                const videoResponse = await fetch(result.videoUrl, { headers: downloadHeaders });
                 if (!videoResponse.ok) throw new Error("Failed to download video");
                 const videoBlob = await videoResponse.blob();
                 const objectKey = `${user.id}/${job.id}/output.mp4`;
