@@ -235,6 +235,24 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const body = await req.json();
+    const { action, job_id } = body;
+
+    // ── Health check (no auth required) ──
+    if (action === "health-check") {
+      const veoKey = Deno.env.get("GOOGLE_VEO_API_KEY");
+      const ltxKey = Deno.env.get("LTX_API_KEY");
+      const openaiKey = Deno.env.get("OPENAI_API_KEY");
+      return new Response(JSON.stringify({
+        status: "ok",
+        providers: {
+          veo: veoKey ? "configured" : "missing",
+          ltx: ltxKey ? "configured" : "missing",
+          openai: openaiKey ? "configured" : "missing",
+        },
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -253,9 +271,6 @@ Deno.serve(async (req) => {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const body = await req.json();
-    const { action, job_id } = body;
 
     // ── Audit helper (safe — no .catch) ──
     const audit = async (actionName: string, metadata: Record<string, unknown> = {}) => {
