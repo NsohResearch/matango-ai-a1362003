@@ -330,6 +330,7 @@ export type Database = {
           brand_id: string | null
           created_at: string
           id: string
+          media_object_id: string | null
           metadata: Json | null
           model: string | null
           org_id: string | null
@@ -346,6 +347,7 @@ export type Database = {
           brand_id?: string | null
           created_at?: string
           id?: string
+          media_object_id?: string | null
           metadata?: Json | null
           model?: string | null
           org_id?: string | null
@@ -362,6 +364,7 @@ export type Database = {
           brand_id?: string | null
           created_at?: string
           id?: string
+          media_object_id?: string | null
           metadata?: Json | null
           model?: string | null
           org_id?: string | null
@@ -380,6 +383,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_library_media_object_id_fkey"
+            columns: ["media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
             referencedColumns: ["id"]
           },
           {
@@ -605,6 +615,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          media_object_id: string | null
           prompt: string | null
           scene_number: number
           scheduled_for: string | null
@@ -615,6 +626,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          media_object_id?: string | null
           prompt?: string | null
           scene_number?: number
           scheduled_for?: string | null
@@ -625,6 +637,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          media_object_id?: string | null
           prompt?: string | null
           scene_number?: number
           scheduled_for?: string | null
@@ -635,6 +648,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_scenes_media_object_id_fkey"
+            columns: ["media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
             referencedColumns: ["id"]
           },
         ]
@@ -798,29 +818,47 @@ export type Database = {
       credit_ledger: {
         Row: {
           admin_id: string | null
+          balance_after: number | null
           created_at: string
+          credit_amount: number | null
+          debit: number | null
           delta: number
           id: string
+          idempotency_key: string | null
           note: string | null
           reason: string
+          reference_id: string | null
+          reference_type: string | null
           user_id: string
         }
         Insert: {
           admin_id?: string | null
+          balance_after?: number | null
           created_at?: string
+          credit_amount?: number | null
+          debit?: number | null
           delta: number
           id?: string
+          idempotency_key?: string | null
           note?: string | null
           reason: string
+          reference_id?: string | null
+          reference_type?: string | null
           user_id: string
         }
         Update: {
           admin_id?: string | null
+          balance_after?: number | null
           created_at?: string
+          credit_amount?: number | null
+          debit?: number | null
           delta?: number
           id?: string
+          idempotency_key?: string | null
           note?: string | null
           reason?: string
+          reference_id?: string | null
+          reference_type?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1205,6 +1243,7 @@ export type Database = {
           id: string
           image_url: string | null
           influencer_id: string
+          media_object_id: string | null
           metadata: Json | null
           prompt: string | null
         }
@@ -1214,6 +1253,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           influencer_id: string
+          media_object_id?: string | null
           metadata?: Json | null
           prompt?: string | null
         }
@@ -1223,6 +1263,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           influencer_id?: string
+          media_object_id?: string | null
           metadata?: Json | null
           prompt?: string | null
         }
@@ -1232,6 +1273,13 @@ export type Database = {
             columns: ["influencer_id"]
             isOneToOne: false
             referencedRelation: "influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "influencer_content_media_object_id_fkey"
+            columns: ["media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
             referencedColumns: ["id"]
           },
         ]
@@ -1330,6 +1378,7 @@ export type Database = {
       influencers: {
         Row: {
           age: number | null
+          avatar_media_object_id: string | null
           avatar_url: string | null
           bio: string | null
           brand_id: string | null
@@ -1350,6 +1399,7 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          avatar_media_object_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           brand_id?: string | null
@@ -1370,6 +1420,7 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          avatar_media_object_id?: string | null
           avatar_url?: string | null
           bio?: string | null
           brand_id?: string | null
@@ -1389,6 +1440,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "influencers_avatar_media_object_id_fkey"
+            columns: ["avatar_media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "influencers_brand_id_fkey"
             columns: ["brand_id"]
@@ -1591,6 +1649,8 @@ export type Database = {
           bucket: string
           content_tags: Json | null
           created_at: string
+          created_by: string | null
+          deleted_at: string | null
           duration_ms: number | null
           height: number | null
           id: string
@@ -1610,6 +1670,8 @@ export type Database = {
           bucket: string
           content_tags?: Json | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           duration_ms?: number | null
           height?: number | null
           id?: string
@@ -1629,6 +1691,8 @@ export type Database = {
           bucket?: string
           content_tags?: Json | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
           duration_ms?: number | null
           height?: number | null
           id?: string
@@ -2069,9 +2133,13 @@ export type Database = {
       provider_routing_rules: {
         Row: {
           created_at: string
+          failure_count: number | null
           fallback_provider_ids: string[] | null
+          health_status: string | null
           id: string
           is_active: boolean
+          last_health_check: string | null
+          max_failures_before_disable: number | null
           modality: string
           primary_provider_id: string | null
           priority: number
@@ -2079,9 +2147,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          failure_count?: number | null
           fallback_provider_ids?: string[] | null
+          health_status?: string | null
           id?: string
           is_active?: boolean
+          last_health_check?: string | null
+          max_failures_before_disable?: number | null
           modality: string
           primary_provider_id?: string | null
           priority?: number
@@ -2089,9 +2161,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          failure_count?: number | null
           fallback_provider_ids?: string[] | null
+          health_status?: string | null
           id?: string
           is_active?: boolean
+          last_health_check?: string | null
+          max_failures_before_disable?: number | null
           modality?: string
           primary_provider_id?: string | null
           priority?: number
@@ -2107,25 +2183,80 @@ export type Database = {
           },
         ]
       }
+      render_caps: {
+        Row: {
+          created_at: string
+          final_render_count: number
+          id: string
+          is_preview: boolean
+          max_final_renders: number
+          updated_at: string
+          user_id: string
+          video_job_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          final_render_count?: number
+          id?: string
+          is_preview?: boolean
+          max_final_renders?: number
+          updated_at?: string
+          user_id: string
+          video_job_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          final_render_count?: number
+          id?: string
+          is_preview?: boolean
+          max_final_renders?: number
+          updated_at?: string
+          user_id?: string
+          video_job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "render_caps_video_job_id_fkey"
+            columns: ["video_job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       render_jobs: {
         Row: {
           actual_duration_ms: number | null
+          aspect_ratio: string | null
           brand_id: string | null
           completed_at: string | null
           created_at: string
+          credit_cost: number | null
+          credit_ledger_id: string | null
+          error_code: string | null
           error_message: string | null
           estimated_duration_ms: number | null
+          failed_at: string | null
           id: string
+          input_media_object_id: string | null
+          is_preview: boolean | null
           logs: Json | null
           max_retries: number
+          metadata: Json | null
+          next_retry_at: string | null
           org_id: string | null
           output_id: string | null
+          output_media_object_id: string | null
           params: Json | null
           progress: number
           provider_job_id: string | null
+          provider_model: string | null
+          provider_name: string | null
+          quality_tier: string | null
           retry_count: number
           started_at: string | null
           status: string
+          submitted_at: string | null
           type: string
           updated_at: string
           user_id: string
@@ -2133,22 +2264,36 @@ export type Database = {
         }
         Insert: {
           actual_duration_ms?: number | null
+          aspect_ratio?: string | null
           brand_id?: string | null
           completed_at?: string | null
           created_at?: string
+          credit_cost?: number | null
+          credit_ledger_id?: string | null
+          error_code?: string | null
           error_message?: string | null
           estimated_duration_ms?: number | null
+          failed_at?: string | null
           id?: string
+          input_media_object_id?: string | null
+          is_preview?: boolean | null
           logs?: Json | null
           max_retries?: number
+          metadata?: Json | null
+          next_retry_at?: string | null
           org_id?: string | null
           output_id?: string | null
+          output_media_object_id?: string | null
           params?: Json | null
           progress?: number
           provider_job_id?: string | null
+          provider_model?: string | null
+          provider_name?: string | null
+          quality_tier?: string | null
           retry_count?: number
           started_at?: string | null
           status?: string
+          submitted_at?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -2156,22 +2301,36 @@ export type Database = {
         }
         Update: {
           actual_duration_ms?: number | null
+          aspect_ratio?: string | null
           brand_id?: string | null
           completed_at?: string | null
           created_at?: string
+          credit_cost?: number | null
+          credit_ledger_id?: string | null
+          error_code?: string | null
           error_message?: string | null
           estimated_duration_ms?: number | null
+          failed_at?: string | null
           id?: string
+          input_media_object_id?: string | null
+          is_preview?: boolean | null
           logs?: Json | null
           max_retries?: number
+          metadata?: Json | null
+          next_retry_at?: string | null
           org_id?: string | null
           output_id?: string | null
+          output_media_object_id?: string | null
           params?: Json | null
           progress?: number
           provider_job_id?: string | null
+          provider_model?: string | null
+          provider_name?: string | null
+          quality_tier?: string | null
           retry_count?: number
           started_at?: string | null
           status?: string
+          submitted_at?: string | null
           type?: string
           updated_at?: string
           user_id?: string
@@ -2183,6 +2342,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "render_jobs_input_media_object_id_fkey"
+            columns: ["input_media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
             referencedColumns: ["id"]
           },
           {
@@ -2200,6 +2366,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "render_jobs_output_media_object_id_fkey"
+            columns: ["output_media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "render_jobs_video_job_id_fkey"
             columns: ["video_job_id"]
             isOneToOne: false
@@ -2213,14 +2386,19 @@ export type Database = {
           anomaly_flag: Json | null
           asset_id: string | null
           campaign_id: string | null
+          caption: string | null
           content: string | null
           created_at: string
+          error_message: string | null
           hashtags: string[] | null
           id: string
           image_url: string | null
           influencer_id: string | null
+          media_object_id: string | null
           platform: string
           platforms: string[] | null
+          published_at: string | null
+          retry_count: number | null
           scheduled_for: string
           status: string
           timezone: string | null
@@ -2231,14 +2409,19 @@ export type Database = {
           anomaly_flag?: Json | null
           asset_id?: string | null
           campaign_id?: string | null
+          caption?: string | null
           content?: string | null
           created_at?: string
+          error_message?: string | null
           hashtags?: string[] | null
           id?: string
           image_url?: string | null
           influencer_id?: string | null
+          media_object_id?: string | null
           platform: string
           platforms?: string[] | null
+          published_at?: string | null
+          retry_count?: number | null
           scheduled_for: string
           status?: string
           timezone?: string | null
@@ -2249,14 +2432,19 @@ export type Database = {
           anomaly_flag?: Json | null
           asset_id?: string | null
           campaign_id?: string | null
+          caption?: string | null
           content?: string | null
           created_at?: string
+          error_message?: string | null
           hashtags?: string[] | null
           id?: string
           image_url?: string | null
           influencer_id?: string | null
+          media_object_id?: string | null
           platform?: string
           platforms?: string[] | null
+          published_at?: string | null
+          retry_count?: number | null
           scheduled_for?: string
           status?: string
           timezone?: string | null
@@ -2286,6 +2474,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "scheduled_posts_media_object_id_fkey"
+            columns: ["media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "scheduled_posts_video_output_id_fkey"
             columns: ["video_output_id"]
             isOneToOne: false
@@ -2297,40 +2492,58 @@ export type Database = {
       social_connections: {
         Row: {
           access_token_encrypted: string | null
+          connection_metadata: Json | null
           created_at: string
           expires_at: string | null
           id: string
+          is_valid: boolean | null
+          last_verified_at: string | null
           org_id: string | null
           platform: string
           platform_user_id: string | null
           platform_username: string | null
+          refresh_token: string | null
           refresh_token_encrypted: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           access_token_encrypted?: string | null
+          connection_metadata?: Json | null
           created_at?: string
           expires_at?: string | null
           id?: string
+          is_valid?: boolean | null
+          last_verified_at?: string | null
           org_id?: string | null
           platform: string
           platform_user_id?: string | null
           platform_username?: string | null
+          refresh_token?: string | null
           refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           access_token_encrypted?: string | null
+          connection_metadata?: Json | null
           created_at?: string
           expires_at?: string | null
           id?: string
+          is_valid?: boolean | null
+          last_verified_at?: string | null
           org_id?: string | null
           platform?: string
           platform_user_id?: string | null
           platform_username?: string | null
+          refresh_token?: string | null
           refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2860,6 +3073,7 @@ export type Database = {
           height: number
           id: string
           is_preview: boolean
+          media_object_id: string | null
           org_id: string | null
           output_url: string | null
           quality: string
@@ -2879,6 +3093,7 @@ export type Database = {
           height?: number
           id?: string
           is_preview?: boolean
+          media_object_id?: string | null
           org_id?: string | null
           output_url?: string | null
           quality?: string
@@ -2898,6 +3113,7 @@ export type Database = {
           height?: number
           id?: string
           is_preview?: boolean
+          media_object_id?: string | null
           org_id?: string | null
           output_url?: string | null
           quality?: string
@@ -2914,6 +3130,13 @@ export type Database = {
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "business_dna"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_outputs_media_object_id_fkey"
+            columns: ["media_object_id"]
+            isOneToOne: false
+            referencedRelation: "media_objects"
             referencedColumns: ["id"]
           },
           {
@@ -3244,6 +3467,17 @@ export type Database = {
     }
     Functions: {
       can_submit_review: { Args: { p_user: string }; Returns: boolean }
+      deduct_credits: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_reason: string
+          p_reference_id?: string
+          p_reference_type?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       get_credits_remaining: { Args: { p_user_id: string }; Returns: number }
       get_user_role: { Args: { p_user_id: string }; Returns: string }
       has_role: {
@@ -3253,10 +3487,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_render_count: { Args: { p_job_id: string }; Returns: boolean }
       is_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_org_member: {
         Args: { p_org_id: string; p_user_id: string }
         Returns: boolean
+      }
+      refund_credits: {
+        Args: {
+          p_amount: number
+          p_reason: string
+          p_reference_id?: string
+          p_reference_type?: string
+          p_user_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
