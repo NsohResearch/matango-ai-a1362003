@@ -21,7 +21,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "kah",
     name: "Ka'h",
-    role: "AI Receptionist",
+    role: "Receptionist",
     tagline: "Answers every call. Books every lead. Never sleeps.",
     bio: "Ka'h greets every inbound caller, qualifies the lead, and books the appointment straight into your calendar — in 13 languages, 24/7.",
     capabilities: [
@@ -37,7 +37,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "zuri",
     name: "Zuri",
-    role: "AI Content Creator",
+    role: "Content Creator",
     tagline: "Turns your brand into a daily content engine.",
     bio: "Zuri studies your Brand Brain, writes the scripts, generates the video, and ships to every channel — every single day.",
     capabilities: [
@@ -53,7 +53,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "imani",
     name: "Imani",
-    role: "AI Reputation Specialist",
+    role: "Reputation Specialist",
     tagline: "Protects your stars. Replies to every review.",
     bio: "Imani monitors Google, Yelp, and Facebook, drafts on-brand responses, and surfaces issues before they hurt your rating.",
     capabilities: [
@@ -69,7 +69,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "bashir",
     name: "Bashir",
-    role: "AI Sales Assistant",
+    role: "Sales Assistant",
     tagline: "Follows up on every lead — within 60 seconds.",
     bio: "Bashir picks up where Ka'h leaves off: instant SMS and email follow-ups, nurture sequences, and warm handoffs to your closer.",
     capabilities: [
@@ -85,7 +85,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "kito",
     name: "Kito",
-    role: "AI Salesperson",
+    role: "Salesperson",
     tagline: "Closes deals while you sleep.",
     bio: "Kito runs full discovery calls, sends proposals, handles objections, and books the contract — fully autonomous, fully on-brand.",
     capabilities: [
@@ -101,7 +101,7 @@ export const OPERATORS: Operator[] = [
   {
     slug: "sefu",
     name: "Sefu",
-    role: "AI SEO Expert",
+    role: "SEO Expert",
     tagline: "Ranks you in your service area. Forever.",
     bio: "Sefu audits your site, writes location-targeted pages, builds local citations, and ships fresh content weekly — built to win local search.",
     capabilities: [
