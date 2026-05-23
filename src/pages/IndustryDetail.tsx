@@ -67,10 +67,10 @@ const IndustryDetail = () => {
 
         <section className="py-20 px-6 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-            Ready to deploy your {ind.name} crew?
+            Ready to hire your {ind.name} crew?
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-            Get started in minutes. Your AAOs learn your brand and start working today.
+            Get started in minutes. Your AAOs know your industry and are ready to start working today.
           </p>
           <Link
             to="/auth?mode=signup"
