@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { OPERATORS } from "@/lib/operators";
 import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
+import { AlwaysOnLine, AlwaysOnCallout } from "@/components/operator/AlwaysOnNote";
 
 const OperatorsSection = () => (
   <section className="py-24 px-6 bg-emerald-950">
@@ -48,12 +49,15 @@ const OperatorsSection = () => (
             <h3 className="mt-5 font-display text-xl font-semibold text-cream-50">{op.name}</h3>
             <p className="text-sm text-cream-100/70 mt-1">{op.role}</p>
             <p className="text-[11px] text-cream-100/50 mt-1 max-w-[14rem]">{op.experience}</p>
+            <AlwaysOnLine className="mt-1.5" />
             {!op.available && (
               <span className="mt-1 text-xs italic text-cream-100/40">Onboarding Underway</span>
             )}
           </motion.div>
         ))}
       </div>
+
+      <div className="mt-16"><AlwaysOnCallout tone="dark" /></div>
 
       <div className="mt-14 flex justify-center">
         <Link

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { OPERATORS } from "@/lib/operators";
 import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
+import { AlwaysOnLine, AlwaysOnCallout } from "@/components/operator/AlwaysOnNote";
 
 const Personas = () => (
   <div className="min-h-screen bg-background">
@@ -46,6 +47,7 @@ const Personas = () => (
                 <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">{op.name}</h2>
                 <p className="mt-3 text-lg text-muted-foreground italic">{op.tagline}</p>
                 <p className="mt-2 text-xs text-muted-foreground/80">{op.experience}</p>
+                <AlwaysOnLine className="mt-2" />
                 <p className="mt-5 text-base">{op.bio}</p>
                 <ul className="mt-6 space-y-2">
                   {op.capabilities.map((c) => (
@@ -74,6 +76,7 @@ const Personas = () => (
           ))}
         </div>
       </section>
+      <section className="pb-20 px-6"><AlwaysOnCallout /></section>
     </main>
     <Footer />
   </div>

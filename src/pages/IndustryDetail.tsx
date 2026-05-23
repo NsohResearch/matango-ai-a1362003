@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { getIndustry, getOperator } from "@/lib/operators";
 import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
+import { AlwaysOnLine, AlwaysOnCallout } from "@/components/operator/AlwaysOnNote";
 
 const IndustryDetail = () => {
   const { slug } = useParams();
@@ -61,10 +62,12 @@ const IndustryDetail = () => {
                   <h3 className="font-display text-xl font-semibold">{op.name}</h3>
                   <p className="text-sm text-muted-foreground">{op.role}</p>
                   <p className="text-[11px] text-muted-foreground/80 mt-1">{op.experience}</p>
+                  <AlwaysOnLine className="mt-1.5" />
                   {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Onboarding Underway</span>}
                 </Link>
               ))}
             </div>
+            <div className="mt-14"><AlwaysOnCallout /></div>
           </div>
         </section>
 
