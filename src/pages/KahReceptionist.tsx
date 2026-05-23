@@ -17,6 +17,12 @@ import TestScenarios from "@/components/operator/TestScenarios";
 import ServiceAreaEditor from "@/components/operator/ServiceAreaEditor";
 import HandoffCompliance from "@/components/operator/HandoffCompliance";
 import KPITargets from "@/components/operator/KPITargets";
+import CallsInbox from "@/components/operator/CallsInbox";
+import LeadPipeline from "@/components/operator/LeadPipeline";
+import BillingUsage from "@/components/operator/BillingUsage";
+import TeamRoles from "@/components/operator/TeamRoles";
+import HowToManual from "@/components/operator/HowToManual";
+import BackendSettings from "@/components/operator/BackendSettings";
 import { Loader2 } from "lucide-react";
 
 export default function KahReceptionist() {
@@ -52,17 +58,23 @@ export default function KahReceptionist() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="flex-wrap">
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="guided">Guided setup</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="calls">Calls</TabsTrigger>
+          <TabsTrigger value="leads">Leads</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
           <TabsTrigger value="area">Service area</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
           <TabsTrigger value="voice">Voice & guardrails</TabsTrigger>
           <TabsTrigger value="handoff">Handoff & compliance</TabsTrigger>
           <TabsTrigger value="tests">Test calls</TabsTrigger>
-          <TabsTrigger value="onboarding">Checklist</TabsTrigger>
           <TabsTrigger value="kpis">KPIs</TabsTrigger>
+          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="billing">Billing & usage</TabsTrigger>
+          <TabsTrigger value="settings">Backend settings</TabsTrigger>
+          <TabsTrigger value="manual">How-to manual</TabsTrigger>
+          <TabsTrigger value="onboarding">Checklist</TabsTrigger>
         </TabsList>
 
         <TabsContent value="guided" className="mt-4">
@@ -101,7 +113,9 @@ export default function KahReceptionist() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="knowledge" className="mt-4"><KnowledgeManager deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="calls" className="mt-4"><CallsInbox deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="leads" className="mt-4"><LeadPipeline deploymentSlug={ind.slug} /></TabsContent>
+        <TabsContent value="knowledge" className="mt-4"><KnowledgeManager deploymentId={deployment.id} sectorSlug={ind.slug} /></TabsContent>
         <TabsContent value="area" className="mt-4"><ServiceAreaEditor deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tools" className="mt-4"><ToolRegistry deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="voice" className="mt-4"><VoiceConfig deployment={deployment} onUpdate={update} /></TabsContent>
@@ -112,6 +126,10 @@ export default function KahReceptionist() {
           <KPIDashboard deploymentId={deployment.id} />
           <KPITargets deployment={deployment} onUpdate={update} />
         </TabsContent>
+        <TabsContent value="team" className="mt-4"><TeamRoles deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="billing" className="mt-4"><BillingUsage deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="settings" className="mt-4"><BackendSettings deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="manual" className="mt-4"><HowToManual sectorSlug={ind.slug} /></TabsContent>
       </Tabs>
     </DashboardLayout>
   );
