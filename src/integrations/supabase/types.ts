@@ -1470,6 +1470,45 @@ export type Database = {
           },
         ]
       }
+      kah_manual_pages: {
+        Row: {
+          body_md: string
+          category: string
+          created_at: string
+          id: string
+          is_published: boolean
+          sector_slug: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_md: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          sector_slug?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_md?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          sector_slug?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kah_messages: {
         Row: {
           content: string
@@ -2143,6 +2182,177 @@ export type Database = {
           },
         ]
       }
+      operator_notification_rules: {
+        Row: {
+          channel: string
+          cooldown_minutes: number
+          created_at: string
+          deployment_id: string
+          id: string
+          is_active: boolean
+          target: string
+          trigger: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          cooldown_minutes?: number
+          created_at?: string
+          deployment_id: string
+          id?: string
+          is_active?: boolean
+          target: string
+          trigger: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          cooldown_minutes?: number
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          is_active?: boolean
+          target?: string
+          trigger?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_notification_rules_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_provider_health: {
+        Row: {
+          checked_at: string
+          id: string
+          latency_ms: number | null
+          message: string | null
+          provider: string
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          id?: string
+          latency_ms?: number | null
+          message?: string | null
+          provider: string
+          status?: string
+        }
+        Update: {
+          checked_at?: string
+          id?: string
+          latency_ms?: number | null
+          message?: string | null
+          provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      operator_secrets: {
+        Row: {
+          created_at: string
+          deployment_id: string
+          id: string
+          key_name: string
+          last_four: string | null
+          provider: string
+          updated_at: string
+          user_id: string
+          value_encrypted: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_id: string
+          id?: string
+          key_name: string
+          last_four?: string | null
+          provider: string
+          updated_at?: string
+          user_id: string
+          value_encrypted: string
+        }
+        Update: {
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          key_name?: string
+          last_four?: string | null
+          provider?: string
+          updated_at?: string
+          user_id?: string
+          value_encrypted?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_secrets_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_team_members: {
+        Row: {
+          created_at: string
+          deployment_id: string
+          id: string
+          invite_token: string
+          invited_email: string
+          invited_phone: string | null
+          member_user_id: string | null
+          owner_id: string
+          permissions: Json
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_id: string
+          id?: string
+          invite_token?: string
+          invited_email: string
+          invited_phone?: string | null
+          member_user_id?: string | null
+          owner_id: string
+          permissions?: Json
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          invite_token?: string
+          invited_email?: string
+          invited_phone?: string | null
+          member_user_id?: string | null
+          owner_id?: string
+          permissions?: Json
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_team_members_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operator_test_runs: {
         Row: {
           created_at: string
@@ -2239,6 +2449,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "operator_tools_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_webhooks: {
+        Row: {
+          created_at: string
+          deployment_id: string
+          events: string[]
+          failure_count: number
+          id: string
+          is_active: boolean
+          label: string
+          last_fired_at: string | null
+          last_status: number | null
+          secret_token: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_id: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          last_fired_at?: string | null
+          last_status?: number | null
+          secret_token?: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deployment_id?: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          last_fired_at?: string | null
+          last_status?: number | null
+          secret_token?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_webhooks_deployment_id_fkey"
             columns: ["deployment_id"]
             isOneToOne: false
             referencedRelation: "operator_deployments"
@@ -2888,6 +3154,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sector_packs: {
+        Row: {
+          created_at: string
+          description: string | null
+          faqs: Json
+          id: string
+          identity_template: Json
+          is_published: boolean
+          kpi_defaults: Json
+          name: string
+          policies: Json
+          services: Json
+          slug: string
+          test_scenarios: Json
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          faqs?: Json
+          id?: string
+          identity_template?: Json
+          is_published?: boolean
+          kpi_defaults?: Json
+          name: string
+          policies?: Json
+          services?: Json
+          slug: string
+          test_scenarios?: Json
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          faqs?: Json
+          id?: string
+          identity_template?: Json
+          is_published?: boolean
+          kpi_defaults?: Json
+          name?: string
+          policies?: Json
+          services?: Json
+          slug?: string
+          test_scenarios?: Json
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
       }
       social_connections: {
         Row: {
