@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { KNOWLEDGE_CATEGORIES } from "@/lib/operatorToolRegistry";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { FileText, Upload, Plus, Trash2, MessageSquareText, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { FileText, Upload, Plus, Trash2, MessageSquareText, ShieldCheck, Download, Loader2, Sparkles } from "lucide-react";
+import { ROOFERS_PACK } from "@/lib/knowledgePacks/roofers";
 
 interface Doc {
   id: string;
