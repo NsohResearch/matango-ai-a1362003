@@ -46,6 +46,7 @@ export default function KahReceptionist() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={deployment.status === "live" ? "default" : "outline"}>{deployment.status}</Badge>
+          <Link to="/operators/kah/pricing"><Button variant="outline" size="sm">Plans</Button></Link>
           <Link to="/personas/kah"><Button variant="outline" size="sm">About Ka'h</Button></Link>
         </div>
       </div>

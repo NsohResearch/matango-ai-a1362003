@@ -47,6 +47,7 @@ import {
 } from "./pages/AppPages";
 import AdminVideoProviders from "./pages/admin/AdminVideoProviders";
 import KahReceptionist from "./pages/KahReceptionist";
+import KahPricing from "./pages/KahPricing";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +155,7 @@ const App = () => (
             {/* Protected — AAO */}
             <Route path="/aao-studio" element={<P><AAOStudioPage /></P>} />
             <Route path="/aao-glossary" element={<P><AAOGlossary /></P>} />
+            <Route path="/operators/kah/pricing" element={<KahPricing />} />
             <Route path="/operators/kah/:industry" element={<P><KahReceptionist /></P>} />
             <Route path="/operators/kah" element={<P><KahReceptionist /></P>} />
 
