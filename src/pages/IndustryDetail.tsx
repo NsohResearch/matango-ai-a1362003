@@ -62,6 +62,7 @@ const IndustryDetail = () => {
                   <h3 className="font-display text-xl font-semibold">{op.name}</h3>
                   <p className="text-sm text-muted-foreground">{op.role}</p>
                   <p className="text-[11px] text-muted-foreground/80 mt-1">{op.experience}</p>
+                  <AlwaysOnLine className="mt-1.5" />
                   {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Onboarding Underway</span>}
                 </Link>
               ))}
