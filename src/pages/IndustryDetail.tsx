@@ -67,6 +67,7 @@ const IndustryDetail = () => {
                 </Link>
               ))}
             </div>
+            <div className="mt-14"><AlwaysOnCallout /></div>
           </div>
         </section>
 
