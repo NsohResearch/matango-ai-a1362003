@@ -17,7 +17,7 @@ const OperatorsSection = () => (
           Six operators. <span className="italic text-gradient-accent">One brand.</span>
         </h2>
         <p className="mt-4 text-cream-100/60 max-w-2xl mx-auto">
-          Each AI-Amplified Operator has a name, a job, and a memory of your brand. Deploy one or all six.
+          Each AI-Amplified Operator has a name, a job, and a memory of your brand. Hire one or all six.
         </p>
       </motion.div>
 

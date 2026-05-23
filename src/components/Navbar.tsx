@@ -93,7 +93,7 @@ const Navbar = () => {
                   ) : (
                     <>
                       <button onClick={(e) => { handleLoginClick(e, "/auth"); setMobileOpen(false); }} className="text-sm text-cream-100/70 hover:text-gold-400 py-2 text-left">Login</button>
-                      <button onClick={(e) => { handleLoginClick(e, "/auth?mode=signup"); setMobileOpen(false); }} className="rounded-pill bg-primary px-5 py-2 text-sm font-medium text-primary-foreground mt-2">Deploy Your AAO</button>
+                      <button onClick={(e) => { handleLoginClick(e, "/auth?mode=signup"); setMobileOpen(false); }} className="rounded-pill bg-primary px-5 py-2 text-sm font-medium text-primary-foreground mt-2">Hire Your AAO</button>
                     </>
                   )}
                 </nav>
@@ -157,7 +157,7 @@ const Navbar = () => {
                   onClick={(e) => handleLoginClick(e, "/auth?mode=signup")}
                   className="rounded-pill bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:border hover:border-gold-400 hover:shadow-luxury-sm transition-all"
                 >
-                  Deploy Your AAO
+                  Hire Your AAO
                 </button>
               </>
             )}

@@ -7,7 +7,7 @@ const slides = [
   { icon: Bot, title: "AI-Amplified Operators (AAOs)", desc: "Operators, not chatbots. Role-based AI that executes workflows, not just prompts." },
   { icon: Megaphone, title: "Campaign Factory", desc: "Generate full campaigns in minutes. Scripts, posts, landing copy, and creatives — aligned to your Brand Brain." },
   { icon: Video, title: "Video Studio", desc: "Create AI influencer videos at scale. Script → avatar → publish — without production crews." },
-  { icon: Calendar, title: "Scheduler & Publishing", desc: "Deploy across channels. Automated posting with structured distribution logic." },
+  { icon: Calendar, title: "Scheduler & Publishing", desc: "Publish across channels. Automated posting with structured distribution logic." },
   { icon: BarChart3, title: "Closed-Loop Analytics", desc: "Campaigns that learn. Feedback improves future output automatically." },
 ];
 
