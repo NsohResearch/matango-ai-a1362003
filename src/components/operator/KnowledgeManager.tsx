@@ -175,8 +175,16 @@ export default function KnowledgeManager({ deploymentId }: { deploymentId: strin
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Knowledge coverage</CardTitle>
-          <CardDescription>9 grounding categories — Ka'h answers from this corpus.</CardDescription>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <CardTitle>Knowledge coverage</CardTitle>
+              <CardDescription>9 grounding categories — Ka'h answers from this corpus.</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadRoofingPack} disabled={seeding}>
+              {seeding ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+              Load roofing starter pack
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -190,6 +198,9 @@ export default function KnowledgeManager({ deploymentId }: { deploymentId: strin
               </div>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Starter pack seeds ~50 docs (identity templates, 30+ FAQs, policies, materials, warranties). Edit the [TEMPLATE] entries with your real company info.
+          </p>
         </CardContent>
       </Card>
 
