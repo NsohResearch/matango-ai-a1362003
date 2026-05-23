@@ -136,6 +136,35 @@ export default function KnowledgeManager({ deploymentId }: { deploymentId: strin
     load();
   };
 
+  const [seeding, setSeeding] = useState(false);
+  const loadRoofingPack = async () => {
+    if (!user) return;
+    setSeeding(true);
+    try {
+      const rows = ROOFERS_PACK.map(d => ({
+        deployment_id: deploymentId,
+        user_id: user.id,
+        category: d.category,
+        doc_type: d.doc_type,
+        title: d.title,
+        content: d.content ?? null,
+        question: d.question ?? null,
+        answer: d.answer ?? null,
+        tags: d.tags ?? [],
+        status: "active",
+        priority: d.priority ?? 0,
+      }));
+      const { error } = await (supabase as any).from("operator_knowledge_docs").insert(rows);
+      if (error) throw error;
+      toast.success(`Loaded ${rows.length} starter docs — edit the templates to match your business.`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to load starter pack");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const completeness = KNOWLEDGE_CATEGORIES.map(c => ({
     ...c, count: docs.filter(d => d.category === c.id).length,
   }));
