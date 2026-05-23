@@ -15,6 +15,8 @@ import KPIDashboard from "@/components/operator/KPIDashboard";
 import GuidedOnboarding from "@/components/operator/GuidedOnboarding";
 import TestScenarios from "@/components/operator/TestScenarios";
 import ServiceAreaEditor from "@/components/operator/ServiceAreaEditor";
+import HandoffCompliance from "@/components/operator/HandoffCompliance";
+import KPITargets from "@/components/operator/KPITargets";
 import { Loader2 } from "lucide-react";
 
 export default function KahReceptionist() {
@@ -56,6 +58,7 @@ export default function KahReceptionist() {
           <TabsTrigger value="area">Service area</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
           <TabsTrigger value="voice">Voice & guardrails</TabsTrigger>
+          <TabsTrigger value="handoff">Handoff & compliance</TabsTrigger>
           <TabsTrigger value="tests">Test calls</TabsTrigger>
           <TabsTrigger value="onboarding">Checklist</TabsTrigger>
           <TabsTrigger value="kpis">KPIs</TabsTrigger>
@@ -101,9 +104,13 @@ export default function KahReceptionist() {
         <TabsContent value="area" className="mt-4"><ServiceAreaEditor deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tools" className="mt-4"><ToolRegistry deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="voice" className="mt-4"><VoiceConfig deployment={deployment} onUpdate={update} /></TabsContent>
+        <TabsContent value="handoff" className="mt-4"><HandoffCompliance deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tests" className="mt-4"><TestScenarios deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="onboarding" className="mt-4"><OnboardingWizard deploymentId={deployment.id} progress={deployment.onboarding_progress} /></TabsContent>
-        <TabsContent value="kpis" className="mt-4"><KPIDashboard deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="kpis" className="mt-4 space-y-6">
+          <KPIDashboard deploymentId={deployment.id} />
+          <KPITargets deployment={deployment} onUpdate={update} />
+        </TabsContent>
       </Tabs>
     </DashboardLayout>
   );
