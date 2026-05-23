@@ -47,6 +47,7 @@ const Personas = () => (
                 <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">{op.name}</h2>
                 <p className="mt-3 text-lg text-muted-foreground italic">{op.tagline}</p>
                 <p className="mt-2 text-xs text-muted-foreground/80">{op.experience}</p>
+                <AlwaysOnLine className="mt-2" />
                 <p className="mt-5 text-base">{op.bio}</p>
                 <ul className="mt-6 space-y-2">
                   {op.capabilities.map((c) => (
