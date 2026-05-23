@@ -58,6 +58,7 @@ export default function KahReceptionist() {
           <TabsTrigger value="area">Service area</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
           <TabsTrigger value="voice">Voice & guardrails</TabsTrigger>
+          <TabsTrigger value="handoff">Handoff & compliance</TabsTrigger>
           <TabsTrigger value="tests">Test calls</TabsTrigger>
           <TabsTrigger value="onboarding">Checklist</TabsTrigger>
           <TabsTrigger value="kpis">KPIs</TabsTrigger>
