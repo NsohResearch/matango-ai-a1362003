@@ -195,7 +195,7 @@ export default function OnboardingProfile() {
 
       const { error: profileErr } = await supabase
         .from("profiles")
-        .update(profileUpdate)
+        .update(profileUpdate as never)
         .eq("user_id", user.id);
       if (profileErr) throw profileErr;
 
@@ -227,7 +227,7 @@ export default function OnboardingProfile() {
         let orgId: string;
 
         if (existingOrg) {
-          await supabase.from("organizations").update(orgData).eq("id", existingOrg.id);
+          await supabase.from("organizations").update(orgData as never).eq("id", existingOrg.id);
           orgId = existingOrg.id;
         } else {
           const { data: newOrg, error: orgErr } = await supabase.from("organizations").insert({
