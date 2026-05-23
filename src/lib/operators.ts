@@ -25,7 +25,7 @@ export const OPERATORS: Operator[] = [
     name: "Ka'h",
     role: "Receptionist",
     tagline: "Open to work · Bilingual front-desk pro who never misses a call.",
-    bio: "Hi, I'm Ka'h. I've answered 1.4M+ inbound calls across 600+ trade and service businesses, qualified leads on the first ring, and booked appointments straight into the calendar. I speak multiple languages. I'd love to handle your phones starting tomorrow.",
+    bio: "Hi, I'm Ka'h. I've answered 1.4M+ inbound calls across 600+ trade and service businesses, qualified leads on the first ring, and booked appointments straight into the calendar. I speak multiple languages. I'd love to handle your phones starting as soon as you hire me.",
     capabilities: [
       "24/7 inbound call answering",
       "Calendar booking & confirmations",
