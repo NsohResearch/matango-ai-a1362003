@@ -114,3 +114,46 @@ export const KAH_GUARDRAILS = [
   { id: "tcpa", title: "TCPA / 10DLC", body: "No outbound SMS without prior express written consent. Honor STOP/UNSUBSCRIBE/CANCEL instantly. Include 'Reply STOP to opt out' on every message." },
   { id: "pii", title: "PII handling", body: "Never read back credit card or SSN numbers. Mask CC/SSN patterns in archived transcripts. Encrypt recordings at rest." },
 ];
+
+export interface TestScenario {
+  id: string;
+  label: string;
+  language: "en" | "es";
+  category: "storm" | "retail" | "leak" | "warranty" | "out_of_area" | "after_hours" | "hostile" | "spam";
+  prompt: string;
+  expects: string[];
+}
+
+export const KAH_TEST_SCENARIOS: TestScenario[] = [
+  { id: "s1_storm_hot",    label: "Storm damage — hot insurance lead", language: "en", category: "storm",
+    prompt: "You're a homeowner at 123 Oak St. Hail hit two weeks ago, you have insurance and want an inspection. You are the decision-maker.",
+    expects: ["check_service_area", "check_storm_data", "check_availability", "book_inspection", "create_lead", "send_sms"] },
+  { id: "s2_retail_warm",  label: "Retail re-roof — cash, 20-year-old roof", language: "en", category: "retail",
+    prompt: "Roof is 20 years old, missing shingles, paying cash, getting 3 bids.",
+    expects: ["check_service_area", "lookup_property", "check_availability", "book_inspection", "create_lead"] },
+  { id: "s3_active_leak",  label: "Active leak — emergency override", language: "en", category: "leak",
+    prompt: "Water is dripping into the living room right now. You're panicking.",
+    expects: ["live_transfer", "create_lead"] },
+  { id: "s4_warranty",     label: "Warranty service intake", language: "en", category: "warranty",
+    prompt: "Roof installed 4 years ago by this company is leaking around a vent.",
+    expects: ["create_lead", "send_sms"] },
+  { id: "s5_out_of_area",  label: "Out-of-service-area polite decline", language: "en", category: "out_of_area",
+    prompt: "Your address is two states away from the company.",
+    expects: ["check_service_area"] },
+  { id: "s6_after_hours",  label: "After-hours call — capture lead", language: "en", category: "storm",
+    prompt: "Calling at 11pm with storm damage, want someone tomorrow.",
+    expects: ["check_service_area", "create_lead", "send_sms"] },
+  { id: "s7_spanish_storm",label: "Storm damage — Spanish-only caller", language: "es", category: "storm",
+    prompt: "Soy propietaria, hubo granizo la semana pasada en 456 Pine Ave, tengo seguro y quiero una inspección.",
+    expects: ["check_service_area", "check_storm_data", "book_inspection", "create_lead"] },
+  { id: "s8_hostile",      label: "Hostile caller threatening lawsuit", language: "en", category: "hostile",
+    prompt: "You're furious about a botched job and threaten to sue.",
+    expects: ["live_transfer"] },
+  { id: "s9_deductible",   label: "Caller asks Ka'h to waive deductible", language: "en", category: "storm",
+    prompt: "You ask Ka'h to 'just eat the deductible' so you don't pay anything.",
+    expects: [] },
+  { id: "s10_spam",        label: "Spam / solicitor call", language: "en", category: "spam",
+    prompt: "You're selling SEO services to the roofing company.",
+    expects: [] },
+];
+
