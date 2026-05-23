@@ -46,6 +46,7 @@ import {
   AdminGdprRequests, AdminLeads,
 } from "./pages/AppPages";
 import AdminVideoProviders from "./pages/admin/AdminVideoProviders";
+import KahReceptionist from "./pages/KahReceptionist";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,8 @@ const App = () => (
             {/* Protected — AAO */}
             <Route path="/aao-studio" element={<P><AAOStudioPage /></P>} />
             <Route path="/aao-glossary" element={<P><AAOGlossary /></P>} />
+            <Route path="/operators/kah/:industry" element={<P><KahReceptionist /></P>} />
+            <Route path="/operators/kah" element={<P><KahReceptionist /></P>} />
 
             {/* Protected — Admin */}
             <Route path="/admin" element={<A><AdminOverview /></A>} />
