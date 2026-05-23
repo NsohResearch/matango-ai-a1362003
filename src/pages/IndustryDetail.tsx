@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { getIndustry, getOperator } from "@/lib/operators";
+import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
 
 const IndustryDetail = () => {
   const { slug } = useParams();
