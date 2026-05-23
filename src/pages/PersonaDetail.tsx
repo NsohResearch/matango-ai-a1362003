@@ -34,6 +34,7 @@ const PersonaDetail = () => {
                 <h1 className="font-display text-5xl md:text-6xl font-semibold text-cream-50 mt-2">{op.name}</h1>
                 <p className="mt-4 text-xl text-cream-100/70 italic">{op.tagline}</p>
                 <p className="mt-2 text-xs text-cream-100/50">{op.experience}</p>
+                <AlwaysOnLine className="mt-3" />
                 <p className="mt-6 text-cream-100/60">{op.bio}</p>
                 <div className="mt-8">
                   {op.available ? (
