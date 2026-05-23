@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { OPERATORS } from "@/lib/operators";
 import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
+import { AlwaysOnLine, AlwaysOnCallout } from "@/components/operator/AlwaysOnNote";
 
 const Personas = () => (
   <div className="min-h-screen bg-background">
