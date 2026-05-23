@@ -48,6 +48,7 @@ const OperatorsSection = () => (
             <h3 className="mt-5 font-display text-xl font-semibold text-cream-50">{op.name}</h3>
             <p className="text-sm text-cream-100/70 mt-1">{op.role}</p>
             <p className="text-[11px] text-cream-100/50 mt-1 max-w-[14rem]">{op.experience}</p>
+            <AlwaysOnLine className="mt-1.5" />
             {!op.available && (
               <span className="mt-1 text-xs italic text-cream-100/40">Onboarding Underway</span>
             )}
