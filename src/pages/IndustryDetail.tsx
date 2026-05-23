@@ -53,12 +53,14 @@ const IndustryDetail = () => {
                   to={`/personas/${op.slug}`}
                   className="flex flex-col items-center text-center p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-md transition-all"
                 >
-                  <div className={`w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br ${op.accent} ring-2 ring-white/10 mb-4`}>
+                  <div className={`relative w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br ${op.accent} ring-2 ring-white/10 mb-4`}>
                     <img src={op.image} alt={op.name} width={768} height={768} loading="lazy" className="w-full h-full object-cover mix-blend-luminosity opacity-95" />
+                    <OpenToWorkBadge />
                   </div>
                   <h3 className="font-display text-xl font-semibold">{op.name}</h3>
                   <p className="text-sm text-muted-foreground">{op.role}</p>
-                  {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Coming soon</span>}
+                  <p className="text-[11px] text-muted-foreground/80 mt-1">{op.experience}</p>
+                  {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Onboarding Underway</span>}
                 </Link>
               ))}
             </div>
