@@ -7,6 +7,8 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import AudienceSection from "@/components/landing/AudienceSection";
 import OperatorsSection from "@/components/landing/OperatorsSection";
 import IndustriesSection from "@/components/landing/IndustriesSection";
+import SpecificityShowcase from "@/components/landing/SpecificityShowcase";
+import OutcomesSection from "@/components/landing/OutcomesSection";
 import Testimonials from "@/components/marketing/Testimonials";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/Footer";
@@ -19,8 +21,10 @@ const Index = () => {
         <HeroSection />
         <FeatureCarousel />
         <PainPointsSection />
+        <SpecificityShowcase />
         <OneLoopSection />
         <OperatorsSection />
+        <OutcomesSection />
         <IndustriesSection />
         <FeaturesSection />
         <AudienceSection />
