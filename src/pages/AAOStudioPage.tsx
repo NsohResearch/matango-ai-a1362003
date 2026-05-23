@@ -39,7 +39,7 @@ export default function AAOStudioPage() {
   });
 
   const handleDeploy = () => {
-    toast.success("Deployment queued! Your AAO will process this shortly.");
+    toast.success("Hire confirmed! Your AAO will start working shortly.");
   };
 
   return (
@@ -47,11 +47,11 @@ export default function AAOStudioPage() {
       <div className="p-8 max-w-5xl">
         <WorkflowNav />
         <h1 className="font-display text-3xl font-bold mb-2">AAO Studio</h1>
-        <p className="text-muted-foreground mb-8">Deploy your content through AI-Amplified Operators for autonomous distribution.</p>
+        <p className="text-muted-foreground mb-8">Put your AI-Amplified Operators to work for autonomous distribution.</p>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6">
-            <TabsTrigger value="deploy"><Rocket className="h-3.5 w-3.5 mr-1" /> Deploy</TabsTrigger>
+            <TabsTrigger value="deploy"><Rocket className="h-3.5 w-3.5 mr-1" /> Hire</TabsTrigger>
             <TabsTrigger value="history"><Clock className="h-3.5 w-3.5 mr-1" /> History</TabsTrigger>
           </TabsList>
 
@@ -80,7 +80,7 @@ export default function AAOStudioPage() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle>Deployment Settings</CardTitle></CardHeader>
+                <CardHeader><CardTitle>Assignment Settings</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <Label>Destination</Label>
@@ -93,7 +93,7 @@ export default function AAOStudioPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button className="w-full" onClick={handleDeploy}><Send className="h-4 w-4 mr-2" /> Deploy Content</Button>
+                  <Button className="w-full" onClick={handleDeploy}><Send className="h-4 w-4 mr-2" /> Put to Work</Button>
                 </CardContent>
               </Card>
             </div>
@@ -103,7 +103,7 @@ export default function AAOStudioPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No deployments yet. Deploy your first content above.</p>
+                <p className="text-muted-foreground">No assignments yet. Put your first AAO to work above.</p>
               </CardContent>
             </Card>
           </TabsContent>

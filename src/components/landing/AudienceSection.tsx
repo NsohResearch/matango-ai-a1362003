@@ -5,14 +5,14 @@ const audiences = [
   {
     icon: Rocket,
     label: "AI Founders & Startups",
-    title: "Deploy operators, not tools.",
+    title: "Hire operators, not tools.",
     desc: "Your AAOs hold brand memory, execute campaigns, and learn from outcomes — 24/7, without burnout.",
   },
   {
     icon: Building2,
     label: "Agencies",
     title: "Scale with operators, not headcount.",
-    desc: "Deploy AAOs for each client. White-label the platform. Deliver consistent results without hiring.",
+    desc: "Hire AAOs for each client. White-label the platform. Deliver consistent results without hiring.",
   },
   {
     icon: User,
@@ -32,7 +32,7 @@ const AudienceSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream-50">Built For Teams Ready to Deploy AAOs</h2>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold text-cream-50">Built For Teams Ready to Hire AAOs</h2>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">

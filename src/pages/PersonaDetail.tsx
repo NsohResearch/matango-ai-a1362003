@@ -34,7 +34,7 @@ const PersonaDetail = () => {
                 <div className="mt-8">
                   {op.available ? (
                     <Link to="/auth?mode=signup" className="inline-flex items-center gap-2 rounded-full bg-gold-500 text-emerald-950 px-7 py-3.5 font-medium hover:bg-gold-400 transition-all">
-                      Deploy {op.name} now <ArrowRight className="h-4 w-4" />
+                      Hire {op.name} now <ArrowRight className="h-4 w-4" />
                     </Link>
                   ) : (
                     <Link to="/contact" className="inline-flex items-center gap-2 rounded-full border border-gold-400/40 text-gold-300 px-7 py-3.5 font-medium hover:bg-gold-500/10 transition-all">

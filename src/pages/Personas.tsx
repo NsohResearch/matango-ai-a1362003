@@ -58,7 +58,7 @@ const Personas = () => (
                       to="/auth?mode=signup"
                       className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 font-medium hover:shadow-luxury transition-all"
                     >
-                      Deploy {op.name} <ArrowRight className="h-4 w-4" />
+                      Hire {op.name} <ArrowRight className="h-4 w-4" />
                     </Link>
                   ) : (
                     <span className="inline-flex items-center gap-2 rounded-full bg-muted text-muted-foreground px-6 py-3 font-medium italic">

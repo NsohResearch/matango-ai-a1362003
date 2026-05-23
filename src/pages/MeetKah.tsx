@@ -46,7 +46,7 @@ const MeetKah = () => (
                 to="/auth?mode=signup"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-medium text-primary-foreground hover:shadow-luxury transition-all"
               >
-                Deploy Ka'h Now <ArrowRight className="h-4 w-4" />
+                Hire Ka'h Now <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </motion.div>
