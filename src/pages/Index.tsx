@@ -5,6 +5,8 @@ import PainPointsSection from "@/components/landing/PainPointsSection";
 import OneLoopSection from "@/components/landing/OneLoopSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import AudienceSection from "@/components/landing/AudienceSection";
+import OperatorsSection from "@/components/landing/OperatorsSection";
+import IndustriesSection from "@/components/landing/IndustriesSection";
 import Testimonials from "@/components/marketing/Testimonials";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/Footer";
@@ -18,6 +20,8 @@ const Index = () => {
         <FeatureCarousel />
         <PainPointsSection />
         <OneLoopSection />
+        <OperatorsSection />
+        <IndustriesSection />
         <FeaturesSection />
         <AudienceSection />
         <Testimonials />

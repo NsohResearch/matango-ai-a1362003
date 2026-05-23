@@ -25,6 +25,10 @@ import Support from "./pages/Support";
 import Investors from "./pages/Investors";
 import Contact from "./pages/Contact";
 import MeetKah from "./pages/MeetKah";
+import Personas from "./pages/Personas";
+import PersonaDetail from "./pages/PersonaDetail";
+import Industries from "./pages/Industries";
+import IndustryDetail from "./pages/IndustryDetail";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import {
@@ -82,6 +86,10 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/meet-kah" element={<MeetKah />} />
+            <Route path="/personas" element={<Personas />} />
+            <Route path="/personas/:slug" element={<PersonaDetail />} />
+            <Route path="/industries" element={<Industries />} />
+            <Route path="/industries/:slug" element={<IndustryDetail />} />
             <Route path="/discover" element={<Discover />} />
             <Route path="/onboarding/profile" element={<P><OnboardingProfile /></P>} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
