@@ -2000,43 +2000,76 @@ export type Database = {
       }
       operator_knowledge_docs: {
         Row: {
+          answer: string | null
           category: string
           content: string | null
           created_at: string
           deployment_id: string
+          doc_type: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           media_object_id: string | null
           metadata: Json
+          mime_type: string | null
+          priority: number
+          question: string | null
           refresh_cadence: string | null
           source_url: string | null
+          status: string
+          storage_path: string | null
+          tags: string[]
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          answer?: string | null
           category: string
           content?: string | null
           created_at?: string
           deployment_id: string
+          doc_type?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           media_object_id?: string | null
           metadata?: Json
+          mime_type?: string | null
+          priority?: number
+          question?: string | null
           refresh_cadence?: string | null
           source_url?: string | null
+          status?: string
+          storage_path?: string | null
+          tags?: string[]
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          answer?: string | null
           category?: string
           content?: string | null
           created_at?: string
           deployment_id?: string
+          doc_type?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           media_object_id?: string | null
           metadata?: Json
+          mime_type?: string | null
+          priority?: number
+          question?: string | null
           refresh_cadence?: string | null
           source_url?: string | null
+          status?: string
+          storage_path?: string | null
+          tags?: string[]
           title?: string
           updated_at?: string
           user_id?: string

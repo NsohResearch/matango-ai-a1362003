@@ -14,10 +14,10 @@ export default function OpenToWorkBadge({ className = "", label = "#OPENTOWORK" 
       aria-hidden="true"
     >
       <defs>
-        {/* Arc from upper-left through bottom to right-middle (matches reference). */}
-        <path id="otw-arc" d="M 17.3 69.9 A 88 88 0 0 1 188 100" fill="none" />
+        {/* Bottom semicircle arc: left-middle → bottom → right-middle. */}
+        <path id="otw-arc" d="M 12 100 A 88 88 0 0 0 188 100" fill="none" />
       </defs>
-      <use href="#otw-arc" stroke="hsl(142 55% 28%)" strokeWidth="22" strokeLinecap="round" />
+      <use href="#otw-arc" stroke="hsl(142 55% 28%)" strokeWidth="24" strokeLinecap="butt" />
       <text fill="#ffffff" fontSize="15" fontWeight="800" letterSpacing="3" fontFamily="ui-sans-serif, system-ui, sans-serif">
         <textPath href="#otw-arc" startOffset="50%" textAnchor="middle">{label}</textPath>
       </text>
