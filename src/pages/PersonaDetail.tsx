@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { getOperator, INDUSTRIES } from "@/lib/operators";
 import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
+import { AlwaysOnLine, AlwaysOnCallout } from "@/components/operator/AlwaysOnNote";
 
 const PersonaDetail = () => {
   const { slug } = useParams();
