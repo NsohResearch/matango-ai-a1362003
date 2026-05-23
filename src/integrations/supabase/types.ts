@@ -1846,6 +1846,311 @@ export type Database = {
         }
         Relationships: []
       }
+      operator_call_logs: {
+        Row: {
+          call_sid: string | null
+          caller_name: string | null
+          caller_number: string | null
+          channel: string
+          deployment_id: string
+          direction: string
+          disposition: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          in_service_area: boolean | null
+          insurance_claim: boolean | null
+          is_emergency: boolean | null
+          lead_type: string | null
+          metadata: Json
+          qualification_score: number | null
+          recording_url: string | null
+          started_at: string
+          summary: string | null
+          transcript: string | null
+          user_id: string
+        }
+        Insert: {
+          call_sid?: string | null
+          caller_name?: string | null
+          caller_number?: string | null
+          channel?: string
+          deployment_id: string
+          direction?: string
+          disposition?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          in_service_area?: boolean | null
+          insurance_claim?: boolean | null
+          is_emergency?: boolean | null
+          lead_type?: string | null
+          metadata?: Json
+          qualification_score?: number | null
+          recording_url?: string | null
+          started_at?: string
+          summary?: string | null
+          transcript?: string | null
+          user_id: string
+        }
+        Update: {
+          call_sid?: string | null
+          caller_name?: string | null
+          caller_number?: string | null
+          channel?: string
+          deployment_id?: string
+          direction?: string
+          disposition?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          in_service_area?: boolean | null
+          insurance_claim?: boolean | null
+          is_emergency?: boolean | null
+          lead_type?: string | null
+          metadata?: Json
+          qualification_score?: number | null
+          recording_url?: string | null
+          started_at?: string
+          summary?: string | null
+          transcript?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_call_logs_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_deployments: {
+        Row: {
+          business_hours: Json
+          config: Json
+          created_at: string
+          display_name: string
+          id: string
+          industry_slug: string
+          language_primary: string
+          language_secondary: string | null
+          onboarding_progress: Json
+          operator_slug: string
+          org_id: string
+          phone_number: string | null
+          routing_matrix: Json
+          service_area_geojson: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+          voice_id: string | null
+        }
+        Insert: {
+          business_hours?: Json
+          config?: Json
+          created_at?: string
+          display_name: string
+          id?: string
+          industry_slug: string
+          language_primary?: string
+          language_secondary?: string | null
+          onboarding_progress?: Json
+          operator_slug: string
+          org_id: string
+          phone_number?: string | null
+          routing_matrix?: Json
+          service_area_geojson?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          voice_id?: string | null
+        }
+        Update: {
+          business_hours?: Json
+          config?: Json
+          created_at?: string
+          display_name?: string
+          id?: string
+          industry_slug?: string
+          language_primary?: string
+          language_secondary?: string | null
+          onboarding_progress?: Json
+          operator_slug?: string
+          org_id?: string
+          phone_number?: string | null
+          routing_matrix?: Json
+          service_area_geojson?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string | null
+        }
+        Relationships: []
+      }
+      operator_knowledge_docs: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          deployment_id: string
+          id: string
+          media_object_id: string | null
+          metadata: Json
+          refresh_cadence: string | null
+          source_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          content?: string | null
+          created_at?: string
+          deployment_id: string
+          id?: string
+          media_object_id?: string | null
+          metadata?: Json
+          refresh_cadence?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          media_object_id?: string | null
+          metadata?: Json
+          refresh_cadence?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_knowledge_docs_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_kpi_daily: {
+        Row: {
+          after_hours_captured: number
+          avg_handle_seconds: number
+          calls_answered: number
+          calls_booked: number
+          calls_emergency: number
+          calls_qualified: number
+          calls_total: number
+          calls_transferred: number
+          csat_avg: number | null
+          date: string
+          deployment_id: string
+          id: string
+          missed_call_recovered: number
+          updated_at: string
+        }
+        Insert: {
+          after_hours_captured?: number
+          avg_handle_seconds?: number
+          calls_answered?: number
+          calls_booked?: number
+          calls_emergency?: number
+          calls_qualified?: number
+          calls_total?: number
+          calls_transferred?: number
+          csat_avg?: number | null
+          date: string
+          deployment_id: string
+          id?: string
+          missed_call_recovered?: number
+          updated_at?: string
+        }
+        Update: {
+          after_hours_captured?: number
+          avg_handle_seconds?: number
+          calls_answered?: number
+          calls_booked?: number
+          calls_emergency?: number
+          calls_qualified?: number
+          calls_total?: number
+          calls_transferred?: number
+          csat_avg?: number | null
+          date?: string
+          deployment_id?: string
+          id?: string
+          missed_call_recovered?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_kpi_daily_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_tools: {
+        Row: {
+          config: Json
+          created_at: string
+          deployment_id: string
+          health_status: string
+          id: string
+          is_enabled: boolean
+          last_checked_at: string | null
+          provider: string
+          secret_ref: string | null
+          tool_name: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          deployment_id: string
+          health_status?: string
+          id?: string
+          is_enabled?: boolean
+          last_checked_at?: string | null
+          provider: string
+          secret_ref?: string | null
+          tool_name: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          deployment_id?: string
+          health_status?: string
+          id?: string
+          is_enabled?: boolean
+          last_checked_at?: string | null
+          provider?: string
+          secret_ref?: string | null
+          tool_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_tools_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_provider_keys: {
         Row: {
           created_at: string
