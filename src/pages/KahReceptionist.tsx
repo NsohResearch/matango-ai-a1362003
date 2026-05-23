@@ -104,9 +104,13 @@ export default function KahReceptionist() {
         <TabsContent value="area" className="mt-4"><ServiceAreaEditor deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tools" className="mt-4"><ToolRegistry deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="voice" className="mt-4"><VoiceConfig deployment={deployment} onUpdate={update} /></TabsContent>
+        <TabsContent value="handoff" className="mt-4"><HandoffCompliance deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tests" className="mt-4"><TestScenarios deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="onboarding" className="mt-4"><OnboardingWizard deploymentId={deployment.id} progress={deployment.onboarding_progress} /></TabsContent>
-        <TabsContent value="kpis" className="mt-4"><KPIDashboard deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="kpis" className="mt-4 space-y-6">
+          <KPIDashboard deploymentId={deployment.id} />
+          <KPITargets deployment={deployment} onUpdate={update} />
+        </TabsContent>
       </Tabs>
     </DashboardLayout>
   );
