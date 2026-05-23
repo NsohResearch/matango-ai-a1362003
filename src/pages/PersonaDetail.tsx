@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { getOperator, INDUSTRIES } from "@/lib/operators";
+import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
 
 const PersonaDetail = () => {
   const { slug } = useParams();
@@ -24,12 +25,14 @@ const PersonaDetail = () => {
               <div className="flex justify-center">
                 <div className={`relative w-72 h-72 md:w-96 md:h-96 rounded-full overflow-hidden bg-gradient-to-br ${op.accent} ring-4 ring-white/10 shadow-2xl`}>
                   <img src={op.image} alt={`${op.name}, ${op.role}`} width={768} height={768} className="w-full h-full object-cover mix-blend-luminosity opacity-95" />
+                  <OpenToWorkBadge />
                 </div>
               </div>
               <div>
                 <span className="text-xs font-medium text-gold-400 uppercase tracking-[0.2em]">{op.role}</span>
                 <h1 className="font-display text-5xl md:text-6xl font-semibold text-cream-50 mt-2">{op.name}</h1>
                 <p className="mt-4 text-xl text-cream-100/70 italic">{op.tagline}</p>
+                <p className="mt-2 text-xs text-cream-100/50">{op.experience}</p>
                 <p className="mt-6 text-cream-100/60">{op.bio}</p>
                 <div className="mt-8">
                   {op.available ? (

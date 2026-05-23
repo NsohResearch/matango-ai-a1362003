@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { OPERATORS } from "@/lib/operators";
+import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
 
 const OperatorsSection = () => (
   <section className="py-24 px-6 bg-emerald-950">
@@ -41,12 +42,14 @@ const OperatorsSection = () => (
                   loading="lazy"
                   className="w-full h-full object-cover mix-blend-luminosity opacity-95 group-hover:scale-105 transition-transform duration-500"
                 />
+                <OpenToWorkBadge />
               </div>
             </Link>
             <h3 className="mt-5 font-display text-xl font-semibold text-cream-50">{op.name}</h3>
             <p className="text-sm text-cream-100/70 mt-1">{op.role}</p>
+            <p className="text-[11px] text-cream-100/50 mt-1 max-w-[14rem]">{op.experience}</p>
             {!op.available && (
-              <span className="mt-1 text-xs italic text-cream-100/40">Coming soon</span>
+              <span className="mt-1 text-xs italic text-cream-100/40">Onboarding Underway</span>
             )}
           </motion.div>
         ))}

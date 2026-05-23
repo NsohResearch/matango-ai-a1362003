@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { OPERATORS } from "@/lib/operators";
+import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
 
 const Personas = () => (
   <div className="min-h-screen bg-background">
@@ -37,12 +38,14 @@ const Personas = () => (
                     loading="lazy"
                     className="w-full h-full object-cover mix-blend-luminosity opacity-95"
                   />
+                  <OpenToWorkBadge />
                 </div>
               </div>
               <div>
                 <span className="text-xs font-medium text-primary uppercase tracking-[0.2em]">{op.role}</span>
                 <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">{op.name}</h2>
                 <p className="mt-3 text-lg text-muted-foreground italic">{op.tagline}</p>
+                <p className="mt-2 text-xs text-muted-foreground/80">{op.experience}</p>
                 <p className="mt-5 text-base">{op.bio}</p>
                 <ul className="mt-6 space-y-2">
                   {op.capabilities.map((c) => (

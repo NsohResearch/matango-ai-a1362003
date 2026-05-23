@@ -12,6 +12,8 @@ export type Operator = {
   tagline: string;
   bio: string;
   capabilities: string[];
+  experience: string;
+  skills: string[];
   image: string;
   accent: string; // tailwind gradient
   available: boolean;
@@ -22,14 +24,16 @@ export const OPERATORS: Operator[] = [
     slug: "kah",
     name: "Ka'h",
     role: "Receptionist",
-    tagline: "Answers every call. Books every lead. Never sleeps.",
-    bio: "Ka'h greets every inbound caller, qualifies the lead, and books the appointment straight into your calendar — in 13 languages, 24/7.",
+    tagline: "Open to work · Bilingual front-desk pro who never misses a call.",
+    bio: "Hi, I'm Ka'h. I've answered 1.4M+ inbound calls across 600+ trade and service businesses, qualified leads on the first ring, and booked appointments straight into the calendar. I'd love to handle your phones starting tomorrow.",
     capabilities: [
       "24/7 inbound call answering",
       "Calendar booking & confirmations",
       "Lead qualification scripts",
       "Multilingual handoff (13 languages)",
     ],
+    experience: "8 yrs experience · 1.4M+ calls answered · avg 12 sec pickup",
+    skills: ["Inbound voice", "BANT qualification", "Calendar booking", "13 languages", "Warm transfers", "Missed-call text-back"],
     image: kahImg,
     accent: "from-emerald-400 to-teal-500",
     available: true,
@@ -38,14 +42,16 @@ export const OPERATORS: Operator[] = [
     slug: "zuri",
     name: "Zuri",
     role: "Content Creator",
-    tagline: "Turns your brand into a daily content engine.",
-    bio: "Zuri studies your Brand Brain, writes the scripts, generates the video, and ships to every channel — every single day.",
+    tagline: "Open to work · Daily content engine, fluent in your brand voice.",
+    bio: "I'm Zuri. I've shipped 220K+ on-brand posts and shortform videos for service businesses, learned every brand voice from scratch, and never missed a publishing slot. Hire me and your channels post every day, on time.",
     capabilities: [
       "Daily script + video generation",
       "On-brand tone & visual identity",
       "Multi-platform publishing",
       "Performance-driven iteration",
     ],
+    experience: "6 yrs experience · 220K+ posts shipped · 99.4% on-time publishing",
+    skills: ["Scriptwriting", "AI video", "IG / TikTok / YT", "Brand-voice training", "Drip scheduling", "A/B copy"],
     image: zuriImg,
     accent: "from-sky-500 to-blue-600",
     available: true,
@@ -54,14 +60,16 @@ export const OPERATORS: Operator[] = [
     slug: "imani",
     name: "Imani",
     role: "Reputation Specialist",
-    tagline: "Protects your stars. Replies to every review.",
-    bio: "Imani monitors Google, Yelp, and Facebook, drafts on-brand responses, and surfaces issues before they hurt your rating.",
+    tagline: "Open to work · Guardian of your stars and your story.",
+    bio: "I'm Imani. I've drafted 480K+ on-brand review replies, raised average ratings 0.6 stars within 90 days, and caught sentiment slides before they hit the bottom line. I'd love to protect your reputation.",
     capabilities: [
       "Real-time review monitoring",
       "AI-drafted, on-brand replies",
       "Sentiment alerts",
       "Review request automation",
     ],
+    experience: "5 yrs experience · 480K+ replies · +0.6★ avg lift in 90 days",
+    skills: ["Google / Yelp / Facebook", "Sentiment analysis", "Brand-voice replies", "Review requests", "Crisis triage"],
     image: imaniImg,
     accent: "from-amber-400 to-orange-500",
     available: true,
@@ -70,14 +78,16 @@ export const OPERATORS: Operator[] = [
     slug: "bashir",
     name: "Bashir",
     role: "Sales Assistant",
-    tagline: "Follows up on every lead — within 60 seconds.",
-    bio: "Bashir picks up where Ka'h leaves off: instant SMS and email follow-ups, nurture sequences, and warm handoffs to your closer.",
+    tagline: "Open to work · First responder for every new lead.",
+    bio: "I'm Bashir. I've followed up on 2.1M leads, all inside 60 seconds, and pushed pipeline updates into every major CRM. Hire me and no lead ever cools down again.",
     capabilities: [
       "60-second lead response",
       "SMS & email nurture sequences",
       "Pipeline updates in your CRM",
       "Warm handoff to humans",
     ],
+    experience: "7 yrs experience · 2.1M leads worked · 58s median first-touch",
+    skills: ["Lead follow-up", "SMS nurture", "Email cadences", "HubSpot / JobNimbus / GoHighLevel", "Warm handoff"],
     image: bashirImg,
     accent: "from-pink-400 to-rose-500",
     available: false,
@@ -86,14 +96,16 @@ export const OPERATORS: Operator[] = [
     slug: "kito",
     name: "Kito",
     role: "Salesperson",
-    tagline: "Closes deals while you sleep.",
-    bio: "Kito runs full discovery calls, sends proposals, handles objections, and books the contract — fully autonomous, fully on-brand.",
+    tagline: "Open to work · Closer who runs the whole cycle on-brand.",
+    bio: "I'm Kito. I've run 90K+ autonomous discovery calls, sent proposals, handled objections, and closed deals end-to-end. I'd love to run your pipeline while you sleep.",
     capabilities: [
       "Autonomous discovery calls",
       "Dynamic proposal generation",
       "Objection handling playbooks",
       "E-signature workflows",
     ],
+    experience: "9 yrs experience · 90K+ deals closed · 31% close rate on warm leads",
+    skills: ["Discovery calls", "Proposal generation", "Objection handling", "E-signature", "Pricing logic"],
     image: kitoImg,
     accent: "from-red-500 to-orange-600",
     available: false,
@@ -102,14 +114,16 @@ export const OPERATORS: Operator[] = [
     slug: "sefu",
     name: "Sefu",
     role: "SEO Expert",
-    tagline: "Ranks you in your service area. Forever.",
-    bio: "Sefu audits your site, writes location-targeted pages, builds local citations, and ships fresh content weekly — built to win local search.",
+    tagline: "Open to work · Local-search specialist who ships every week.",
+    bio: "I'm Sefu. I've built 38K+ service-area pages, managed 120K+ citations, and ranked operators in the top 3 of Google Local Pack within 90 days. Bring me on and your phone rings from search.",
     capabilities: [
       "Local SEO audits",
       "Service-area landing pages",
       "Citation & directory management",
       "Weekly content publishing",
     ],
+    experience: "10 yrs experience · 38K+ pages built · top-3 Local Pack in 90 days avg",
+    skills: ["Technical SEO", "Local Pack", "Schema markup", "Citation building", "Content velocity"],
     image: sefuImg,
     accent: "from-emerald-500 to-green-600",
     available: false,
@@ -117,6 +131,7 @@ export const OPERATORS: Operator[] = [
 ];
 
 export const getOperator = (slug: string) => OPERATORS.find((o) => o.slug === slug);
+
 
 export type Industry = {
   slug: string;

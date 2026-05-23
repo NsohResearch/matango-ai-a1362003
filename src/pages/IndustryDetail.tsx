@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { getIndustry, getOperator } from "@/lib/operators";
+import OpenToWorkBadge from "@/components/operator/OpenToWorkBadge";
 
 const IndustryDetail = () => {
   const { slug } = useParams();
@@ -53,12 +54,14 @@ const IndustryDetail = () => {
                   to={`/personas/${op.slug}`}
                   className="flex flex-col items-center text-center p-6 rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-md transition-all"
                 >
-                  <div className={`w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br ${op.accent} ring-2 ring-white/10 mb-4`}>
+                  <div className={`relative w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br ${op.accent} ring-2 ring-white/10 mb-4`}>
                     <img src={op.image} alt={op.name} width={768} height={768} loading="lazy" className="w-full h-full object-cover mix-blend-luminosity opacity-95" />
+                    <OpenToWorkBadge />
                   </div>
                   <h3 className="font-display text-xl font-semibold">{op.name}</h3>
                   <p className="text-sm text-muted-foreground">{op.role}</p>
-                  {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Coming soon</span>}
+                  <p className="text-[11px] text-muted-foreground/80 mt-1">{op.experience}</p>
+                  {!op.available && <span className="text-xs italic text-muted-foreground mt-1">Onboarding Underway</span>}
                 </Link>
               ))}
             </div>
@@ -67,10 +70,10 @@ const IndustryDetail = () => {
 
         <section className="py-20 px-6 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-            Ready to deploy your {ind.name} crew?
+            Ready to hire your {ind.name} crew?
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-            Get started in minutes. Your AAOs learn your brand and start working today.
+            Get started in minutes. Your AAOs know your industry and are ready to start working today.
           </p>
           <Link
             to="/auth?mode=signup"
