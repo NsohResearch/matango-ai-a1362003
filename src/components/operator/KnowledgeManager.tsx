@@ -12,6 +12,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { FileText, Upload, Plus, Trash2, MessageSquareText, ShieldCheck, Download, Loader2, Sparkles } from "lucide-react";
 import { ROOFERS_PACK } from "@/lib/knowledgePacks/roofers";
+import { HVAC_PACK } from "@/lib/knowledgePacks/hvac";
+
+const SECTOR_PACKS: Record<string, { label: string; pack: typeof ROOFERS_PACK }> = {
+  roofers: { label: "roofing", pack: ROOFERS_PACK },
+  hvac: { label: "HVAC", pack: HVAC_PACK },
+};
 
 interface Doc {
   id: string;
@@ -39,7 +45,7 @@ const DOC_TYPES = [
 
 const BUCKET = "operator-knowledge";
 
-export default function KnowledgeManager({ deploymentId }: { deploymentId: string }) {
+export default function KnowledgeManager({ deploymentId, sectorSlug = "roofers" }: { deploymentId: string; sectorSlug?: string }) {
   const { user } = useAuth();
   const [docs, setDocs] = useState<Doc[]>([]);
   const [tab, setTab] = useState<"document" | "faq" | "policy">("document");
@@ -137,11 +143,12 @@ export default function KnowledgeManager({ deploymentId }: { deploymentId: strin
   };
 
   const [seeding, setSeeding] = useState(false);
+  const sector = SECTOR_PACKS[sectorSlug] ?? SECTOR_PACKS.roofers;
   const loadRoofingPack = async () => {
     if (!user) return;
     setSeeding(true);
     try {
-      const rows = ROOFERS_PACK.map(d => ({
+      const rows = sector.pack.map(d => ({
         deployment_id: deploymentId,
         user_id: user.id,
         category: d.category,
@@ -182,7 +189,7 @@ export default function KnowledgeManager({ deploymentId }: { deploymentId: strin
             </div>
             <Button variant="outline" size="sm" onClick={loadRoofingPack} disabled={seeding}>
               {seeding ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              Load roofing starter pack
+              Load {sector.label} starter pack
             </Button>
           </div>
         </CardHeader>
