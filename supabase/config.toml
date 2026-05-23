@@ -1,43 +1,4 @@
 project_id = "bzrlgcxdintnwqycjkpt"
 
-[functions.ai-generate]
-verify_jwt = false
-
-[functions.kah-chat]
-verify_jwt = false
-
-[functions.aao-execute]
-verify_jwt = false
-
-[functions.gdpr-process]
-verify_jwt = false
-
-[functions.analytics-seed]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.check-subscription]
-verify_jwt = false
-
-[functions.customer-portal]
-verify_jwt = false
-
-[functions.account-lifecycle]
-verify_jwt = false
-
-[functions.process-hard-deletes]
-verify_jwt = false
-
-[functions.generate-image]
-verify_jwt = false
-
-[functions.process-video-job]
-verify_jwt = false
-
-[functions.process-training-job]
-verify_jwt = false
-
-[functions.publish-posts]
+[functions.operator-retell-webhook]
 verify_jwt = false

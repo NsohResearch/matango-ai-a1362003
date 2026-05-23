@@ -1941,7 +1941,10 @@ export type Database = {
           org_id: string
           phone_number: string | null
           routing_matrix: Json
+          service_area_center: string | null
           service_area_geojson: Json | null
+          service_area_radius_miles: number | null
+          service_area_zips: string[] | null
           status: string
           updated_at: string
           user_id: string
@@ -1961,7 +1964,10 @@ export type Database = {
           org_id: string
           phone_number?: string | null
           routing_matrix?: Json
+          service_area_center?: string | null
           service_area_geojson?: Json | null
+          service_area_radius_miles?: number | null
+          service_area_zips?: string[] | null
           status?: string
           updated_at?: string
           user_id: string
@@ -1981,7 +1987,10 @@ export type Database = {
           org_id?: string
           phone_number?: string | null
           routing_matrix?: Json
+          service_area_center?: string | null
           service_area_geojson?: Json | null
+          service_area_radius_miles?: number | null
+          service_area_zips?: string[] | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -2094,6 +2103,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "operator_kpi_daily_deployment_id_fkey"
+            columns: ["deployment_id"]
+            isOneToOne: false
+            referencedRelation: "operator_deployments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      operator_test_runs: {
+        Row: {
+          created_at: string
+          deployment_id: string
+          id: string
+          notes: string | null
+          ran_at: string | null
+          scenario_id: string
+          scenario_label: string
+          score: number | null
+          status: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deployment_id: string
+          id?: string
+          notes?: string | null
+          ran_at?: string | null
+          scenario_id: string
+          scenario_label: string
+          score?: number | null
+          status?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deployment_id?: string
+          id?: string
+          notes?: string | null
+          ran_at?: string | null
+          scenario_id?: string
+          scenario_label?: string
+          score?: number | null
+          status?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "operator_test_runs_deployment_id_fkey"
             columns: ["deployment_id"]
             isOneToOne: false
             referencedRelation: "operator_deployments"

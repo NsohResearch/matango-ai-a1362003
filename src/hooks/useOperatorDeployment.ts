@@ -16,6 +16,9 @@ export interface OperatorDeployment {
   language_secondary: string | null;
   business_hours: any;
   service_area_geojson: any;
+  service_area_zips: string[] | null;
+  service_area_center: string | null;
+  service_area_radius_miles: number | null;
   routing_matrix: any[];
   config: any;
   onboarding_progress: { phase: number; completed_steps: string[] };

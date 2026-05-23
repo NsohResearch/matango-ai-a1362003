@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,9 @@ import ToolRegistry from "@/components/operator/ToolRegistry";
 import VoiceConfig from "@/components/operator/VoiceConfig";
 import OnboardingWizard from "@/components/operator/OnboardingWizard";
 import KPIDashboard from "@/components/operator/KPIDashboard";
+import GuidedOnboarding from "@/components/operator/GuidedOnboarding";
+import TestScenarios from "@/components/operator/TestScenarios";
+import ServiceAreaEditor from "@/components/operator/ServiceAreaEditor";
 import { Loader2 } from "lucide-react";
 
 export default function KahReceptionist() {
@@ -19,6 +22,7 @@ export default function KahReceptionist() {
   const ind = INDUSTRIES.find(i => i.slug === industry) ?? INDUSTRIES[0];
   const op = OPERATORS.find(o => o.slug === "kah")!;
   const { deployment, loading, ensure, update } = useOperatorDeployment("kah", ind.slug);
+  const [tab, setTab] = useState("guided");
 
   useEffect(() => {
     if (!loading && !deployment) ensure(`${op.name} — ${ind.name} Receptionist`);
@@ -44,15 +48,22 @@ export default function KahReceptionist() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="flex-wrap">
+          <TabsTrigger value="guided">Guided setup</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="knowledge">Knowledge</TabsTrigger>
+          <TabsTrigger value="area">Service area</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
           <TabsTrigger value="voice">Voice & guardrails</TabsTrigger>
-          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+          <TabsTrigger value="tests">Test calls</TabsTrigger>
+          <TabsTrigger value="onboarding">Checklist</TabsTrigger>
           <TabsTrigger value="kpis">KPIs</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="guided" className="mt-4">
+          <GuidedOnboarding deployment={deployment} onUpdate={update} onJumpToVoice={() => setTab("voice")} />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-4 mt-4">
           <Card>
@@ -87,11 +98,14 @@ export default function KahReceptionist() {
         </TabsContent>
 
         <TabsContent value="knowledge" className="mt-4"><KnowledgeManager deploymentId={deployment.id} /></TabsContent>
+        <TabsContent value="area" className="mt-4"><ServiceAreaEditor deployment={deployment} onUpdate={update} /></TabsContent>
         <TabsContent value="tools" className="mt-4"><ToolRegistry deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="voice" className="mt-4"><VoiceConfig deployment={deployment} onUpdate={update} /></TabsContent>
+        <TabsContent value="tests" className="mt-4"><TestScenarios deploymentId={deployment.id} /></TabsContent>
         <TabsContent value="onboarding" className="mt-4"><OnboardingWizard deploymentId={deployment.id} progress={deployment.onboarding_progress} /></TabsContent>
         <TabsContent value="kpis" className="mt-4"><KPIDashboard deploymentId={deployment.id} /></TabsContent>
       </Tabs>
     </DashboardLayout>
   );
 }
+
