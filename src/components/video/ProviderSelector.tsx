@@ -103,7 +103,7 @@ const ProviderSelector = ({
               {availableProviders.map((p: any) => (
                 <option key={p.id} value={p.id}>
                   {p.name} {p.provider_type === "byo_api" ? "(BYO)" : ""}
-                  {p.status === "coming_soon" ? " — Coming Soon" : ""}
+                  {p.status === "coming_soon" ? " — Onboarding Underway" : ""}
                 </option>
               ))}
             </select>
