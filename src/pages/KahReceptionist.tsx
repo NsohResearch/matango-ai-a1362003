@@ -15,6 +15,8 @@ import KPIDashboard from "@/components/operator/KPIDashboard";
 import GuidedOnboarding from "@/components/operator/GuidedOnboarding";
 import TestScenarios from "@/components/operator/TestScenarios";
 import ServiceAreaEditor from "@/components/operator/ServiceAreaEditor";
+import HandoffCompliance from "@/components/operator/HandoffCompliance";
+import KPITargets from "@/components/operator/KPITargets";
 import { Loader2 } from "lucide-react";
 
 export default function KahReceptionist() {
