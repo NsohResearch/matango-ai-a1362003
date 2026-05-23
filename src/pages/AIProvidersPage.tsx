@@ -59,7 +59,7 @@ export default function AIProvidersPage() {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-lg">{provider.name}</CardTitle>
                       <Badge variant={provider.status === "available" ? "default" : "secondary"}>
-                        {provider.status === "available" ? "Available" : "Coming Soon"}
+                        {provider.status === "available" ? "Available" : "Onboarding Underway"}
                       </Badge>
                     </div>
                     <CardDescription>Tier: {provider.tier}</CardDescription>

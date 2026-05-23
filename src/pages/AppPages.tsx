@@ -22,7 +22,7 @@ export { default as AssetLibrary } from "@/pages/AssetLibrary";
 export { default as AdminOverview } from "@/pages/admin/AdminOverview";
 export { AdminTenantsPage as AdminTenants, AdminBillingPage as AdminBilling, AdminFeatureFlagsPage as AdminFeatureFlags, AdminAuditLogPage as AdminAuditLog, AdminSystemHealthPage as AdminSystemHealth, AdminModerationPage as AdminModeration, AdminCompliancePage as AdminCompliance, AdminGdprPage as AdminGdprRequests, AdminLeadsPage as AdminLeads } from "@/pages/Admin";
 
-// Coming Soon pages with proper gating, explanations, and alternatives
+// Onboarding Underway pages with proper gating, explanations, and alternatives
 export const VideoStudioPro = () => (
   <ComingSoonPage title="Video Studio Pro" description="Advanced video creation with professional editing tools, lip-sync, and multi-scene composition." icon={Video} tier="Agency" alternatives={[{ label: "Use Video Studio", to: "/video-studio" }]} />
 );
