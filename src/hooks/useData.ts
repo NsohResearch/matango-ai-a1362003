@@ -634,7 +634,7 @@ export function useUpsertWhiteLabelSettings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: Record<string, unknown> & { org_id: string }) => {
-      const { data, error } = await supabase.from("white_label_settings").upsert(values, { onConflict: "org_id" }).select().single();
+      const { data, error } = await supabase.from("white_label_settings").upsert(values as never, { onConflict: "org_id" }).select().single();
       if (error) throw error;
       return data;
     },
